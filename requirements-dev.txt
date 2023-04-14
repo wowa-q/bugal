@@ -1,0 +1,6 @@
+# Linting/Tooling
+pylint
+flake8
+mypy
+pre-commit
+autopep8

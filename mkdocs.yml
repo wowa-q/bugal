@@ -1,0 +1,15 @@
+site_name: DKB
+
+# setting up the theme for documentation
+theme:
+  name: "material"
+
+# to generate documentation from docstrings from code
+plugins:
+  - mkdocstrings
+
+# include new chapter / md files
+nav:
+  - index.md
+  - db/alchemy.md
+  - db/sql.md
