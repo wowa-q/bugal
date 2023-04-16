@@ -1,4 +1,4 @@
-site_name: DKB
+site_name: BUGAL
 
 # setting up the theme for documentation
 theme:
@@ -11,5 +11,8 @@ plugins:
 # include new chapter / md files
 nav:
   - index.md
-  - db/alchemy.md
-  - db/sql.md
+  - ug.md
+  - releasenotes.md
+  - req/req.md
+
+
