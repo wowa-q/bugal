@@ -1,21 +1,16 @@
-def provide ():
-    return True
+from pathlib import Path
 
-def provide_list():
-    month_data_header = [
-        'id',
-        'date',
-        'booking-date',
-        'text',
-        'debitor',
-        'verwendung',
-        'konto',
-        'blz',
-        'value',
-        'debitor-id',
-        'mandat',
-        'customer',
-        'class',
-        'category'
-    ]
-    return month_data_header
+Filter = None
+Aggregate = None
+
+def import_csv(csv: Path):
+    result = True
+    pth = 'kein Pfad hiterlegt'
+    return (result, pth)
+
+def export_excel(fil: Filter):    
+    return True, ''
+
+def import_excel(aggr: Aggregate):    
+    return True, ''
+
