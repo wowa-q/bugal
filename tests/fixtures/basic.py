@@ -16,6 +16,26 @@ from openpyxl import Workbook
 FIXTURE_DIR = pathlib.Path(__file__).parent.resolve()
 
 @pytest.fixture
+def fx_transaction_example():
+    data = ["2022-01-01", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "checksum", "src_konto"]
+    return data
+
+@pytest.fixture
+def fx_transactions_list_example():
+    transactions = []
+    data = ["2022-01-01", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "checksum", "src_konto"]
+    transactions.append(data)
+    data = ["2022-01-02", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "checksum", "src_konto"]
+    transactions.append(data)
+    data = ["2022-01-03", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "checksum", "src_konto"]
+    transactions.append(data)
+    data = ["2022-01-04", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "checksum", "src_konto"]
+    transactions.append(data)
+    data = ["2022-01-01", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "checksum", "src_konto"]
+    transactions.append(data)
+    return transactions
+
+@pytest.fixture
 def fx_xls_file2create():
     """Definitiaon of excel file, which shall be created and deleted when the test was done
 

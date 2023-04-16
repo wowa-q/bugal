@@ -81,3 +81,4 @@ def test_export_excel(fx_export_filter_aggregate):
 def test_import_excel(fx_export_filter_aggregate):
     result = cli.import_excel(fx_export_filter_aggregate)
     assert result[0] == True, f"Excel import reported as failed"
+
