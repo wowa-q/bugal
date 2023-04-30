@@ -12,28 +12,67 @@ from datetime import datetime
 import pytest
 # from openpyxl import Workbook
 
+# user packages
+from context import bugal
+from bugal import model
+from bugal import cfg
 
 FIXTURE_DIR = pathlib.Path(__file__).parent.resolve()
 
 @pytest.fixture
+def fx_mandatory_sheets():
+    return ['Regeln',
+            'Historie', 
+            'Properties',
+            'Transaktionen',
+            'Jahr',
+            'Guide',
+            ]
+
+@pytest.fixture
+def fx_xls_file():
+    xsl_file = FIXTURE_DIR / 'test.xlsx'
+    yield xsl_file 
+    # delete file after test
+    try:
+        xsl_file.unlink()
+    except FileNotFoundError:
+        pass
+    except PermissionError:
+        time.sleep(5)
+        xsl_file.unlink()
+
+@pytest.fixture
 def fx_transaction_example():
-    data = ["2022-01-01", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "checksum", "src_konto"]
+    data = ["2022-01-01", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     return data
 
 @pytest.fixture
 def fx_transactions_list_example():
     transactions = []
-    data = ["2022-01-01", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "checksum", "src_konto"]
+    data = ["2022-01-01", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     transactions.append(data)
-    data = ["2022-01-02", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "checksum", "src_konto"]
+    data = ["2022-01-02", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     transactions.append(data)
-    data = ["2022-01-03", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "checksum", "src_konto"]
+    data = ["2022-01-03", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     transactions.append(data)
-    data = ["2022-01-04", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "checksum", "src_konto"]
+    data = ["2022-01-04", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     transactions.append(data)
-    data = ["2022-01-01", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "checksum", "src_konto"]
+    data = ["2022-01-01", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     transactions.append(data)
     return transactions
+
+@pytest.fixture
+def fx_stack_example(fx_transactions_list_example):
+    stack = model.Stack()
+    for line in fx_transactions_list_example:
+        stack.create_transaction(line)
+    return stack
+
+@pytest.fixture
+def fx_export_filter_aggregate():
+    fil = None
+    return fil
 
 @pytest.fixture
 def fx_single_csv():
@@ -44,7 +83,7 @@ def fx_single_csv():
     """
     pth = ''
     with open(FIXTURE_DIR / 'single.csv', 'w') as f:
-        f.write('a,b,c')
+        f.write('"Kontonummer:";"DE12345300001019363165 / Girokonto";')
         pth = FIXTURE_DIR / 'single.csv'
 
     yield pth 
@@ -82,7 +121,6 @@ def fx_banch_of_csv():
 def fx_export_filter_aggregate():
     fil = None
     return fil
-
 
 @pytest.fixture
 def fx_xls_file2create():

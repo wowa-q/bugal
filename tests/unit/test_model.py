@@ -6,11 +6,12 @@ import pytest
 from context import bugal
 
 from bugal import model
+from bugal import repo
 
 def test_transaction_hash_equality():
-    t1 = model.Transaction("2022-01-01", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "checksum", "src_konto")
-    t2 = model.Transaction("2022-01-01", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "checksum", "src_konto")
-    t3 = model.Transaction("2022-01-02", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "checksum", "src_konto")
+    t1 = model.Transaction("2022-01-01", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto")
+    t2 = model.Transaction("2022-01-01", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto")
+    t3 = model.Transaction("2022-01-02", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto")
     assert t1 == t2, "Two equel transaction objects must have equal hash value"
     assert t1 != t3, "Different hash value due to different objects"
 
@@ -49,4 +50,3 @@ def test_store_transactions_in_db(fx_transactions_list_example):
     assert len(stack.transactions) == 4
     assert stack.filter.max_date == date.fromisoformat("2022-01-04")
     assert stack.filter.min_date == date.fromisoformat("2022-01-01")
-    
