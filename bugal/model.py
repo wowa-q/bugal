@@ -7,11 +7,12 @@ import dataclasses
 from datetime import date
 
 from . import cli
-#from . import repo
+# from . import repo
+
 
 @dataclass(frozen=True, eq=True)
 class Transaction:
-    """Transaction 
+    """Transaction
     """
     date: date = field(metadata='printed')
     booking_date: date
@@ -24,27 +25,28 @@ class Transaction:
     debitor_id: str
     mandats_ref: str
     customer_ref: str
-    #checksum: str = field(metadata='printed')
+    # checksum: str = field(metadata='printed')
     src_konto: str = field(metadata='printed')
 
     def __iter__(self):
-        for field in dataclasses.fields(self):
-            yield getattr(self, field.name)
-    
+        for feld in dataclasses.fields(self):
+            yield getattr(self, feld.name)
+
     def __hash__(self):
         data = (self.date,
-             self.text,
-             self.debitor,
-             self.verwendung,
-             self.konto,
-             self.blz,
-             self.value,
-             self.src_konto
-             )
+                self.text,
+                self.debitor,
+                self.verwendung,
+                self.konto,
+                self.blz,
+                self.value,
+                self.src_konto
+                )
         return hash(data)
-        
+
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()
+
 
 class Filter():
     """Filter template for DB
@@ -55,9 +57,11 @@ class Filter():
     max_date: date
     min_date: date
 
+
 class Stack():
     """Stack of transactions
     """
+
     def __init__(self):
         self.transactions = []
         self.checksums = set()
@@ -71,7 +75,7 @@ class Stack():
         self.transactions.clear()
         self.nr_transactions = 0
 
-    def create_transaction(self, data:list) -> Transaction:
+    def create_transaction(self, data: list) -> Transaction:
         """Returns Transaction based on provided data
 
         Args:
@@ -89,24 +93,24 @@ class Stack():
         except ValueError:
             data[1] = '1000-01-01'
 
-        transaction = Transaction(date.fromisoformat(data[0]), 
-                                date.fromisoformat(data[1]), 
-                                data[2], 
-                                data[3], 
-                                data[4], 
-                                data[5], 
-                                data[6], 
-                                data[7], 
-                                data[8], 
-                                data[9], 
-                                data[10], 
-                                data[11])
-        
+        transaction = Transaction(date.fromisoformat(data[0]),
+                                  date.fromisoformat(data[1]),
+                                  data[2],
+                                  data[3],
+                                  data[4],
+                                  data[5],
+                                  data[6],
+                                  data[7],
+                                  data[8],
+                                  data[9],
+                                  data[10],
+                                  data[11])
+
         if hash(transaction) not in self.checksums:
             self.transactions.append(transaction)
             self.checksums.add(hash(transaction))
         self.nr_transactions = len(self.transactions)
-        
+
         return transaction
 
     def push_transactions(self):
@@ -114,10 +118,9 @@ class Stack():
         """
         self.filter.max_date = self._get_max_transaction_date()
         self.filter.min_date = self._get_min_transaction_date()
-        
 
     def _get_max_transaction_date(self) -> date:
-        max_date = date.fromisoformat('1000-01-01')        
+        max_date = date.fromisoformat('1000-01-01')
         for transaction in self.transactions:
             if transaction.date > max_date:
                 max_date = transaction.date
@@ -129,4 +132,3 @@ class Stack():
             if transaction.date < min_date:
                 min_date = transaction.date
         return min_date
-    

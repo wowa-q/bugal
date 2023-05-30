@@ -1,4 +1,5 @@
 # pylint: skip-file
+# flake8: noqa
 """The module shall hold the fixtures, which can be used in the test"""
 
 
@@ -73,49 +74,6 @@ def fx_stack_example(fx_transactions_list_example):
 def fx_export_filter_aggregate():
     fil = None
     return fil
-
-@pytest.fixture
-def fx_single_csv():
-    """Definitiaon of csv file, which shall be created and deleted when the test was done
-
-    Yields:
-        path string: file path
-    """
-    pth = ''
-    with open(FIXTURE_DIR / 'single.csv', 'w') as f:
-        f.write('"Kontonummer:";"DE12345300001019363165 / Girokonto";')
-        pth = FIXTURE_DIR / 'single.csv'
-
-    yield pth 
-    # delete the modified db file and copy one to make repeat of the test possible
-    try:
-        pth.unlink()
-    except FileNotFoundError:
-        pass
-    
-    return pth
-
-@pytest.fixture
-def fx_banch_of_csv():
-    pth = FIXTURE_DIR / 'csv'
-    try:
-        pth.mkdir()
-        for n in range(3):
-            name = 'single_'+str(n)+'.csv'
-            with open(pth / name, 'w') as f:
-                f.write('a,b,c')
-    except FileExistsError:
-        pass  
-
-    yield pth
-
-    try:
-        flist = pth.glob('*.csv')
-        for f in flist:
-            f.unlink()
-        pathlib.Path(pth).rmdir()
-    except PermissionError:
-        pass
 
 @pytest.fixture
 def fx_export_filter_aggregate():

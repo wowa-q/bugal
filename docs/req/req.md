@@ -51,26 +51,31 @@
 |-----------|-----------|
 | tested    | partially |
 | module    | model.py  |
+| module    | handler.py  |
+| class    	| CSV_importer.py  |
 
 - test_transaction_creation
 - test_transaction_equality_for_every_par
 - test_create_transactions_list
+- test_import_single_csv
 
 > Das System soll mehrere csv Dateien importieren können
 
 | Parameter | Status    |
 |-----------|-----------|
-| tested    | no |
-| module    | model.py  |
+| tested    | yes |
+| module    | handler.py  |
+| class     |class CSVImporter()|
 
-- ?
+- test_import_banch_csv
   
-> Importierte csv soll nicht noch einmal importiert werden Jede Transaktion soll nur einmal vorkommen
+> Jede Transaktion soll nur einmal vorkommen
 
 | Parameter | Status    |
 |-----------|-----------|
 | tested    | yes |
 | module    | model.py  |
+| class     |class Stack()|
 
 - test_transaction_creation
 - test_transaction_equality_for_every_par
@@ -82,42 +87,45 @@
 | Parameter | Status    |
 |-----------|-----------|
 | tested    | no |
-| module    | model.py  |
+| module    | .py  |
 
 > Es soll eine csv Import-Historie persistent gespeichert werden
 
 | Parameter | Status    |
 |-----------|-----------|
 | tested    | no |
-| module    | model.py  |
+| module    | .py  |
 
 > Importierte csv Dateien sollen archiviert werden
 
 | Parameter | Status    |
 |-----------|-----------|
-| tested    | no |
-| module    | model.py  |
+| tested    | yes    |
+| module    | handler.py  |
+| class     | class ArtifactHandler()|
+
+- test_csv_archived
 
 > Das System verarbeitet nur gültige csv Dateien
 
 | Parameter | Status    |
 |-----------|-----------|
 | tested    | no |
-| module    | model.py  |
+| module    | .py  |
 
 >
 
 | Parameter | Status    |
 |-----------|-----------|
 | tested    | no |
-| module    | model.py  |
+| module    | .py  |
 
 > 
 
 | Parameter | Status    |
 |-----------|-----------|
 | tested    | no |
-| module    | model.py  |
+| module    | .py  |
 
 #### Mapping der Properties zu den Transactions
 

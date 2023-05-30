@@ -1,4 +1,6 @@
 # pylint: skip-file
+# flake8: noqa
+
 from datetime import date
 
 import pytest

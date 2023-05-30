@@ -17,6 +17,7 @@ COLUMNS = {
     'vom Konto':8,
     'Checksum':9, 
 }
+CSV_START_ROW = 7
 
 class TransactionsSheetCfg(enum.Enum):
     """Configuration Transaction table in excel
@@ -25,3 +26,6 @@ class TransactionsSheetCfg(enum.Enum):
     MAX_COL = 100
     MIN_ROW = 5
     MAX_ROW = 100
+
+class NoCsvFilesFound(Exception):
+    """Exception if in given folder no CSV files could be found"""

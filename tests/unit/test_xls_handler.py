@@ -1,4 +1,6 @@
 # pylint: skip-file
+# flake8: noqa
+
 from datetime import date
 import pathlib
 
@@ -9,9 +11,8 @@ import openpyxl
 from context import bugal
 
 from bugal import cfg
-from bugal import model
 from bugal import handler
-from fixtures import basic
+
 
 FIXTURE_DIR = pathlib.Path(__file__).parent.parent.resolve() / "fixtures"
 
