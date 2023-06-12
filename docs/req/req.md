@@ -41,7 +41,7 @@
 | tested    | no |
 | module    | -  |
 
-### Model {#model-unctional-req}
+### Model {#model-functional-req}
 
 #### csv import {#csv-import-req}
 
@@ -52,7 +52,7 @@
 | tested    | partially |
 | module    | model.py  |
 | module    | handler.py  |
-| class    	| CSV_importer.py  |
+| class     | CSV_importer.py  |
 
 - test_transaction_creation
 - test_transaction_equality_for_every_par
@@ -120,7 +120,7 @@
 | tested    | no |
 | module    | .py  |
 
-> 
+>
 
 | Parameter | Status    |
 |-----------|-----------|
@@ -333,15 +333,3 @@
 |-----------|-----------|
 | tested    | no |
 | module    | -  |
-
-## Test drivers
-
-- Fake DB um Zusammenarbeit mit DB zu testen:
-  - get_list_csv_hashes()
-  - get_properties()
-  - get_rules()
-  - get_mapping(filter:Filter)
-  - push_transactions(transaction:list(Transaction)) -> bool
-  - push_mapping(map:list(Mapping)) -> bool
-  - push_history(history)
-  

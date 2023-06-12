@@ -6,8 +6,26 @@ from dataclasses import dataclass, field
 import dataclasses
 from datetime import date
 
-from . import cli
+from . import cfg
+# from . import cli
 # from . import repo
+
+
+@dataclass(frozen=True, eq=True)
+class History:
+    """Import history
+    """
+    file_name: str
+    file_type: str
+    account: str
+    import_date: date
+    max_date: date
+    min_date: date
+    checksum: str
+
+    def __iter__(self):
+        for feld in dataclasses.fields(self):
+            yield getattr(self, feld.name)
 
 
 @dataclass(frozen=True, eq=True)
@@ -15,13 +33,12 @@ class Transaction:
     """Transaction
     """
     date: date = field(metadata='printed')
-    booking_date: date
-    text: str = field(metadata='printed')
-    debitor: str
-    verwendung: str = field(metadata='printed')
-    konto: str = field(metadata='printed')
-    blz: str = field(metadata='printed')
-    value: int = field(metadata='printed')
+    text: str = field(metadata='printed')  # changed
+    status: str
+    debitor: str    # renamed
+    verwendung: str = field(metadata='printed')  # moved 1x to left
+    konto: str = field(metadata='printed')  # changed
+    value: int = field(metadata='printed')  # renamed
     debitor_id: str
     mandats_ref: str
     customer_ref: str
@@ -35,10 +52,10 @@ class Transaction:
     def __hash__(self):
         data = (self.date,
                 self.text,
+                self.status,
                 self.debitor,
                 self.verwendung,
                 self.konto,
-                self.blz,
                 self.value,
                 self.src_konto
                 )
@@ -68,12 +85,14 @@ class Stack():
         self.filter = Filter()
         self.nr_transactions = 0
         self.header = None
+        self.input_type = None
 
     def init_stack(self):
         """emptying the list of transactions on created instance
         """
         self.transactions.clear()
         self.nr_transactions = 0
+        self.input_type = None
 
     def create_transaction(self, data: list) -> Transaction:
         """Returns Transaction based on provided data
@@ -84,26 +103,39 @@ class Stack():
         Returns:
             Transaction: transaction object, ready for storage in DB and checking hash
         """
-        try:
-            date.fromisoformat(data[0])
-        except ValueError:
-            data[0] = '1000-01-01'
-        try:
-            date.fromisoformat(data[1])
-        except ValueError:
-            data[1] = '1000-01-01'
+        if self.input_type is None:
+            raise cfg.NoInputTypeSet
+        else:
+            col = self.input_type
 
-        transaction = Transaction(date.fromisoformat(data[0]),
-                                  date.fromisoformat(data[1]),
-                                  data[2],
-                                  data[3],
-                                  data[4],
-                                  data[5],
-                                  data[6],
-                                  data[7],
-                                  data[8],
-                                  data[9],
-                                  data[10],
+        try:
+            date.fromisoformat(data[col.DATE.value])
+        except ValueError:
+            data[col.DATE.value] = '1000-01-01'
+
+        # Text or status is existing
+        try:
+            status = data[col.STATUS.value]
+            text = '-'
+        except AttributeError:
+            status = '-'
+            text = data[col.TEXT.value]
+        # TODO: fill konto with real data
+        try:
+            konto = data[col.KONTO.value]
+        except AttributeError:
+            konto = '-'
+
+        transaction = Transaction(date.fromisoformat(data[col.DATE.value]),
+                                  text,
+                                  status,
+                                  data[col.RECEIVER.value],
+                                  data[col.VERWENDUNG.value],
+                                  konto,
+                                  data[col.VALUE.value],
+                                  data[col.DEBITOR_ID.value],
+                                  data[col.MANDATS_REF.value],
+                                  data[col.CUSTOMER_REF.value],
                                   data[11])
 
         if hash(transaction) not in self.checksums:
@@ -119,6 +151,19 @@ class Stack():
         self.filter.max_date = self._get_max_transaction_date()
         self.filter.min_date = self._get_min_transaction_date()
 
+    def update_history(self, hist: list):
+        """push import history into database
+        """
+        history = History(hist[0],
+                          hist[1],
+                          hist[2],
+                          date.fromisoformat(hist[3]),
+                          date.fromisoformat(hist[4]),
+                          date.fromisoformat(hist[5]),
+                          hist[6])
+        print(history)
+
+    # das Datum wird aus csv history extrahiert. Braucht man das noch?
     def _get_max_transaction_date(self) -> date:
         max_date = date.fromisoformat('1000-01-01')
         for transaction in self.transactions:
@@ -126,6 +171,7 @@ class Stack():
                 max_date = transaction.date
         return max_date
 
+    # das Datum wird aus csv history extrahiert. Braucht man das noch?
     def _get_min_transaction_date(self) -> date:
         min_date = date.fromisoformat('9999-01-01')
         for transaction in self.transactions:

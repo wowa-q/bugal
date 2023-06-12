@@ -44,33 +44,6 @@ def fx_xls_file():
         xsl_file.unlink()
 
 @pytest.fixture
-def fx_transaction_example():
-    data = ["2022-01-01", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
-    return data
-
-@pytest.fixture
-def fx_transactions_list_example():
-    transactions = []
-    data = ["2022-01-01", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
-    transactions.append(data)
-    data = ["2022-01-02", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
-    transactions.append(data)
-    data = ["2022-01-03", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
-    transactions.append(data)
-    data = ["2022-01-04", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
-    transactions.append(data)
-    data = ["2022-01-01", "2022-01-01", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
-    transactions.append(data)
-    return transactions
-
-@pytest.fixture
-def fx_stack_example(fx_transactions_list_example):
-    stack = model.Stack()
-    for line in fx_transactions_list_example:
-        stack.create_transaction(line)
-    return stack
-
-@pytest.fixture
 def fx_export_filter_aggregate():
     fil = None
     return fil
@@ -122,6 +95,7 @@ def fx_month_data():
     #         month_data_row.append(random.randint(1, 100))
     #     month_data.append(month_data_row)
     return month_data_header
+
 
 # @pytest.fixture
 # def fx_xls_template(fx_xls_file2create):

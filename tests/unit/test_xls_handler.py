@@ -28,7 +28,7 @@ def test_excel_file_created(fx_stack_example, fx_xls_file):
     xls_writer.properties = None
     xls_writer.guide = ""
 
-    xls_writer.write_all_to_excel()
+    xls_writer.print()
 
     assert len(list(FIXTURE_DIR.glob('*.xlsx'))) > 0
 
@@ -41,7 +41,7 @@ def test_required_sheets_created(fx_stack_example, fx_xls_file, fx_mandatory_she
     xls_writer.properties = None
     xls_writer.guide = ""
 
-    xls_writer.write_all_to_excel()
+    xls_writer.print()
     work_book = load_workbook(fx_xls_file, read_only=True, keep_vba=True)
     for name in fx_mandatory_sheets:
         assert name in work_book.sheetnames, f"No {name} sheet in woork book"
@@ -52,7 +52,7 @@ def test_required_sheets_created(fx_stack_example, fx_xls_file, fx_mandatory_she
 def test_transactions_header_printed(fx_stack_example, fx_xls_file):
     xls_writer = handler.ExcelWriter(fx_xls_file)
     xls_writer.transactions = fx_stack_example.transactions
-    xls_writer.write_all_to_excel()
+    xls_writer.print()
     work_book = load_workbook(fx_xls_file)    
     sheet = work_book['Transaktionen']
     
@@ -72,7 +72,7 @@ def test_transactions_header_printed(fx_stack_example, fx_xls_file):
 def test_transactions_printed_in_right_column(fx_stack_example, fx_xls_file):
     xls_writer = handler.ExcelWriter(fx_xls_file)
     xls_writer.transactions = fx_stack_example.transactions
-    success = xls_writer.write_all_to_excel()
+    success = xls_writer.print()
     assert success == True, "Writing to excel was not done"
     work_book = load_workbook(fx_xls_file)    
     sheet = work_book['Transaktionen']
@@ -101,7 +101,7 @@ def test_transactions_printed_in_right_column(fx_stack_example, fx_xls_file):
 def test_transactions_unique_hash_printed(fx_stack_example, fx_xls_file):
     xls_writer = handler.ExcelWriter(fx_xls_file)
     xls_writer.transactions = fx_stack_example.transactions
-    success = xls_writer.write_all_to_excel()
+    success = xls_writer.print()
     assert success == True, "Writing to excel was not done"
 
     work_book = load_workbook(fx_xls_file)

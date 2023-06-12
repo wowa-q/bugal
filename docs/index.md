@@ -2,7 +2,8 @@
 
 1. [Users-Guide](ug.md)
 2. [Release Notes](releasenotes.md)
-3. [Requirements](req/req.md)
+3. [Solution Intent](req/goal.md)
+4. [Requirements](req/req.md)
 
 For full documentation visit [mkdocs.org](https://www.mkdocs.org).
 

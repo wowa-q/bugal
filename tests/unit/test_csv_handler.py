@@ -23,6 +23,7 @@ FIXTURE_DIR = pathlib.Path(__file__).parent.parent.resolve() / "fixtures"
 #@pytest.mark.skip()
 def test_import_single_csv(fx_single_csv):
     csv_importer = handler.CSVImporter(fx_single_csv)
+    csv_importer.input_type = cfg.TransactionListClassic
     test_transaction = []
     for transaction in csv_importer.get_transactions():    
         assert transaction is not None, f"transaction not received - None"
@@ -37,6 +38,7 @@ def test_import_single_csv(fx_single_csv):
 # @pytest.mark.skip()
 def test_import_banch_csv(fx_banch_of_csv):    
     csv_importer = handler.CSVImporter(fx_banch_of_csv)
+    csv_importer.input_type = cfg.TransactionListClassic
     test_transaction = []
     nr_lines = 0
     for transaction in csv_importer.get_transactions():
@@ -58,6 +60,7 @@ def test_skip_invalid_csv(fx_single_invalid_csv, fx_banch_of_invalid_csv):
     
     # with pytest.raises(cfg.NoCsvFilesFound):
     #         csv_importer.get_transactions()
+    csv_importer.input_type = cfg.TransactionListClassic
     csv_importer.get_transactions()
     
     csv_importer = handler.CSVImporter(fx_single_invalid_csv)
@@ -77,10 +80,11 @@ def test_csv_archived(fx_banch_of_csv, fx_zip_archive):
         for fx_file in fx_list:
             assert fx_file in file_list, f"File {fx_file} not found in the archive"
 
-@pytest.mark.skip()
-def test_no_import_of_double_csv(fx_single_csv):
-    csv_importer1 = handler.CSVImporter(fx_single_csv)
-    csv_importer2 = handler.CSVImporter(fx_single_csv)
+
+# @pytest.mark.skip()
+def test_support_new_csv_format(fx_single_csv_new):
+    csv_importer1 = handler.CSVImporter(fx_single_csv_new)
+    csv_importer1.input_type = cfg.TransactionListBeta
     test_transaction = []
     for transaction in csv_importer1.get_transactions():
         assert transaction is not None, f"transaction not received - None"
@@ -88,11 +92,8 @@ def test_no_import_of_double_csv(fx_single_csv):
         assert transaction != [], f"empty list received for imported transaction"
         if len(test_transaction) == 0:
             test_transaction = transaction.copy()
-    assert test_transaction[0] == "24.01.2023", f"transaction hat falschen Wert {test_transaction}" 
-    for transaction in csv_importer2.get_transactions():
-        assert transaction is None, f"transactions repeatedly imported"
-
-
+    assert test_transaction[0] == "24.01.2022", f"transaction hat falschen Wert {test_transaction}" 
+    
 
 # @pytest.mark.skip()
 # def test_template():

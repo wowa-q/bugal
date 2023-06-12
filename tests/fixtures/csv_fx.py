@@ -52,6 +52,59 @@ def fx_single_csv():
         pass 
 
 @pytest.fixture
+def fx_single_csv_new():
+    """Definitiaon of csv file, which shall be created and deleted when the test was done
+
+    Yields:
+        path string: file path
+    """
+    pth = ''
+    with open(FIXTURE_DIR / 'single_new.csv', 'w') as f:
+        f.write('"Konto";"Girokonto DE12345300001019363165";\n')
+        f.write('\n')
+        f.write('"Kontostand vom 08.06.2023:"; "-152,71 EUR";\n')
+        f.write('\n')
+        f.write('"Buchungsdatum";"Wertstellung";"Status";"Zahlungspflichtige*r";"Zahlungsempfänger*in";"Verwendungszweck";"Umsatztyp";"Betrag";"Gläubiger-ID";"Mandatsreferenz";"Kundenreferenz";\n')
+        f.write('"24.01.2022";"24.01.2023";"Gebucht";"Hanse-Merkur";"KLOOS, WALDEMARs";"083257346A00016 07.06.2023- 1";"Eingang";"54,97 €";"";"";"21521570";\n')
+        f.write('"24.01.2023";"24.01.2023";"Gebucht";"Hanse-Merkur";"KLOOSs, WALDEMAR";"083257346A00016 07.06.2023- 1";"Eingang";"54,97 €";"";"";"21521570";\n')
+        f.write('"24.01.2022";"";"Vorgemerkt";"F579947274755";"";"EC 54405140 070623145529 01";"Ausgang";"-42,60 €";"";"";"";\n')
+
+        pth = FIXTURE_DIR / 'single_new.csv'
+
+    yield pth 
+    # delete the modified db file and copy one to make repeat of the test possible
+    try:
+        pth.unlink()
+    except FileNotFoundError:
+        pass 
+
+@pytest.fixture
+def fx_single_csv_single_line():
+    """Definitiaon of csv file, which shall be created and deleted when the test was done
+
+    Yields:
+        path string: file path
+    """
+    pth = ''
+    with open(FIXTURE_DIR / 'single_new_single.csv', 'w') as f:
+        f.write('"Konto";"Girokonto DE12345300001019363165";\n')
+        f.write('\n')
+        f.write('"Kontostand vom 08.06.2023:"; "-152,71 EUR";\n')
+        f.write('\n')
+        f.write('"Buchungsdatum";"Wertstellung";"Status";"Zahlungspflichtige*r";"Zahlungsempfänger*in";"Verwendungszweck";"Umsatztyp";"Betrag";"Gläubiger-ID";"Mandatsreferenz";"Kundenreferenz";\n')
+        f.write('"24.01.2022";"24.01.2023";"Gebucht";"Hanse-Merkur";"KLOOS, WALDEMAR";"083257346A00016 07.06.2023- 1";"Eingang";"54,97 €";"";"";"21521570";\n')
+    
+    pth = FIXTURE_DIR / 'single_new_single.csv'
+
+    yield pth 
+    # delete the modified db file and copy one to make repeat of the test possible
+    try:
+        pth.unlink()
+    except FileNotFoundError:
+        pass 
+
+
+@pytest.fixture
 def fx_banch_of_csv(fx_single_csv):
     pth = FIXTURE_DIR / 'csv'
     try:
@@ -59,8 +112,6 @@ def fx_banch_of_csv(fx_single_csv):
         for n in range(3):
             name = 'single_'+str(n)+'.csv'
             shutil.copy(fx_single_csv, pth / name)
-            # with open(pth / name, 'w') as f:
-            #     f.write('a;b;c')
     except FileExistsError:
         pass  
 
