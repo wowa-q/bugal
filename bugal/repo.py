@@ -67,6 +67,17 @@ class SqlAlchemyRepository(a.AbstractRepository):
         
         return stack_from_db
     
+    def get_history(self, fil:model.Filter) -> model.Stack:
+        pass
+
+    def get_mapping(self, fil:model.Filter) -> model.Stack:
+        pass
+
+    def set_history(self, his) -> bool:
+        pass
+
+    def set_mapping(self, map) -> model.Stack:
+        pass
     # def get(self, reference):
     #     return self.session.query(model.Batch).filter_by(reference=reference).one()
 

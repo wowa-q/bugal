@@ -59,3 +59,59 @@ git push
 4. `git merge <branch-name>` to merge the branch to the master branch -> master branch can be pushed like before (with `pull` nd `push` to remote
 5. `git branch -d <branch-name>` to delete the branch from local repository
 6. `git push origin --delete <branch-name>` to delete the branch from remote repository
+
+`git checkout -b <branch-name>` can be used as shortcut for step 1 and 2
+
+## Tips & Tricks
+
+### Umbenennen
+
+Nicht in Betriebssystem umbenen, sondern in git Move (mv)
+
+1. `git mv datei_old.txt datei_new.txt`
+2. `git commit -m "file renamed"`
+
+### Löschen
+
+Nicht in Betriebssystem löschen, sondern in git Remove (rm)
+
+1. `git rm datei_old.txt`
+2. `git commit -m "file removed"`
+
+### Reproduce
+
+1. `git log`
+2. q to leave the log
+
+alternatively only commit ID abbreviations to be shown:
+
+1. `git log --abbrev-commit` will show the commit ID abbreviations
+2. q to leave the log
+
+To show the history of one file:
+
+1. `git log -- datei.txt` -> will show the history of the file
+
+Show the commit changes:
+
+1. `git show <commit ID>` -> shows the changes with this commit
+
+Overwrite the stashed files from repository:
+
+1. `git checkout HEAD datei.txt` -> overwrites the file from the local repository
+2. `git reset --hard HEAD` -> has the same effect as the before
+3. after that the files can be removed via Os
+
+Einen commit fixen mit `git revert`
+
+1. `git revert <Commit ID>` -> ein neuer commit wird erstellt der den letzten commit ignoriert
+
+### Working with branch
+
+1. `git fetch` to download the branches from remote
+2. `git checkout <branch-name>` to change to the branch
+3. `git pull` to update the branch
+
+### Working with branches
+
+1. `git checkout -b <branch-name>` -> to create new branch

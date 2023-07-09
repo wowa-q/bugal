@@ -18,9 +18,9 @@ class History:
     file_name: str
     file_type: str
     account: str
-    import_date: date
-    max_date: date
-    min_date: date
+    import_date: str
+    max_date: str
+    min_date: str
     checksum: str
 
     def __iter__(self):
