@@ -73,6 +73,31 @@ class BugalOrm():
             t_list.append(transaction)
         self.session.add_all(t_list)
         self.session.commit()
+    
+    def write_to_history(self, history: model.History):
+        history = History(file_name=history.file_name,
+                          file_type=history.file_type,
+                          account=history.account,
+                          min_date=history.min_date,
+                          max_date=history.max_date,
+                          import_date=history.import_date,
+                          checksum=history.checksum)
+        
+        self.session.add(history)
+        self.session.commit()
+
+    def write_to_history(self, property: model.Property):
+        property = Property(inout=property.inout,
+                          name=property.name,
+                          type=property.type,
+                          cycle=property.cycle,
+                          # number=1,               # muss beim Update/setzen incrementiert werden
+                          # sum=property.sum,
+                          )
+        
+        self.session.add(property)
+        self.session.commit()
+
 
 ################################################################
 #                        Tables                                #
@@ -121,8 +146,8 @@ class Property(Base):
     name = Column(String)
     type = Column(String)
     cycle = Column(String)
-    number = Column(String)
-    sum = Column(String)
+    number = Column(Integer)
+    sum = Column(Integer)
 
 
 class Mapping(Base):

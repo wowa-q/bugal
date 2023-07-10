@@ -28,6 +28,22 @@ class History:
             yield getattr(self, feld.name)
 
 
+
+@dataclass(frozen=True, eq=True)
+class Property:
+    """
+    """
+    inout: str
+    name: str
+    type: str
+    cycle: str
+        
+
+    def __iter__(self):
+        for feld in dataclasses.fields(self):
+            yield getattr(self, feld.name)
+
+
 @dataclass(frozen=True, eq=True)
 class Transaction:
     """Transaction
