@@ -69,6 +69,25 @@ class AbstractRepository(abc.ABC):
         NotImplementedError: _description_
 
     """
+    # @abc.abstractmethod
+    def create_new_db(self, pth: str, name: str, db_type: str) -> bool:
+        """API to create new db
+
+        Args:
+            pth (str): path where db shall be stored
+            name (str): name of the db
+            db_type (str): which db type to be created e.g. sqlite
+
+        Raises:
+            NotImplementedError:
+
+        Returns:
+            bool: returns True if created
+        """
+        # raise NotImplementedError
+        return True
+
+
     @abc.abstractmethod
     def add_stack(self, stack) -> bool:
         """API to add the stack to repository

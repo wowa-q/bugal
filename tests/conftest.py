@@ -1,4 +1,6 @@
 # pylint: skip-file
+# flake8: noqa
+
 import pathlib
 
 from fixtures.basic import fx_month_data
@@ -22,10 +24,11 @@ from fixtures.model_fx import fx_transactions_list_example_beta
 from fixtures.model_fx import fx_stack_example
 from fixtures.model_fx import fx_import_history
 
+from fixtures.sql_fx import fx_new_db_flie_name
 
-from fixtures.orm_fx import fx_test_db_new
-from fixtures.orm_fx import session
-from fixtures.orm_fx import in_memory_db
+# from fixtures.orm_fx import fx_test_db_new
+# from fixtures.orm_fx import session
+# from fixtures.orm_fx import in_memory_db
 
 
 FIXTURE_DIR = pathlib.Path(__file__).resolve() / "fixtures"

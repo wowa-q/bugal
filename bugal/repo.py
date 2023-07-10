@@ -1,7 +1,7 @@
 """_summary_
 
 """
-
+import sqlite3 as sql
 
 from . import model
 from . import abstract as a
@@ -83,3 +83,18 @@ class SqlAlchemyRepository(a.AbstractRepository):
 
     # def list(self):
     #     return self.session.query(model.Batch).all()
+
+class SqlRepo():
+
+    def __init__(self, db_type) -> None:
+        self.db_type = db_type
+        self.extension = '.db'
+
+    def create_new_db(self, pth: str, name: str) -> bool:
+        file_name = name + self.extension
+        db_file = pth / file_name
+        connection = sql.connect(db_file)
+
+        self.cur = connection.cursor()
+
+        return True
