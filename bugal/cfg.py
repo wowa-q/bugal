@@ -1,6 +1,9 @@
 """Global Bugal configuration
 """
 import enum
+import pathlib
+
+PTOJECT_DIR = pathlib.Path(__file__).parent.resolve()
 
 MIN_COL = 2
 MAX_COL = 100

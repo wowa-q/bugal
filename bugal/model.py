@@ -103,7 +103,7 @@ class Stack():
         Returns:
             Transaction: transaction object, ready for storage in DB and checking hash
         """
-        if self.input_type is None:
+        if self.input_type is None:     # cfg.TransactionListBeta or cfg.TransactionListClassic
             raise cfg.NoInputTypeSet
         else:
             col = self.input_type

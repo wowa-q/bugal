@@ -149,7 +149,7 @@ with the `LIKE` example
 ---
 
 ## INSERT - to inseart new rows into table
-
+`INSERT INTO` Tablename (var1, var2) VALUES (?, ?);
 ---
 
 ## UPDATE - to update existing data in the table

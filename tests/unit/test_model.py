@@ -68,3 +68,5 @@ def test_store_transactions_in_db(fx_transactions_list_example_classic):
 def test_store_import_history_in_db(fx_import_history):
     stack=model.Stack()
     stack.update_history(fx_import_history)
+
+# TODO Test history automatically updated, when DB is changed
