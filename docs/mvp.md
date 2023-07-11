@@ -8,8 +8,8 @@
 
 ## DB interaction
 
-- [] create Transaction Table
-- [] create History Table
+- [x] create Transaction Table
+- [x] create History Table
 - [] fill Transaction table from csv
 - [] fill History table automatically
 

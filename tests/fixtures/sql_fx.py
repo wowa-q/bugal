@@ -28,6 +28,7 @@ def fx_new_db_flie_name():
     full = file_name + '.db'
     file_path = FIXTURE_DIR / full
     yield file_name
+    time.sleep(0.1)
     try:
         file_path.unlink()
     except FileNotFoundError:
@@ -50,3 +51,10 @@ def fx_new_classicTransactions_banch():
     t3 = model.Transaction("2022-01-02", "text", "status", "debitor", "verwendung", "konto", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto")
 
     return [t1, t2, t3]
+
+@pytest.fixture
+def fx_history():
+    
+    h1 = model.History("auszug1", "csv", "DE123", "2023-12-31", "2022-01-03", "2022-01-01", "super checksum")
+
+    return h1

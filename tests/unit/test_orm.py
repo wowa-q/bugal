@@ -3,7 +3,7 @@
 from datetime import date
 import pathlib
 import os
-
+import time
 import pytest
 from openpyxl import load_workbook
 from sqlalchemy import create_engine
@@ -25,26 +25,28 @@ from fixtures import sql_fx
 
 FIXTURE_DIR = pathlib.Path(__file__).parent.parent.resolve() / "fixtures"
 
-#@pytest.mark.skip()
+@pytest.mark.skip()
 def test_creagte_new_db(fx_new_db_flie_name, fx_new_betaTransaction):
     fileList=list(FIXTURE_DIR.glob('**/*.db'))
     before = len(fileList)
 
     orm_handler = bugal_orm.BugalOrm(FIXTURE_DIR, fx_new_db_flie_name, 'sqlite')
     orm_handler.write_to_transactions(fx_new_betaTransaction)
+    orm_handler.close_connection()
 
     fileList=list(FIXTURE_DIR.glob('**/*.db'))
     after = len(fileList)
 
     assert before < after, "no new db was created" 
 
-# @pytest.mark.skip()
+@pytest.mark.skip()
 def test_create_banch_of_transactions(fx_new_db_flie_name, fx_new_classicTransactions_banch):
     fileList=list(FIXTURE_DIR.glob('**/*.db'))
     before = len(fileList)
 
     orm_handler = bugal_orm.BugalOrm(FIXTURE_DIR, fx_new_db_flie_name, 'sqlite')
     orm_handler.write_many_to_transactions(fx_new_classicTransactions_banch)
+    orm_handler.close_connection()
 
     fileList=list(FIXTURE_DIR.glob('**/*.db'))
     after = len(fileList)
@@ -52,16 +54,36 @@ def test_create_banch_of_transactions(fx_new_db_flie_name, fx_new_classicTransac
     assert before < after, "no new db was created"
     # Data of the tables is not tested - no error is enough for the moment
     # TODO: add more tests of the data
+    tables = [
+        'transactions', 'history', 'eigenschaften', 'mapping', #'rules'
+    ]
+    for table in tables:
+        assert orm_handler.inspector.has_table(table), f"Table: {table} doesn't exist"
 
-# #@pytest.mark.skip()
-# def test_load_transactions(fx_test_db_new):
-#     engine = create_engine('sqlite:///' + str(fx_test_db_new), echo=True)
-#     session = sessionmaker(engine)
-#     repo = re.SqlAlchemyRepository(session)
-#     assert repo is not None
-#     repo.set_transaction()
-#     repo.set_history()
-#     repo.set_mapping()
+@pytest.mark.skip()
+def test_read_transactions(fx_new_db_flie_name, fx_new_classicTransactions_banch):
+    
+    # orm_handler = bugal_orm.BugalOrm('memory')
+    orm_handler = bugal_orm.BugalOrm(FIXTURE_DIR, fx_new_db_flie_name, 'sqlite')
+    orm_handler.write_many_to_transactions(fx_new_classicTransactions_banch)
+    filter = {'datum': '2022-01-01'}
+    transactions = orm_handler.read_transactions(filter)
+    
+    orm_handler.close_connection()
+    
+    assert len(transactions) == 3, "no transactions returned"
+    assert transactions[0].datum == '2022-01-01', f"transaction: {transactions}"
+    
+# @pytest.mark.skip()
+def test_creagte_new_history(fx_new_db_flie_name, fx_history):
+    
+    orm_handler = bugal_orm.BugalOrm(FIXTURE_DIR, fx_new_db_flie_name, 'sqlite')
+    orm_handler.write_to_history(fx_history)
+    orm_handler.close_connection()
+    
+    columns = orm_handler.inspector.get_columns('history')
+    assert len(columns) == 8, f"history table must have 8 columns {columns} are present"
+
 
 #@pytest.mark.skip()
 # def test_load_history(session):

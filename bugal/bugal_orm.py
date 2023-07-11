@@ -2,8 +2,8 @@
 """
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, inspect, select
+from sqlalchemy.orm import Session #, sessionmaker
 
 from . import model
 from . import cfg
@@ -14,19 +14,23 @@ Base = declarative_base()
 class BugalOrm():
     """DB APIs
     """
-    def __init__(self, pth, name, db_type='sqlite'):
+    def __init__(self, pth='', name='', db_type='sqlite'):
         if db_type == 'sqlite':
-            filename = name + '.db'
-            db_file = pth / filename
+            # filename = name + '.db'
+            db_file = str(pth) + '/' + name + '.db'
+            self.engine = create_engine(f'sqlite:///{db_file}')
+        elif db_type == 'memory':
+            # self.engine = create_engine("sqlite://", connect_args={"check_same_thread": False})
+            # self.engine = create_engine("sqlite:///:memory:")
+            self.engine = create_engine("sqlite://")
         else:
             db_file = cfg.PTOJECT_DIR / 'new_temp.db'
+            self.engine = create_engine(f'sqlite:///{db_file}')
 
-        self.engine = create_engine(f'sqlite:///{db_file}')
-
+        if self.engine is None:
+            raise cfg.NoInputTypeSet
+        self.inspector = inspect(self.engine)
         Base.metadata.create_all(self.engine)
-
-        self.Session = sessionmaker(bind=self.engine)
-        self.session = self.Session()
 
     def write_to_transactions(self, transact: model.Transaction):
         """Write new transaction to database
@@ -46,9 +50,9 @@ class BugalOrm():
                                    customer_ref=transact.customer_ref,
                                    src_konto=transact.src_konto,
                                    checksum=transact.text)
-
-        self.session.add(transaction)
-        self.session.commit()
+        with Session(self.engine) as session:
+            session.add(transaction)
+            session.commit()
 
     def write_many_to_transactions(self, transactions: list):
         """Write new transaction to database
@@ -71,9 +75,10 @@ class BugalOrm():
                                        src_konto=tran.src_konto,
                                        checksum=tran.text)
             t_list.append(transaction)
-        self.session.add_all(t_list)
-        self.session.commit()
-    
+        with Session(self.engine) as session:
+            session.add_all(t_list)
+            session.commit()
+
     def write_to_history(self, history: model.History):
         history = History(file_name=history.file_name,
                           file_type=history.file_type,
@@ -82,22 +87,32 @@ class BugalOrm():
                           max_date=history.max_date,
                           import_date=history.import_date,
                           checksum=history.checksum)
-        
-        self.session.add(history)
-        self.session.commit()
+        with Session(self.engine) as session:
+            session.add(history)
+            session.commit()
 
-    def write_to_history(self, property: model.Property):
-        property = Property(inout=property.inout,
-                          name=property.name,
-                          type=property.type,
-                          cycle=property.cycle,
-                          # number=1,               # muss beim Update/setzen incrementiert werden
-                          # sum=property.sum,
-                          )
-        
-        self.session.add(property)
-        self.session.commit()
+    def write_to_property(self, prop: model.Property):
+        eigenschaften = Property(inout=prop.inout,
+                                 name=prop.name,
+                                 type=prop.type,
+                                 cycle=prop.cycle,
+                                 # number=1,               # muss beim Update/setzen incrementiert werden
+                                 # sum=property.sum,
+                                 )
+        with Session(self.engine) as session:
+            session.add(eigenschaften)
+            session.commit()
 
+    def read_transactions(self, _filter: dict) -> list:
+        # TODO passenden Filter basteln
+        with Session(self.engine, future=True) as session:
+            query = select(Transactions).where(Transactions.datum.like('2022-01%'))
+            result = session.execute(query).scalars().all()
+
+        return result
+
+    def close_connection(self):
+        self.engine.dispose()
 
 ################################################################
 #                        Tables                                #
@@ -140,7 +155,7 @@ class History(Base):
 class Property(Base):
     """Property table
     """
-    __tablename__ = 'property'
+    __tablename__ = 'eigenschaften'
     id = Column(Integer, primary_key=True)
     inout = Column(String)
     name = Column(String)

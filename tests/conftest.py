@@ -27,6 +27,7 @@ from fixtures.model_fx import fx_import_history
 from fixtures.sql_fx import fx_new_db_flie_name
 from fixtures.sql_fx import fx_new_betaTransaction
 from fixtures.sql_fx import fx_new_classicTransactions_banch
+from fixtures.sql_fx import fx_history
 
 # from fixtures.orm_fx import fx_test_db_new
 # from fixtures.orm_fx import session
