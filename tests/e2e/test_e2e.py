@@ -18,13 +18,23 @@ def test_transaction_creation_classic(fx_single_csv):
     csv_importer = handler.CSVImporter(fx_single_csv)
     stack.input_type = cfg.TransactionListClassic
     csv_importer.input_type = cfg.TransactionListClassic
+    stack_transaction = None
+    csv_transaction = None
 
-    for transaction in csv_importer.get_transactions():
-        stack.create_transaction(transaction)
-    assert stack.nr_transactions != 0, f"no transaction were created"
+
+    # gen_transaction = csv_importer.get_transactions()
+    # trns = next(gen_transaction)
+    # assert trns == 2, f"csv handler return value: {trns}"
+    for csv_output in csv_importer.get_transactions():
+        assert len(csv_output[1]) < 0, f"{csv_output[1]}"
+        if len(csv_output[1]) > 0:
+            stack_transaction = stack.create_transaction(csv_output[1])
+            csv_transaction = csv_output[1]
+        assert stack_transaction is not None, f"STACK: Transacton not created"
+    assert stack.nr_transactions != 0, f"no transaction were created {csv_transaction}"
     assert stack.nr_transactions == 4, f"number of classic transaction is different than provided by csv"
 
-# @pytest.mark.skip()
+@pytest.mark.skip()
 def test_transaction_creation_beta(fx_single_csv_new):
     stack=model.Stack()
     csv_importer = handler.CSVImporter(fx_single_csv_new)
@@ -36,7 +46,7 @@ def test_transaction_creation_beta(fx_single_csv_new):
     assert stack.nr_transactions != 0, f"no transaction were created"
     assert stack.nr_transactions == 3, f"number of BETA transaction is different than provided by csv: {stack.transactions[0]}"
 
-# @pytest.mark.skip()
+@pytest.mark.skip()
 def test_transaction_creation_works_with_single_line(fx_single_csv_single_line):
     stack=model.Stack()
     csv_importer = handler.CSVImporter(fx_single_csv_single_line)

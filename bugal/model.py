@@ -28,7 +28,6 @@ class History:
             yield getattr(self, feld.name)
 
 
-
 @dataclass(frozen=True, eq=True)
 class Property:
     """

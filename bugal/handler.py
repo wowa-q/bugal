@@ -191,7 +191,7 @@ class CSVImporter(a.HandlerReadIF):
 
         return lines
 
-    def get_transactions(self):
+    def get_transactions_old(self):
         """reads line from CSV file and yields a line as transaction
 
         Raises:
@@ -213,7 +213,14 @@ class CSVImporter(a.HandlerReadIF):
         for line in lines:
             yield line
 
-    def get_transactions_new(self):
+    def read_csv(self, csv_file):
+        with open(csv_file, newline='') as csvfile:
+            reader = csv.reader(csvfile, delimiter=';')
+            for line in reader:
+                yield line
+
+
+    def get_transactions(self):
         """NOT TESTED function - alternativ implementation with nested functions
 
         Raises:
@@ -224,10 +231,12 @@ class CSVImporter(a.HandlerReadIF):
         """
         if self.input_type is None:
             raise cfg.NoInputTypeSet
-        lines = []
+        
         files = list(self.pth.glob('**/*.csv'))
 
         def read_lines(csv_file):
+            transaction = []
+            account = ''
             with open(csv_file, newline='', encoding='utf-8') as csvfile:
                 checksum = hashlib.md5(csvfile.read()).hexdigest().upper()
                 if checksum in self.csv_hashes:
@@ -235,16 +244,20 @@ class CSVImporter(a.HandlerReadIF):
                 else:
                     self.csv_hashes.append(checksum)
                 reader = csv.reader(csvfile, delimiter=';')
-                for _ in range(self.input_type.CSV_START_ROW.value):
-                    next(reader)
-                for line in reader:
-                    yield line
+                # for _ in range(self.input_type.CSV_START_ROW.value):
+                #     next(reader)
+                # for line in reader:
+                #     yield line
+                for ctr, line in enumerate(reader):
+                    if ctr == 0:
+                        account = line [1]                    
+                    elif ctr > self.input_type.CSV_START_ROW.value:
+                        transaction = line
+                        
+                    yield [account, transaction]
 
         for csv_file in files:
-            lines.append(read_lines(csv_file))
-
-        for line in lines:
-            yield line
+            yield read_lines(csv_file)
 
 
 class ArtifactHandler():

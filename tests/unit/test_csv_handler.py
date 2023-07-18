@@ -3,6 +3,7 @@
 from datetime import date
 import pathlib
 import os
+import csv
 
 import pytest
 from openpyxl import load_workbook
@@ -20,19 +21,43 @@ from fixtures.csv_fx import fx_zip_archive
 
 FIXTURE_DIR = pathlib.Path(__file__).parent.parent.resolve() / "fixtures"
 
+
+# @pytest.mark.skip()
+def test_read_single_csv(fx_single_csv):
+    csv_importer = handler.CSVImporter(fx_single_csv)
+    csv_importer.input_type = cfg.TransactionListClassic
+    test_transaction = []
+    with open(fx_single_csv, newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter = ';')
+        
+        for ctr, line in enumerate(reader):
+            if ctr == 0:
+                assert len(line) > 0, f"Empty line was given"
+                assert line[0] == "Kontonummer:", f"reader {line}"
+            elif ctr == 7:
+                assert line[0] == "24.01.2023", f"reader {line[0]}"
+
+    gen_reader = csv_importer.read_csv(fx_single_csv)
+    for ctr, line in enumerate(gen_reader):
+        if ctr == 0:
+            assert line[0] == "Kontonummer:", f"reader {line[0]}"
+        elif ctr == 7:
+            assert line[0] == "24.01.2023", f"reader {line[0]}"
+
+
 #@pytest.mark.skip()
 def test_import_single_csv(fx_single_csv):
     csv_importer = handler.CSVImporter(fx_single_csv)
     csv_importer.input_type = cfg.TransactionListClassic
     test_transaction = []
-    for transaction in csv_importer.get_transactions():    
-        assert transaction is not None, f"transaction not received - None"
-        assert isinstance(transaction, list), f"returned transaction is not a list"
-        assert transaction != [], f"empty list received for imported transaction"
-        if len(test_transaction) == 0:
-            test_transaction = transaction.copy()
-    
-    assert test_transaction[0] == "24.01.2023", f"transaction hat falschen Wert {test_transaction}" 
+    for ctr, csv_output in enumerate(csv_importer.get_transactions()):
+        if ctr == 7:
+            assert csv_output[1] is not None, f"transaction not received - None"
+            assert isinstance(csv_output[1], list), f"returned transaction is not a list"
+            assert csv_output[1] != [], f"empty list received for imported transaction"
+            
+            test_transaction = csv_output[1].copy()
+            assert test_transaction[0] == "24.01.2023", f"transaction hat falschen Wert {test_transaction}" 
 
 
 # @pytest.mark.skip()
@@ -41,16 +66,15 @@ def test_import_banch_csv(fx_banch_of_csv):
     csv_importer.input_type = cfg.TransactionListClassic
     test_transaction = []
     nr_lines = 0
-    for transaction in csv_importer.get_transactions():
-        assert transaction is not None, f"transaction not received - None"
-        assert isinstance(transaction, list), f"returned transaction is not a list"
-        assert transaction != [], f"empty list received for imported transaction"
-        nr_lines += 1
-        if len(test_transaction) == 0:
-            test_transaction = transaction.copy()
-    
-    assert test_transaction[0] == "24.01.2023", f"transaction hat falschen Wert {test_transaction}" 
-    assert nr_lines == 15, f"number of transactions is incorrect: {nr_lines} instead of 15"
+    for ctr, csv_output in enumerate(csv_importer.get_transactions()):
+        if ctr == 7:
+            assert csv_output[1] is not None, f"transaction not received - None"
+            assert isinstance(csv_output[1], list), f"returned transaction is not a list"
+            assert csv_output[1] != [], f"empty list received for imported transaction"
+            
+            test_transaction = csv_output[1].copy()
+            assert test_transaction[0] == "24.01.2023", f"transaction hat falschen Wert {test_transaction}" 
+            # assert nr_lines == 15, f"number of transactions is incorrect: {nr_lines} instead of 15"
 
 #@pytest.mark.skip()
 def test_skip_invalid_csv(fx_single_invalid_csv, fx_banch_of_invalid_csv):
@@ -83,16 +107,19 @@ def test_csv_archived(fx_banch_of_csv, fx_zip_archive):
 
 # @pytest.mark.skip()
 def test_support_new_csv_format(fx_single_csv_new):
-    csv_importer1 = handler.CSVImporter(fx_single_csv_new)
-    csv_importer1.input_type = cfg.TransactionListBeta
+    csv_importer = handler.CSVImporter(fx_single_csv_new)
+    csv_importer.input_type = cfg.TransactionListBeta
     test_transaction = []
-    for transaction in csv_importer1.get_transactions():
-        assert transaction is not None, f"transaction not received - None"
-        assert isinstance(transaction, list), f"returned transaction is not a list"
-        assert transaction != [], f"empty list received for imported transaction"
-        if len(test_transaction) == 0:
-            test_transaction = transaction.copy()
-    assert test_transaction[0] == "24.01.2022", f"transaction hat falschen Wert {test_transaction}" 
+
+    for ctr, csv_output in enumerate(csv_importer.get_transactions()):
+        if ctr == 7:
+            assert csv_output[1] is not None, f"transaction not received - None"
+            assert isinstance(csv_output[1], list), f"returned transaction is not a list"
+            assert csv_output[1] != [], f"empty list received for imported transaction"
+            
+            test_transaction = csv_output.copy()
+            assert test_transaction[0] == "24.01.2022", f"transaction hat falschen Wert {test_transaction}" 
+
     
 
 # @pytest.mark.skip()

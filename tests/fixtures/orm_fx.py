@@ -55,13 +55,6 @@ def fx_db_orm_engine(fx_test_db_new):
     return engine
 
 @pytest.fixture
-def fx_db_orm_engine(fx_db_orm_engine):
-    Base = declarative_base()
-    
-    return engine
-
-
-@pytest.fixture
 def in_memory_db_engine():
     engine = create_engine("sqlite:///:memory:")
     orm.metadata.create_all(engine)

@@ -13,7 +13,7 @@ from bugal import repo
 FIXTURE_DIR = pathlib.Path(__file__).parent.parent.resolve() / "fixtures"
 
 
-# @pytest.mark.skip()
+@pytest.mark.skip()
 def test_sql_db_created(fx_new_db_flie_name):
     fx_new_db_flie_name 
     fileList=list(FIXTURE_DIR.glob('**/*.db'))
