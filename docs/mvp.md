@@ -15,8 +15,14 @@
 
 ## csv interaction
 
-- [] create Transactions from classic csv file
-- [] create Transactions from new csv file
+- [x] create Transactions from classic csv file
+- [x] create Transactions from new csv file
 - [] read konto from csv
-- [] read star date from csv
-- [] read end date from csv 
+- [] read start date from csv
+- [] read end date from csv
+  
+## Model
+
+- [] calculate checksum for the csv
+- [] avoid import of the same csv
+- [] create History object

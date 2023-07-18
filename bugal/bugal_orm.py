@@ -3,7 +3,7 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
 from sqlalchemy import create_engine, inspect, select
-from sqlalchemy.orm import Session #, sessionmaker
+from sqlalchemy.orm import Session
 
 from . import model
 from . import cfg
@@ -107,6 +107,18 @@ class BugalOrm():
         # TODO passenden Filter basteln
         with Session(self.engine, future=True) as session:
             query = select(Transactions).where(Transactions.datum.like('2022-01%'))
+            result = session.execute(query).scalars().all()
+
+        return result
+    
+    def read_history(self, ) -> list:
+        """_summary_
+
+        Returns:
+            list: History entraces
+        """
+        with Session(self.engine, future=True) as session:
+            query = select(History)
             result = session.execute(query).scalars().all()
 
         return result

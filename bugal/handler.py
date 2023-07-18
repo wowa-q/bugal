@@ -157,19 +157,49 @@ class CSVImporter(a.HandlerReadIF):
     def __init__(self, pth):
         self.pth = pth
         self.invalid_files = []
+        self.meta_data = []
         self.input_type = None
 
     def get_meta_data(self):
-        return ''
+        if os.path.isfile(self.pth):
+            self.meta_data.append(self._get_meta_data(self.pth))
+        else:
+            files = list(self.pth.glob('**/*.csv'))
+            for fl_pth in files:
+                self.meta_data.append(self._get_meta_data(fl_pth))
+        return self.meta_data
+
+    def _get_meta_data(self, csv_file) -> dict:
+        if self.input_type is None:
+            raise cfg.NoInputTypeSet
+        meta = cfg.CSV_META.copy()
+        for ctr, row in enumerate(self._read_lines(csv_file)):
+            if ctr == 0:
+                meta['account'] = row[1]
+            if ctr > self.input_type.CSV_START_ROW:
+                if meta['start_date'] > row[0]:
+                    meta['start_date'] = row[0]
+                if meta['end_date'] < row[0]:
+                    meta['end_date'] = row[0]
+
+        meta['file_name'] = ''
+        meta['file_ext'] = 'csv'
+        meta['checksum'] = self._get_checksum(csv_file)
+        return meta
 
     def _read_singel_csv(self, fl_pth):
+
         if self.input_type is None:
             raise cfg.NoInputTypeSet
 
         lines = []
+        meta = cfg.CSV_META.copy()
+        meta['file_ext'] = 'csv'
         try:
             with open(fl_pth, newline='', encoding='utf-8') as csvfile:
+                meta['file_name'] = fl_pth
                 checksum = hashlib.md5(csvfile.read()).hexdigest().upper()
+                meta['checksum'] = checksum
                 if checksum in self.csv_hashes:
                     raise DouplicateCsvFile
                 else:
@@ -180,7 +210,13 @@ class CSVImporter(a.HandlerReadIF):
                 for line in reader:
                     lines.append(line)
         except UnicodeDecodeError:
-            with open(fl_pth, newline='', encoding='ISO-8859-1') as csvfile:
+            # with open(fl_pth, newline='', encoding='ISO-8859-1') as csvfile:
+            with open(fl_pth, 'rb') as csvfile:
+                checksum = hashlib.md5(csvfile.read()).hexdigest().upper()
+                if checksum in self.csv_hashes:
+                    raise DouplicateCsvFile
+                else:
+                    self.csv_hashes.append(checksum)
                 reader = csv.reader(csvfile, delimiter=';')
                 for _ in range(self.input_type.CSV_START_ROW.value):
                     next(reader)
@@ -225,26 +261,48 @@ class CSVImporter(a.HandlerReadIF):
         if self.input_type is None:
             raise cfg.NoInputTypeSet
         lines = []
-        files = list(self.pth.glob('**/*.csv'))
+        files = []
 
         def read_lines(csv_file):
-            with open(csv_file, newline='', encoding='utf-8') as csvfile:
-                checksum = hashlib.md5(csvfile.read()).hexdigest().upper()
+            with open(csv_file, encoding='ISO-8859-1') as csvfile:
+                checksum = hashlib.md5(csvfile.read().encode('ISO-8859-1')).hexdigest().upper()
                 if checksum in self.csv_hashes:
                     raise DouplicateCsvFile
                 else:
                     self.csv_hashes.append(checksum)
                 reader = csv.reader(csvfile, delimiter=';')
-                for _ in range(self.input_type.CSV_START_ROW.value):
-                    next(reader)
-                for line in reader:
-                    yield line
+                for row in reader:
+                    yield row
 
-        for csv_file in files:
-            lines.append(read_lines(csv_file))
+                # for line in iter(reader.__next__, None):
+                #     yield line
+                # for line in reader:
+                #     yield line
+        if os.path.isfile(self.pth):
+            lines.extend(read_lines(self.pth))
+            read_lines(self.pth)
+        else:
+            files = list(self.pth.glob('**/*.csv'))
+            if len(files) == 0:
+                raise NoCsvFilesFound
+            for csv_file in files:
+                # lines.extend(read_lines(csv_file))
+                read_lines(csv_file)
+        return lines
 
         for line in lines:
             yield line
+
+    def _read_lines(self, csv_file):
+        with open(csv_file, encoding='ISO-8859-1') as csvfile:
+            reader = csv.reader(csvfile, delimiter=';')
+            for row in reader:
+                yield row
+
+    def _get_checksum(self, csv_file):
+        with open(csv_file, encoding='ISO-8859-1') as csvfile:
+            checksum = hashlib.md5(csvfile.read().encode('ISO-8859-1')).hexdigest().upper()
+            return checksum
 
 
 class ArtifactHandler():

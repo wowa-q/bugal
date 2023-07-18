@@ -1,6 +1,8 @@
 # not used files in the project
 *.wsd
 *.vscode
+*.csv
+*.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

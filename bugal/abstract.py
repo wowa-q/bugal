@@ -3,6 +3,16 @@
 import abc
 
 
+class Command(abc.ABC):
+    ''' abstract class to alighn different commands '''
+    __metaclass__ = abc.ABCMeta
+
+    # to run standard commands
+    @abc.abstractmethod
+    def execute(self) -> None:
+        ''' interface API '''
+
+
 class HandlerReadIF(abc.ABC):
     """HandlerRead Interface
 
@@ -86,7 +96,6 @@ class AbstractRepository(abc.ABC):
         """
         # raise NotImplementedError
         return True
-
 
     @abc.abstractmethod
     def add_stack(self, stack) -> bool:

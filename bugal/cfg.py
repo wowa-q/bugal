@@ -21,6 +21,15 @@ COLUMNS = {
     'Checksum': 9,
 }
 
+CSV_META = {
+    'file_name': '',
+    'file_ext': '',
+    'checksum': '',
+    'account': '',
+    'start_date': '',
+    'end_date': '',
+}
+
 
 class InputType(enum.Enum):
     """Configuration which input is expected (e.g. classic csv)

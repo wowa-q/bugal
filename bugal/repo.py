@@ -5,6 +5,7 @@ import sqlite3 as sql
 
 from . import model
 from . import abstract as a
+from . import bugal_orm
 
 
 class FakeRepo(a.AbstractRepository):
@@ -61,34 +62,41 @@ class SqlAlchemyRepository(a.AbstractRepository):
         sql_data = None
         stack_from_db = model.Stack()
         stack_from_db.filter = fil
-        
+
         for sql_datum in sql_data:
             stack_from_db.create_transaction(sql_datum)
-        
+
         return stack_from_db
-    
-    def get_history(self, fil:model.Filter) -> model.Stack:
-        pass
 
-    def get_mapping(self, fil:model.Filter) -> model.Stack:
-        pass
+    def get_history(self) -> model.Stack:
+        orm = bugal_orm.BugalOrm()
+        orm.read_history()
+        orm.close_connection()
 
-    def set_history(self, his) -> bool:
-        pass
+    def get_mapping(self) -> model.Stack:
+        orm = bugal_orm.BugalOrm()
+        orm.read_history()
+        orm.close_connection()
 
-    def set_mapping(self, map) -> model.Stack:
-        pass
+    # def set_history(self, his) -> bool:
+    #     pass
+
+    # def set_mapping(self, map) -> model.Stack:
+    #     pass
+
     # def get(self, reference):
     #     return self.session.query(model.Batch).filter_by(reference=reference).one()
 
     # def list(self):
     #     return self.session.query(model.Batch).all()
 
+
 class SqlRepo():
 
     def __init__(self, db_type) -> None:
         self.db_type = db_type
         self.extension = '.db'
+        self.cur = None
 
     def create_new_db(self, pth: str, name: str) -> bool:
         file_name = name + self.extension
