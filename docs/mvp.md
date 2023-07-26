@@ -17,9 +17,9 @@
 
 - [x] create Transactions from classic csv file
 - [x] create Transactions from new csv file
-- [] read konto from csv
-- [] read start date from csv
-- [] read end date from csv
+- [x] read konto from csv
+- [x] read start date from csv
+- [x] read end date from csv
   
 ## Model
 

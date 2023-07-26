@@ -2,6 +2,7 @@
 """
 import enum
 import pathlib
+from datetime import datetime
 
 PTOJECT_DIR = pathlib.Path(__file__).parent.resolve()
 
@@ -26,8 +27,8 @@ CSV_META = {
     'file_ext': '',
     'checksum': '',
     'account': '',
-    'start_date': '',
-    'end_date': '',
+    'start_date': datetime.strptime('01.01.3000', "%d.%m.%Y"),
+    'end_date': datetime.strptime('01.01.1000', "%d.%m.%Y"),
 }
 
 
@@ -77,4 +78,9 @@ class TransactionListBeta(enum.Enum):
 
 class NoInputTypeSet(Exception):
     """Input type is required for correct processing of the input
+    """
+
+
+class NoValidTransactionData(Exception):
+    """ Raised if not valid transaction data were provided
     """

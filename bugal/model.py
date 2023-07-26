@@ -123,7 +123,10 @@ class Stack():
             raise cfg.NoInputTypeSet
         else:
             col = self.input_type
-
+        
+        if len(data) < 7:
+            raise cfg.NoValidTransactionData
+        
         try:
             date.fromisoformat(data[col.DATE.value])
         except ValueError:

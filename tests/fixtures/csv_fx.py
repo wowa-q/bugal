@@ -46,10 +46,10 @@ def fx_single_csv():
 
     yield pth 
     # delete the modified db file and copy one to make repeat of the test possible
-    try:
-        pth.unlink()
-    except FileNotFoundError:
-        pass 
+    # try:
+    #     pth.unlink()
+    # except FileNotFoundError:
+    #     pass 
 
 @pytest.fixture
 def fx_single_csv_new():
@@ -73,10 +73,10 @@ def fx_single_csv_new():
 
     yield pth 
     # delete the modified db file and copy one to make repeat of the test possible
-    try:
-        pth.unlink()
-    except FileNotFoundError:
-        pass 
+    # try:
+    #     pth.unlink()
+    # except FileNotFoundError:
+    #     pass 
 
 @pytest.fixture
 def fx_single_csv_single_line():
