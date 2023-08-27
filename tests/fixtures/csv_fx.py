@@ -167,7 +167,7 @@ def fx_banch_of_invalid_csv(fx_single_csv):
 
 @pytest.fixture
 def fx_zip_archive():
-    zip_file = FIXTURE_DIR.parent.parent.resolve() / 'bugal_p' / 'archive.zip'
+    zip_file = FIXTURE_DIR.resolve() / 'archive.zip'
 
     yield zip_file
 

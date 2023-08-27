@@ -2,6 +2,7 @@
 # flake8: noqa
 
 from datetime import date
+import  datetime
 
 import pytest
 
@@ -21,8 +22,19 @@ def test_transaction_hash_equality():
 def test_transaction_creation(fx_transaction_example_classic):
     stack=model.Stack()
     stack.input_type = cfg.TransactionListClassic
-    stack.create_transaction(fx_transaction_example_classic)
-    
+    transaction = stack.create_transaction(fx_transaction_example_classic)
+    assert transaction.date ==  datetime.date(2022, 1, 1), f"Transaction date {transaction.date}"
+    assert transaction.text ==  'text', f"Transaction date {transaction.text}"
+    assert transaction.status ==  '-', f"Transaction date {transaction.status}"
+    assert transaction.debitor ==  'debitor', f"Transaction date {transaction.debitor}"
+    assert transaction.verwendung ==  'verwendung', f"Transaction date {transaction.verwendung}"
+    assert transaction.konto ==  'konto', f"Transaction date {transaction.konto}"
+    assert transaction.value ==  10, f"Transaction date {transaction.value}"
+    assert transaction.debitor_id ==  'debitor_id', f"Transaction date {transaction.debitor_id}"
+    assert transaction.mandats_ref ==  'mandats_ref', f"Transaction date {transaction.mandats_ref}"
+    assert transaction.customer_ref ==  'customer_ref', f"Transaction date {transaction.customer_ref}"
+    assert transaction.src_konto ==  'src_konto', f"Transaction date {transaction.src_konto}"
+    # assert transaction.__hash__() == 9209578085259140611, f'Checksume {transaction.__hash__}'
 
 # @pytest.mark.skip()
 def test_transaction_creation_beta(fx_transaction_example_beta):

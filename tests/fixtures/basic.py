@@ -49,11 +49,6 @@ def fx_export_filter_aggregate():
     return fil
 
 @pytest.fixture
-def fx_export_filter_aggregate():
-    fil = None
-    return fil
-
-@pytest.fixture
 def fx_xls_file2create():
     """Definitiaon of excel file, which shall be created and deleted when the test was done
 
@@ -63,10 +58,10 @@ def fx_xls_file2create():
     xls_file = FIXTURE_DIR / "test_haushalt.xlsx"
     yield xls_file
     # delete the modified db file and copy one to make repeat of the test possible
-    # try:
-    #     xls_file.unlink()
-    # except FileNotFoundError:
-    #     pass
+    try:
+        xls_file.unlink()
+    except FileNotFoundError:
+        pass
 
 @pytest.fixture
 def fx_month_data():

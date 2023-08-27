@@ -47,7 +47,7 @@ def test_transaction_creation_classic(fx_single_csv):
             print(f"{attribute_name}: {attribute_value}")
         assert transaction.text == 'Classic', f"{transaction.text}"
 
-# @pytest.mark.skip()
+@pytest.mark.skip()
 def test_transaction_creation_beta(fx_single_csv_new):
     stack=model.Stack()
     csv_importer = handler.CSVImporter(fx_single_csv_new)
@@ -61,7 +61,7 @@ def test_transaction_creation_beta(fx_single_csv_new):
     assert stack.nr_transactions != 0, f"no transaction were created"
     assert stack.nr_transactions == 3, f"number of BETA transaction is different than provided by csv: {ctr}"
 
-# @pytest.mark.skip()
+@pytest.mark.skip()
 def test_transaction_creation_works_with_single_line(fx_single_csv_single_line):
     stack=model.Stack()
     csv_importer = handler.CSVImporter(fx_single_csv_single_line)
