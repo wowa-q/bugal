@@ -3,6 +3,7 @@
 from datetime import date, datetime
 import pathlib
 import os
+import shutil
 
 import pytest
 from openpyxl import load_workbook
@@ -37,7 +38,7 @@ def test_read_single_csv(fx_single_csv):
             elif ctr == 7:
                 assert line[0] == "24.01.2023", f"reader {line[0]}"
 
-    gen_reader = csv_importer.read_csv(fx_single_csv)
+    gen_reader = csv_importer.read_lines(fx_single_csv)
     for ctr, line in enumerate(gen_reader):
         if ctr == 0:
             assert line[0] == "Kontonummer:", f"reader {line[0]}"
@@ -132,8 +133,7 @@ def test_get_meta_beta(fx_single_csv_new):
     assert min_date == datetime.strptime('24.01.2022', "%d.%m.%Y"), f"min. Datum falsch {min_date}"
     assert max_date == datetime.strptime('24.01.2023', "%d.%m.%Y"), f"min. Datum falsch {max_date}"
 
-
-#@pytest.mark.skip()
+# @pytest.mark.skip()
 def test_import_single_csv(fx_single_csv):
     csv_importer = handler.CSVImporter(fx_single_csv)
     csv_importer.input_type = cfg.TransactionListClassic
@@ -146,7 +146,6 @@ def test_import_single_csv(fx_single_csv):
             
             test_transaction = csv_output[1].copy()
             assert test_transaction[0] == "24.01.2023", f"transaction hat falschen Wert {test_transaction}" 
-
 
 # @pytest.mark.skip()
 def test_import_banch_csv(fx_banch_of_csv):    
@@ -164,7 +163,7 @@ def test_import_banch_csv(fx_banch_of_csv):
             assert test_transaction[0] == "24.01.2023", f"transaction hat falschen Wert {test_transaction}" 
             # assert nr_lines == 15, f"number of transactions is incorrect: {nr_lines} instead of 15"
 
-#@pytest.mark.skip()
+# @pytest.mark.skip()
 def test_skip_invalid_csv(fx_single_invalid_csv, fx_banch_of_invalid_csv):
     csv_importer = handler.CSVImporter('')
     # with pytest.raises(FileNotFoundError):
@@ -192,23 +191,32 @@ def test_csv_archived(fx_banch_of_csv, fx_zip_archive):
         for fx_file in fx_list:
             assert fx_file in file_list, f"File {fx_file} not found in the archive"
 
-
 # @pytest.mark.skip()
-def test_support_new_csv_format(fx_single_csv_new):
-    csv_importer = handler.CSVImporter(fx_single_csv_new)
+def test_support_new_csv_format(fx_banch_of_csv):
+
+    input = fx_banch_of_csv
+
+    csv_input = pathlib.Path(input)
+    csv_importer = handler.CSVImporter(csv_input)
     csv_importer.input_type = cfg.TransactionListBeta
-    test_transaction = []
+    transactions = []
 
-    for ctr, csv_output in enumerate(csv_importer.get_transactions()):
-        if ctr == 7:
-            assert csv_output[1] is not None, f"transaction not received - None"
-            assert isinstance(csv_output[1], list), f"returned transaction is not a list"
-            assert csv_output[1] != [], f"empty list received for imported transaction"
-            
-            test_transaction = csv_output.copy()
-            assert test_transaction[0] == "24.01.2022", f"transaction hat falschen Wert {test_transaction}" 
+    for fctr, csv_output in enumerate(csv_importer.get_transactions()):
+        for lctr, ln_output in enumerate(csv_output):
+            test_transaction = ln_output.copy()
+            transactions.append(ln_output)
+            assert len(ln_output) == 12, f"Empty line {ln_output}"
+            assert isinstance(ln_output, list), f"returned transaction is not a list"
+            assert ln_output[1] is not None, f"transaction not received - None"
 
-    
+            if lctr == 0:
+                assert ln_output[1]== "24.01.2023", f"transaction hat falschen Wert {ln_output}" 
+            if lctr == 2:
+                assert ln_output[1]== "23.01.2023", f"transaction hat falschen Wert {ln_output}"
+            if lctr == 4:
+                assert ln_output[1]== "16.01.2023", f"transaction hat falschen Wert {ln_output}"
+    assert (lctr+1)*(fctr+1) > 10, f"Counter not increased {lctr}"
+    assert len(transactions) == 15, f"No transaction read from csv"
 
 # @pytest.mark.skip()
 # def test_template():

@@ -9,6 +9,7 @@ import shutil
 import random
 import time
 from datetime import datetime
+import sqlite3
 
 # 3rd party
 import pytest
@@ -32,7 +33,18 @@ def fx_new_db_flie_name():
     try:
         file_path.unlink()
     except FileNotFoundError:
-        pass 
+        pass
+
+@pytest.fixture
+def fx_new_db_flie():
+    full = 'fx_new_db_created' + '.db'
+    file_path = FIXTURE_DIR / full
+    yield file_path
+    time.sleep(0.1)
+    # try:
+    #     file_path.unlink()
+    # except FileNotFoundError:
+    #     pass 
 
 @pytest.fixture
 def fx_new_betaTransaction():
@@ -58,3 +70,29 @@ def fx_history():
     h1 = model.History("auszug1", "csv", "DE123", "2023-12-31", "2022-01-03", "2022-01-01", "super checksum")
 
     return h1
+
+@pytest.fixture
+def fx_history_unique():
+    hash_v = random.randint(100000, 999999)
+    data_list = [
+    "file_name_value",
+    "file_type_value",
+    "account_value",
+    "import_date_value",
+    "max_date_value",
+    "min_date_value",
+    hash_v
+    ]
+
+    history = model.History(*data_list)
+    return history
+
+@pytest.fixture
+def fx_checksum_repo_exist():
+    checksum = '123456789'
+    return checksum
+
+@pytest.fixture
+def fx_checksum_repo_not_exist():
+    checksum = '12345678910'
+    return checksum

@@ -37,19 +37,19 @@ def fx_single_csv():
         f.write('"Kontostand vom 24.01.2023:";"-1.835,87 EUR";\n')
         f.write('\n')
         f.write('"Buchungstag";"Wertstellung";"Buchungstext";"Auftraggeber / Begünstigter";"Verwendungszweck";"Kontonummer";"BLZ";"Betrag (EUR)";"Gläubiger-ID";"Mandatsreferenz";"Kundenreferenz";\n')
-        f.write('"24.01.2023";"24.01.2023";"FOLGELASTSCHRIFT";"PayPal Europe S.a.r.l. et Cie S.C.A";"1024853056047 . Canon Europa NV, Ihr Einkauf bei Canon Europa NV";"LU89751000135104200E";"PPLXLUL2";"-41,00";"LU96ZZZ0000000000000000058";"";"1024853056047";\n')
-        f.write('"24.01.2023";"24.01.2023";"FOLGELASTSCHRIFT";"PayPal Europe S.a.r.l. et Cie S.C.A";"1024853056047 . Canon Europa NV, Ihr Einkauf bei Canon Europa NV";"LU89751000135104200E";"PPLXLUL2";"-41,00";"LU96ZZZ0000000000000000058";"";"1024853056047";\n')
-        f.write('"23.01.2023";"23.01.2023";"Kartenzahlung/-abrechnung";"Eiscafe + Pizzeria Roni//Braunschweig/DE / Eiscafe + Pizzeria Roni";"2023-01-20T18:24      Debitk.1 2026-12";"DE86300500000001052141";"WELADEDDXXX";"-90,00";"";"";"61475723026701200123182418";\n')
-        f.write('"23.01.2023";"23.01.2023";"Kartenzahlung";"ALDI SAGT DANKE";"2023-01-21      Debitk.14 VISA Debit";"DE96120300009005290904";"BYLADEM1001";"-83,99";"";"";"483021509531576";\n')
-        f.write('"16.01.2023";"16.01.2023";"Kartenzahlung/-abrechnung";"ROSSMANN//Braunschweig/DE / ROSSMANN";"2023-01-13T17:52      Debitk.1 2026-12";"DE81300500000001078518";"WELADEDDXXX";"-54,41";"";"";"60304412024293130123175213";\n')
+        f.write('"24.01.2023";"24.01.2023";"Classic";"PayPal Europe S.a.r.l. et Cie S.C.A";"1024853056047 . Canon Europa NV, Ihr Einkauf bei Canon Europa NV";"LU89751000135104200E";"PPLXLUL2";"-51,00";"LU96ZZZ0000000000000000058";"";"1024853056047";\n')
+        f.write('"24.01.2023";"24.02.2023";"Classic";"PayPal Europe S.a.r.l. et Cie S.C.A";"1024853056047 . Canon Europa NV, Ihr Einkauf bei Canon Europa NV";"LU89751000135104200E";"PPLXLUL2";"-41,00";"LU96ZZZ0000000000000000058";"";"1024853056047";\n')
+        f.write('"23.01.2023";"23.03.2023";"Classic";"Eiscafe + Pizzeria Roni//Braunschweig/DE / Eiscafe + Pizzeria Roni";"2023-01-20T18:24      Debitk.1 2026-12";"DE86300500000001052141";"WELADEDDXXX";"-90,00";"";"";"61475723026701200123182418";\n')
+        f.write('"23.01.2023";"23.04.2023";"Classic";"ALDI SAGT DANKE";"2023-01-21      Debitk.14 VISA Debit";"DE96120300009005290904";"BYLADEM1001";"-83,99";"";"";"483021509531576";\n')
+        f.write('"16.01.2023";"16.05.2023";"Classic";"ROSSMANN//Braunschweig/DE / ROSSMANN";"2023-01-13T17:52      Debitk.1 2026-12";"DE81300500000001078518";"WELADEDDXXX";"-54,41";"";"";"60304412024293130123175213";\n')
         pth = FIXTURE_DIR / 'single.csv'
 
     yield pth 
     # delete the modified db file and copy one to make repeat of the test possible
-    # try:
-    #     pth.unlink()
-    # except FileNotFoundError:
-    #     pass 
+    try:
+        pth.unlink()
+    except FileNotFoundError:
+        pass 
 
 @pytest.fixture
 def fx_single_csv_new():
@@ -66,17 +66,17 @@ def fx_single_csv_new():
         f.write('\n')
         f.write('"Buchungsdatum";"Wertstellung";"Status";"Zahlungspflichtige*r";"Zahlungsempfänger*in";"Verwendungszweck";"Umsatztyp";"Betrag";"Gläubiger-ID";"Mandatsreferenz";"Kundenreferenz";\n')
         f.write('"24.01.2022";"24.01.2023";"Gebucht";"Hanse-Merkur";"KLOOS, WALDEMARs";"083257346A00016 07.06.2023- 1";"Eingang";"54,97 €";"";"";"21521570";\n')
-        f.write('"24.01.2023";"24.01.2023";"Gebucht";"Hanse-Merkur";"KLOOSs, WALDEMAR";"083257346A00016 07.06.2023- 1";"Eingang";"54,97 €";"";"";"21521570";\n')
-        f.write('"24.01.2022";"";"Vorgemerkt";"F579947274755";"";"EC 54405140 070623145529 01";"Ausgang";"-42,60 €";"";"";"";\n')
+        f.write('"24.02.2023";"24.01.2023";"Gebucht";"Hanse-Merkur";"KLOOSs, WALDEMAR";"083257346A00016 07.06.2023- 1";"Eingang";"54,97 €";"";"";"21521570";\n')
+        f.write('"24.03.2022";"";"Vorgemerkt";"F579947274755";"";"EC 54405140 070623145529 01";"Ausgang";"-42,60 €";"";"";"";\n')
 
         pth = FIXTURE_DIR / 'single_new.csv'
 
     yield pth 
     # delete the modified db file and copy one to make repeat of the test possible
-    # try:
-    #     pth.unlink()
-    # except FileNotFoundError:
-    #     pass 
+    try:
+        pth.unlink()
+    except FileNotFoundError:
+        pass 
 
 @pytest.fixture
 def fx_single_csv_single_line():
@@ -106,15 +106,18 @@ def fx_single_csv_single_line():
 
 @pytest.fixture
 def fx_banch_of_csv(fx_single_csv):
-    pth = FIXTURE_DIR / 'csv'
-    try:
-        pth.mkdir()
-        for n in range(3):
-            name = 'single_'+str(n)+'.csv'
-            shutil.copy(fx_single_csv, pth / name)
-    except FileExistsError:
-        pass  
-
+    if fx_single_csv.exists():
+        pth = FIXTURE_DIR / 'csv'
+        try:
+            pth.mkdir()
+            for n in range(3):
+                name = 'single_'+str(n)+'.csv'
+                shutil.copy2(fx_single_csv, pth / name)
+        except FileExistsError:
+            pass  
+    else:
+        raise FileExistsError
+    
     yield pth
 
     try:
@@ -128,9 +131,9 @@ def fx_banch_of_csv(fx_single_csv):
 @pytest.fixture
 def fx_single_invalid_csv():
     pth = ''
-    with open(FIXTURE_DIR / 'single.csv', 'w') as f:
+    with open(FIXTURE_DIR / 'inv_single.csv', 'w') as f:
         f.write('a;b;c')
-        pth = FIXTURE_DIR / 'single.csv'
+        pth = FIXTURE_DIR / 'inv_single.csv'
 
     yield pth 
     # delete the modified db file and copy one to make repeat of the test possible
@@ -141,7 +144,7 @@ def fx_single_invalid_csv():
 
 @pytest.fixture
 def fx_banch_of_invalid_csv(fx_single_csv):
-    pth = FIXTURE_DIR / 'csv'
+    pth = FIXTURE_DIR / 'inv_csv'
     try:
         pth.mkdir()
         for n in range(3):

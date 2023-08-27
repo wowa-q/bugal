@@ -28,29 +28,6 @@ from bugal import bugal_orm
 FIXTURE_DIR = pathlib.Path(__file__).parent.resolve()
 
 @pytest.fixture
-def fx_test_db_new():
-    """Definitiaon of DB file, which shall be created and deleted when the test was done
-
-    Yields:
-        path string: file path
-    """
-    db_file = FIXTURE_DIR / "test_db_created.db"
-    conn = sql.connect(db_file)
-    cursor = conn.cursor()
-    # 
-    cursor.execute('''CREATE TABLE IF NOT EXISTS employees
-                (Emp_ID INT, Name TEXT, Position TEXT);''')
-    conn.commit()
-    conn.close()
-
-    yield db_file
-    # delete the modified db file and copy one to make repeat of the test possible
-    try:
-        db_file.unlink()
-    except FileNotFoundError:
-        pass
-
-@pytest.fixture
 def fx_db_orm_engine(fx_test_db_new):
     engine = create_engine(f'sqlite:///{fx_test_db_new}')
     return engine

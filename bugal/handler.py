@@ -9,6 +9,7 @@ import os
 import hashlib
 import zipfile
 import csv
+import pathlib
 from datetime import date, datetime
 
 from openpyxl import Workbook
@@ -156,8 +157,13 @@ class CSVImporter(a.HandlerReadIF):
     csv_hashes = []
 
     def __init__(self, pth):
-        self.pth = pth
+        self.pth = pathlib.Path(pth)
         self.invalid_files = []
+        self.csv_files = []
+        if self.pth.is_file():
+            self.csv_files.append(pth)
+        else:
+            self.csv_files = list(self.pth.glob('**/*.csv'))
         self.meta_data = []
         self.input_type = None
 
@@ -178,13 +184,7 @@ class CSVImporter(a.HandlerReadIF):
         meta['checksum'] = self.get_checksum(csv_file)
         meta['file_ext'] = 'csv'
         meta['file_name'] = str(csv_file).strip('.csv')
-        # with open(csv_file, encoding='ISO-8859-1') as csvfile:
-        #     reader = csv.reader(csvfile, delimiter=';')
-
-        #     for ctr, line in enumerate(reader):
-        #         if ctr == 0:
-        #             meta['account'] = line[1].replace("Girokonto", "").replace("/", "").strip()
-        for ctr, line in enumerate(self.read_lines(csv_file)):
+        for ctr, line in enumerate(self._read_lines(csv_file)):
             if ctr == 0:
                 meta['account'] = line[1].replace("Girokonto", "").replace("/", "").strip()
             if ctr > 5:
@@ -199,141 +199,46 @@ class CSVImporter(a.HandlerReadIF):
                     meta['end_date'] = date_obj
         return meta
 
-    def read_lines(self, csv_file):
+    def _read_lines(self, csv_file):
         with open(csv_file, encoding='ISO-8859-1') as csvfile:
             reader = csv.reader(csvfile, delimiter=';')
             for row in reader:
                 yield row
 
     def get_checksum(self, csv_file):
+        """provides hash value for csv file
+
+        Args:
+            csv_file (Path): csv file reference
+
+        Returns:
+            str: calculated hash value as String
+        """
         with open(csv_file, encoding='ISO-8859-1') as csvfile:
             checksum = hashlib.md5(csvfile.read().encode('ISO-8859-1')).hexdigest().upper()
             return checksum
-    # not tested
-    def _get_meta_data_old(self, csv_file) -> dict:
-        if self.input_type is None:
-            raise cfg.NoInputTypeSet
-        meta = cfg.CSV_META.copy()
-        for ctr, row in enumerate(self._read_lines(csv_file)):
-            if ctr == 0:
-                meta['account'] = row[1]
-            if ctr > self.input_type.CSV_START_ROW:
-                if meta['start_date'] > row[0]:
-                    meta['start_date'] = row[0]
-                if meta['end_date'] < row[0]:
-                    meta['end_date'] = row[0]
-
-        meta['file_name'] = ''
-        meta['file_ext'] = 'csv'
-        meta['checksum'] = self._get_checksum(csv_file)
-        return meta
-
-    def _read_singel_csv(self, fl_pth):
-
-        if self.input_type is None:
-            raise cfg.NoInputTypeSet
-
-        lines = []
-        meta = cfg.CSV_META.copy()
-        meta['file_ext'] = 'csv'
-        try:
-            with open(fl_pth, newline='', encoding='utf-8') as csvfile:
-                meta['file_name'] = fl_pth
-                checksum = hashlib.md5(csvfile.read()).hexdigest().upper()
-                meta['checksum'] = checksum
-                if checksum in self.csv_hashes:
-                    raise DouplicateCsvFile
-                else:
-                    self.csv_hashes.append(checksum)
-                reader = csv.reader(csvfile, delimiter=';')
-                for _ in range(self.input_type.CSV_START_ROW.value):
-                    next(reader)
-                for line in reader:
-                    lines.append(line)
-        except UnicodeDecodeError:
-            # with open(fl_pth, newline='', encoding='ISO-8859-1') as csvfile:
-            with open(fl_pth, 'rb') as csvfile:
-                checksum = hashlib.md5(csvfile.read()).hexdigest().upper()
-                if checksum in self.csv_hashes:
-                    raise DouplicateCsvFile
-                else:
-                    self.csv_hashes.append(checksum)
-                reader = csv.reader(csvfile, delimiter=';')
-                for _ in range(self.input_type.CSV_START_ROW.value):
-                    next(reader)
-                for line in reader:
-                    lines.append(line)
-        except FileNotFoundError:
-            self.invalid_files.append(fl_pth)
-
-        return lines
-
-    def get_transactions_old(self):
-        """reads line from CSV file and yields a line as transaction
-
-        Raises:
-            DouplicateCsvFile: _description_
-
-        Yields:
-            list: list from csv data
-        """
-        lines = []
-        if os.path.isfile(self.pth):
-            lines.extend(self._read_singel_csv(self.pth))
-        else:
-            files = list(self.pth.glob('**/*.csv'))
-            if len(files) == 0:
-                raise NoCsvFilesFound
-            for fl_pth in files:
-                lines.extend(self._read_singel_csv(fl_pth))
-
-        for line in lines:
-            yield line
-
-    def read_csv(self, csv_file):
-        with open(csv_file, newline='') as csvfile:
-            reader = csv.reader(csvfile, delimiter=';')
-            for line in reader:
-                yield line
-
 
     def get_transactions(self):
-        """NOT TESTED function - alternativ implementation with nested functions
-
+        """reads line from CSV file and yields a line as transaction
+            If a directory is provided, loops over csv files in the directory
         Raises:
-            DouplicateCsvFile: _description_
+            NoValidInputFilesFound: if no csv files were found in the given directory
 
         Yields:
-            _type_: _description_
+            generator: to get the line as a list two for loops are necessary
         """
         if self.input_type is None:
             raise cfg.NoInputTypeSet
-        
-        files = list(self.pth.glob('**/*.csv'))
 
         def read_lines(csv_file):
-            transaction = []
-            account = ''
-            with open(csv_file, newline='', encoding='utf-8') as csvfile:
-                checksum = hashlib.md5(csvfile.read()).hexdigest().upper()
-                if checksum in self.csv_hashes:
-                    raise DouplicateCsvFile
-                else:
-                    self.csv_hashes.append(checksum)
+            # with open(csv_file, newline='', encoding='utf-8') as csvfile:
+            with open(csv_file, encoding='ISO-8859-1') as csvfile:
                 reader = csv.reader(csvfile, delimiter=';')
-                # for _ in range(self.input_type.CSV_START_ROW.value):
-                #     next(reader)
-                # for line in reader:
-                #     yield line
                 for ctr, line in enumerate(reader):
-                    if ctr == 0:
-                        account = line[1]                    
-                    elif ctr > self.input_type.CSV_START_ROW.value:
-                        transaction = line
-                        
-                    yield [account, transaction]
+                    if ctr > self.input_type.CSV_START_ROW.value:
+                        yield line
 
-        for csv_file in files:
+        for csv_file in self.csv_files:
             yield read_lines(csv_file)
 
 

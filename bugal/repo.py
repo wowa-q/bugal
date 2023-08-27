@@ -35,6 +35,27 @@ class FakeRepo(a.AbstractRepository):
         
         return stack_from_db
 
+    def get_mapping(self):
+        mapping = []
+        return mapping
+
+    def set_mapping(self, mapping):
+        self.mapping = mapping
+
+    def get_history(self):
+        history = []
+        return history
+
+    def set_history(self, history):
+        self.history = history
+
+    def find_csv_checksum(self, checksum):
+        transaction = []
+        return transaction
+
+    def find_transaction(self, parameter, value):
+        transaction = []
+        return transaction
 
 class SqlAlchemyRepository(a.AbstractRepository):
     """Alchemy abstraction

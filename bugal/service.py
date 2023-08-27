@@ -20,58 +20,46 @@ class CmdImportNewCsv(a.Command):
 
     def execute(self) -> None:
         ''' execution of the specified command
-        1. read csv file
-        2. create transactions
-        3. create history
-        4. read history from db
-        5. check checksum not available
-        6. write transactions
-        7. write history
+        1. calculate csv hash
+        2. pull csv hash: read history from db
+        3. compare csv hashes
+        4. get meta data
+        5. pull transaction hashes
+        6. read csv line transaction
+        7. create transactions
+        8. check checksum not available
+        9. write transactions
+        10. archive csv
+        11. write history
         '''
         print(' # start execution *CmdImportNewCsv* # ')
-        self.handler_r.CSVImporter(self.csv_path)
+        # self.handler_r.CSVImporter(self.csv_path)
         self.handler_r.input_type = cfg.TransactionListClassic
-        self.stack.create_history()
-        self.repo.get_history()
+        meta = self.handler_r.get_meta_data()
 
-        print(' # start execution *CmdImportNewCsv* # ')
-        csv_meta = {}
-        print(f'CmdImportNewCsv: {self.csv_file}')
-
-        with open(self.csv_file, 'rb') as file:
-            # calculate first the checksum of the given csv file
-            checksum = hashlib.md5(file.read()).hexdigest().upper()
-
+        # leave the function if checksum exists in DB history
         # search the checksum in the meta table
-        (return_c, lresults) = self.db_handler.find_checksum(checksum)
-        # check the response code
-
-        if return_c == RC.META_TABLE_OK:
-            if len(lresults) > 0:
-                # an entry was found in the meta table -> csv is already imported
-                print('CmdImportNewCsv: CSV already imported')
-                print(lresults)
-                return RC.NONE
+        csv_checksum = self.handler_r.get_checksum(self.csv_path)
+        # check if checksum already exists
+        lresults = self.repo.find_csv_checksum(csv_checksum)
+        if lresults:
+            # an entry was found in the meta table -> csv is already imported
+            print('CmdImportNewCsv: CSV already imported')
+            # exit the execution
+            return False
+        else:
+            history_entry = self.stack.create_history(meta)
+            data = self.handler_r.get_transactions()
+            transaction = self.stack.create_transaction(data)
+            lresults = self.repo.find_transaction_checksum(hash(transaction))
+            if lresults:
+                # an entry was found with the same hash -> transaction exists already
+                print('CmdImportNewCsv: transaction already imported')
+                # exit the execution
+                return False
             else:
-                # no entry was found -> import can be continued
-                # 1. get data for meta entry
-                with open(self.csv_file, 'r') as file:
-                    for row in file:
-                        # print(row.split(';'))
-                        # Konto is in the first row
-                        csv_meta['konto'] = row.split(';')[1]
-                        break
-                csv_meta['name'] = self.csv_file
-                csv_meta['checksum'] = checksum
-                # 2. import csv data
-                (return_c, csv_ln) = self.dkb_ld.get_lines_as_list_of_dicts(self.csv_file)
-                self.db_handler.import_dkb_csv(csv_ln, csv_meta)
-                # 3. create meta entry
-                self.db_handler.create_csv_meta(csv_meta)
-                return RC.OK
-
-        if return_c == RC.META_TABLE_NOK:
-            return RC.NOK
+                self.repo.write_to_transactions(transaction)
+                self.repo.write_to_history(history_entry)
 
 ################################################################
 #                        Invoker                                #

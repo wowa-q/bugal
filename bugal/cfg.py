@@ -59,7 +59,7 @@ class TransactionListClassic(enum.Enum):
     DEBITOR_ID = 8
     MANDATS_REF = 9
     CUSTOMER_REF = 10
-    CSV_START_ROW = 7
+    CSV_START_ROW = 6
 
 
 class TransactionListBeta(enum.Enum):
@@ -73,7 +73,7 @@ class TransactionListBeta(enum.Enum):
     DEBITOR_ID = 8
     MANDATS_REF = 9
     CUSTOMER_REF = 10
-    CSV_START_ROW = 5
+    CSV_START_ROW = 4
 
 
 class NoInputTypeSet(Exception):
@@ -82,5 +82,20 @@ class NoInputTypeSet(Exception):
 
 
 class NoValidTransactionData(Exception):
+    """ Raised if not valid transaction data were provided
+    """
+
+
+class NoValidInputFilesFound(Exception):
+    """ Raised if not valid transaction data were provided
+    """
+
+
+class DbConnectionFaild(Exception):
+    """ Raised if not valid transaction data were provided
+    """
+
+
+class ImporteFileDuplicate(Exception):
     """ Raised if not valid transaction data were provided
     """

@@ -7,8 +7,6 @@ import dataclasses
 from datetime import date
 
 from . import cfg
-# from . import cli
-# from . import repo
 
 
 @dataclass(frozen=True, eq=True)
@@ -28,16 +26,15 @@ class History:
             yield getattr(self, feld.name)
 
 
-
 @dataclass(frozen=True, eq=True)
 class Property:
     """
+    Property
     """
     inout: str
     name: str
     type: str
     cycle: str
-        
 
     def __iter__(self):
         for feld in dataclasses.fields(self):
@@ -48,18 +45,18 @@ class Property:
 class Transaction:
     """Transaction
     """
-    date: date = field(metadata='printed')
-    text: str = field(metadata='printed')  # changed
+    date: date = field(metadata={'printed': True})
+    text: str = field(metadata={'printed': True})  # changed
     status: str
     debitor: str    # renamed
-    verwendung: str = field(metadata='printed')  # moved 1x to left
-    konto: str = field(metadata='printed')  # changed
-    value: int = field(metadata='printed')  # renamed
+    verwendung: str = field(metadata={'printed': True})  # moved 1x to left
+    konto: str = field(metadata={'printed': True})  # changed
+    value: int = field(metadata={'printed': True})  # renamed
     debitor_id: str
     mandats_ref: str
     customer_ref: str
     # checksum: str = field(metadata='printed')
-    src_konto: str = field(metadata='printed')
+    src_konto: str = field(metadata={'printed': True})
 
     def __iter__(self):
         for feld in dataclasses.fields(self):
@@ -123,10 +120,10 @@ class Stack():
             raise cfg.NoInputTypeSet
         else:
             col = self.input_type
-        
+        # check that only real data are provided
         if len(data) < 7:
             raise cfg.NoValidTransactionData
-        
+
         try:
             date.fromisoformat(data[col.DATE.value])
         except ValueError:
@@ -160,6 +157,7 @@ class Stack():
         if hash(transaction) not in self.checksums:
             self.transactions.append(transaction)
             self.checksums.add(hash(transaction))
+            # self.nr_transactions += 1
         self.nr_transactions = len(self.transactions)
 
         return transaction
@@ -197,3 +195,4 @@ class Stack():
             if transaction.date < min_date:
                 min_date = transaction.date
         return min_date
+

@@ -75,11 +75,12 @@ class AbstractRepository(abc.ABC):
         set_mapping
         get_history
         set_history
+        get_transaction_hashes
     Raises:
         NotImplementedError: _description_
 
     """
-    # @abc.abstractmethod
+    @abc.abstractmethod
     def create_new_db(self, pth: str, name: str, db_type: str) -> bool:
         """API to create new db
 
@@ -141,4 +142,23 @@ class AbstractRepository(abc.ABC):
 
     @abc.abstractmethod
     def set_history(self, history):
+        pass
+
+    @abc.abstractmethod
+    def find_csv_checksum(self, checksum):
+        """Methode to find the checksum in the DB, History table
+
+        Args:
+            checksum (_type_): _description_
+        """
+        pass
+
+    @abc.abstractmethod
+    def find_transaction(self, parameter, value):
+        """Methode to find the transaction with the given parameter value in the DB, 
+        Transactions table
+
+        Args:
+            parameter (_type_): _description_
+        """
         pass

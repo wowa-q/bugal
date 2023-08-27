@@ -26,3 +26,6 @@
 - [] calculate checksum for the csv
 - [] avoid import of the same csv
 - [] create History object
+
+## Not supported / Bug
+- import of multi csv files. Only one by one import is possible

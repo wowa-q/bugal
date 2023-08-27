@@ -1,12 +1,19 @@
 """_summary_
 """
+import pathlib
+import logging  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
 from sqlalchemy import create_engine, inspect, select
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from . import model
 from . import cfg
+
+logging.basicConfig(filename='orm.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 Base = declarative_base()
 
@@ -16,21 +23,23 @@ class BugalOrm():
     """
     def __init__(self, pth='', name='', db_type='sqlite'):
         if db_type == 'sqlite':
-            # filename = name + '.db'
-            db_file = str(pth) + '/' + name + '.db'
+            if pathlib.Path(pth).is_file():
+                db_file = pth
+            else:
+                db_file = str(pth) + '/' + name + '.db'
             self.engine = create_engine(f'sqlite:///{db_file}')
         elif db_type == 'memory':
-            # self.engine = create_engine("sqlite://", connect_args={"check_same_thread": False})
-            # self.engine = create_engine("sqlite:///:memory:")
             self.engine = create_engine("sqlite://")
         else:
             db_file = cfg.PTOJECT_DIR / 'new_temp.db'
             self.engine = create_engine(f'sqlite:///{db_file}')
 
         if self.engine is None:
-            raise cfg.NoInputTypeSet
+            raise cfg.DbConnectionFaild
+
         self.inspector = inspect(self.engine)
         Base.metadata.create_all(self.engine)
+        logging.info("Repohandler was initalized with DB: %s", pth)
 
     def write_to_transactions(self, transact: model.Transaction):
         """Write new transaction to database
@@ -38,6 +47,8 @@ class BugalOrm():
         Args:
             transact (model.Transaction): _description_
         """
+        if not isinstance(transact, model.Transaction):
+            raise ValueError
         transaction = Transactions(text=transact.text,
                                    datum=transact.date,
                                    status=transact.status,
@@ -49,10 +60,20 @@ class BugalOrm():
                                    mandats_ref=transact.mandats_ref,
                                    customer_ref=transact.customer_ref,
                                    src_konto=transact.src_konto,
-                                   checksum=transact.text)
-        with Session(self.engine) as session:
-            session.add(transaction)
-            session.commit()
+                                   checksum=hash(transact))
+        try:
+            with Session(self.engine) as session:
+                session.add(transaction)
+                session.commit()
+                return True
+        except IntegrityError as exc:
+            print("IntegrityError:", exc)
+            print(f"""csv file with {transaction} was already imported,
+                  checksum {transaction.checksum} exists""")
+            return False
+        except cfg.ImporteFileDuplicate:
+            print(f"csv file with {transaction} was already imported")
+            return False
 
     def write_many_to_transactions(self, transactions: list):
         """Write new transaction to database
@@ -73,23 +94,51 @@ class BugalOrm():
                                        mandats_ref=tran.mandats_ref,
                                        customer_ref=tran.customer_ref,
                                        src_konto=tran.src_konto,
-                                       checksum=tran.text)
+                                       checksum=hash(tran))
             t_list.append(transaction)
-        with Session(self.engine) as session:
-            session.add_all(t_list)
-            session.commit()
+        try:
+            with Session(self.engine) as session:
+                session.add_all(t_list)
+                session.commit()
+                return True
+        except IntegrityError as exc:
+            print("IntegrityError:", exc)
+            print(f"""csv file with {transaction} was already imported,
+                  checksum {hash(transaction)} exists""")
+            return False
+        except cfg.ImporteFileDuplicate:
+            print(f"csv file with {transaction} was already imported")
+            return False
 
-    def write_to_history(self, history: model.History):
-        history = History(file_name=history.file_name,
-                          file_type=history.file_type,
-                          account=history.account,
-                          min_date=history.min_date,
-                          max_date=history.max_date,
-                          import_date=history.import_date,
-                          checksum=history.checksum)
-        with Session(self.engine) as session:
-            session.add(history)
-            session.commit()
+    def write_to_history(self, his: model.History):
+        """writing history data into repository
+
+        Args:
+            history (model.History): History row for a csv file to be imported
+        """
+        if not isinstance(his, model.History):
+            raise ValueError
+        history = History(file_name=his.file_name,
+                          file_type=his.file_type,
+                          account=his.account,
+                          min_date=his.min_date,
+                          max_date=his.max_date,
+                          import_date=his.import_date,
+                          checksum=his.checksum)
+
+        try:
+            with Session(self.engine) as session:
+                session.add(history)
+                session.commit()
+                return True
+        except IntegrityError as exc:
+            print("IntegrityError:", exc)
+            print(f"""csv file with {history} was already imported,
+                  checksum {history.checksum} exists""")
+            return False
+        except cfg.ImporteFileDuplicate:
+            print(f"csv file with {history} was already imported")
+            return False
 
     def write_to_property(self, prop: model.Property):
         eigenschaften = Property(inout=prop.inout,
@@ -110,7 +159,7 @@ class BugalOrm():
             result = session.execute(query).scalars().all()
 
         return result
-    
+
     def read_history(self, ) -> list:
         """_summary_
 
@@ -124,7 +173,53 @@ class BugalOrm():
         return result
 
     def close_connection(self):
+        """closing DB connection
+        """
         self.engine.dispose()
+
+    def find_csv_checksum(self, hash_string=''):
+        """find the checksum in the history table
+
+        Args:
+            hash_string (str, optional): _description_. Defaults to ''.
+
+        Raises:
+            cfg.DbConnectionFaild: _description_
+
+        Returns:
+            _type_: _description_
+        """
+        with Session(self.engine, future=True) as session:
+
+            if not self.inspector.has_table('History'):
+                raise cfg.DbConnectionFaild
+            # Überprüfen, ob der Hash in der Tabelle "History" vorhanden ist
+            result = session.query(History).filter(History.checksum == hash_string).first()
+            # query = select(History).where(History.checksum.like(hash_string))
+            # result = session.execute(query).scalars().all()
+        # just information found or not is needed
+        return result is not None
+        # return query
+
+    def find_transaction_checksum(self, hash_string=''):
+        """find the checksum in the transactions table
+
+        Args:
+            hash_string (str, optional): hashstring to be searched in \
+                transaction table. Defaults to ''.
+
+        Returns:
+            Bool: Found checksum or not
+        """
+        with Session(self.engine, future=True) as session:
+            # test if such table exists
+            if not self.inspector.has_table('transactions'):
+                raise cfg.DbConnectionFaild
+            # Überprüfen, ob der Hash in der Tabelle "Transactions"
+            # vorhanden ist
+            result = session.query(Transactions).filter(Transactions.checksum == hash_string).first()
+        # just information found or not is needed
+        return result is not None
 
 ################################################################
 #                        Tables                                #
@@ -147,7 +242,7 @@ class Transactions(Base):
     mandats_ref = Column(String)
     customer_ref = Column(String)
     src_konto = Column(String)
-    checksum = Column(String)
+    checksum = Column(String, unique=True)
 
 
 class History(Base):
@@ -161,7 +256,7 @@ class History(Base):
     min_date = Column(String)
     max_date = Column(String)
     import_date = Column(String)
-    checksum = Column(String)
+    checksum = Column(String, unique=True)
 
 
 class Property(Base):
