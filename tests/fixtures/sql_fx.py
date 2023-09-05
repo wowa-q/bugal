@@ -41,14 +41,14 @@ def fx_new_db_flie():
     file_path = FIXTURE_DIR / full
     yield file_path
     time.sleep(0.1)
-    # try:
-    #     file_path.unlink()
-    # except FileNotFoundError:
-    #     pass 
+    try:
+        file_path.unlink()
+    except FileNotFoundError:
+        pass 
 
 @pytest.fixture
 def fx_new_betaTransaction():
-    data = ["2022-01-01", "2022-01-01", "STATUS", "sender", "receiver", "verwendung", "typ", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    data = ["01.01.2022", "0.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     stack = model.Stack()
     stack.input_type = cfg.TransactionListBeta
     transaction = stack.create_transaction(data)
@@ -58,16 +58,16 @@ def fx_new_betaTransaction():
 @pytest.fixture
 def fx_new_classicTransactions_banch():
     
-    t1 = model.Transaction("2022-01-01", "text", "status", "debitor", "verwendung", "konto", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto")
-    t2 = model.Transaction("2022-01-03", "text", "status", "debitor", "verwendung", "konto", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto")
-    t3 = model.Transaction("2022-01-02", "text", "status", "debitor", "verwendung", "konto", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto")
+    t1 = model.Transaction("01.01.2022", "text", "status", "debitor", "verwendung", "konto", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto")
+    t2 = model.Transaction("03.01.2022", "text", "status", "debitor", "verwendung", "konto", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto")
+    t3 = model.Transaction("04.01.2022", "text", "status", "debitor", "verwendung", "konto", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto")
 
     return [t1, t2, t3]
 
 @pytest.fixture
 def fx_history():
     
-    h1 = model.History("auszug1", "csv", "DE123", "2023-12-31", "2022-01-03", "2022-01-01", "super checksum")
+    h1 = model.History("auszug1", "csv", "DE123", "31.12.2023", "03.01.2022", "01.01.2022", "super checksum")
 
     return h1
 
@@ -86,6 +86,15 @@ def fx_history_unique():
 
     history = model.History(*data_list)
     return history
+
+@pytest.fixture
+def fx_transaction_unique():
+    
+    data = ["2022.01.01", "STATUS", "sender", "receiver", "verwendung", "typ", random.randint(100000, 999999), str(random.randint(100000, 999999)), "mandats_ref", "customer_ref", "src_konto"]
+    t3 = model.Transaction("2022.01-02", "text", "status", "debitor", "verwendung", "konto", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto")
+
+    transaction = model.Transaction(*data)
+    return transaction
 
 @pytest.fixture
 def fx_checksum_repo_exist():

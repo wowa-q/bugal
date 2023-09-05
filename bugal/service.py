@@ -11,12 +11,11 @@ class CmdImportNewCsv(a.Command):
 
     def __init__(self, rep: a.AbstractRepository,
                  stack: model.Stack,
-                 handler_r: a.HandlerReadIF,
-                 csv_path: pathlib.Path):
+                 handler_r: a.HandlerReadIF):
         self.repo = rep
         self.stack = stack
         self.handler_r = handler_r
-        self.csv_path = csv_path
+        # self.csv_path = csv_path
 
     def execute(self) -> None:
         ''' execution of the specified command
@@ -36,30 +35,43 @@ class CmdImportNewCsv(a.Command):
         # self.handler_r.CSVImporter(self.csv_path)
         self.handler_r.input_type = cfg.TransactionListClassic
         meta = self.handler_r.get_meta_data()
-
         # leave the function if checksum exists in DB history
         # search the checksum in the meta table
-        csv_checksum = self.handler_r.get_checksum(self.csv_path)
+        csv_checksum = self.handler_r.get_checksum()
         # check if checksum already exists
         lresults = self.repo.find_csv_checksum(csv_checksum)
         if lresults:
             # an entry was found in the meta table -> csv is already imported
             print('CmdImportNewCsv: CSV already imported')
             # exit the execution
-            return False
+            return -1
         else:
-            history_entry = self.stack.create_history(meta)
-            data = self.handler_r.get_transactions()
-            transaction = self.stack.create_transaction(data)
-            lresults = self.repo.find_transaction_checksum(hash(transaction))
-            if lresults:
-                # an entry was found with the same hash -> transaction exists already
-                print('CmdImportNewCsv: transaction already imported')
-                # exit the execution
-                return False
-            else:
-                self.repo.write_to_transactions(transaction)
+            # first build history and init some data
+            history_entry = self.stack.create_history(meta[0])
+            if history_entry is None:
+                raise cfg.ModelStackError
+
+            ctr_t = 0
+            # get transaction row
+            for _, transrow in enumerate(self.handler_r.get_transactions()):
+                for _, transaction_c in enumerate(transrow, 1):
+                    transaction_m = self.stack.create_transaction(transaction_c)
+                    lresults = self.repo.find_transaction_checksum(hash(transaction_m))
+                    if lresults:
+                        # an entry was found with the same hash -> transaction exists already
+                        print('CmdImportNewCsv: transaction already imported')
+                        # exit the execution
+                        continue
+                    else:
+                        self.repo.write_to_transactions(transaction_m)
+                        ctr_t += 1
+            if ctr_t > 0:
                 self.repo.write_to_history(history_entry)
+                self.handler_r.archive()
+                print(f"number of transactions imported: {ctr_t}")
+            # return number of imported transactions
+            return ctr_t
+
 
 ################################################################
 #                        Invoker                                #

@@ -79,13 +79,13 @@ def test_read_transactions(fx_new_db_flie_name, fx_new_classicTransactions_banch
     assert len(set(checksums)) == 3, f"{set(checksums)} "
     
     orm_handler.write_many_to_transactions(fx_new_classicTransactions_banch)
-    filter = {'datum': '2022-01-01'}
+    filter = {'date-after': '01.01.2021'}
     transactions = orm_handler.read_transactions(filter)
     
     orm_handler.close_connection()
     
     assert len(transactions) == 3, "no transactions returned"
-    assert transactions[0].datum == '2022-01-01', f"transaction: {transactions}"
+    assert transactions[0].datum == '01.01.2022', f"transaction: {transactions}"
     
 # @pytest.mark.skip()
 def test_creagte_new_history(fx_new_db_flie_name, fx_history):
@@ -139,7 +139,7 @@ def make_History_entry(db_path, entry=[]):
     conn.close()
 
 # @pytest.mark.skip()
-def test_repo_find_checksum(fx_new_db_flie_name, fx_checksum_repo_exist, fx_checksum_repo_not_exist):
+def test_repo_find_checksum(fx_new_db_flie, fx_checksum_repo_exist, fx_checksum_repo_not_exist):
     db_path = FIXTURE_DIR / 'test_db.db'
     row = ['file name',
                'file type',
@@ -149,7 +149,7 @@ def test_repo_find_checksum(fx_new_db_flie_name, fx_checksum_repo_exist, fx_chec
                'import date',
                fx_checksum_repo_exist]
     make_History_entry(db_path, entry=row)
-    make_History_entry(fx_new_db_flie_name)
+    make_History_entry(fx_new_db_flie)
     
     orm_handler = bugal_orm.BugalOrm(FIXTURE_DIR, 'test_db', 'sqlite')
     result_exist = orm_handler.find_csv_checksum(fx_checksum_repo_exist)
@@ -158,12 +158,6 @@ def test_repo_find_checksum(fx_new_db_flie_name, fx_checksum_repo_exist, fx_chec
     assert result_exist == True, f"Checksum not found in the History table {result_exist}"
     assert result_not_exist == False, f"Checksum found in the History table {result_not_exist}"
 
-    orm_handler = bugal_orm.BugalOrm(pth=fx_new_db_flie_name, db_type='sqlite')
-    result_exist = orm_handler.find_csv_checksum(fx_checksum_repo_exist)
-    result_not_exist = orm_handler.find_csv_checksum(fx_checksum_repo_not_exist)
-    orm_handler.close_connection()
-    assert result_exist == True, f"Checksum not found in the History table {result_exist}"
-    assert result_not_exist == False, f"Checksum found in the History table {result_not_exist}"
     try:
         db_path.unlink()
     except FileNotFoundError:
@@ -196,7 +190,7 @@ def test_repo_push_history(fx_new_db_flie_name, fx_history_unique):
     
     assert True, f"Not implemented"
 
-@pytest.mark.skip()
+# @pytest.mark.skip()
 def test_repo_push_transaction(fx_new_db_flie_name, fx_transaction_unique):
     # model create history
 
@@ -205,20 +199,26 @@ def test_repo_push_transaction(fx_new_db_flie_name, fx_transaction_unique):
     # if repo couldn't push - checksum exists and csv will not be imported
     # error message will be returned: "csv was already imported"
     
-    orm_handler = bugal_orm.BugalOrm(FIXTURE_DIR, fx_new_db_flie_name, 'sqlite')            
+    orm_handler = bugal_orm.BugalOrm(FIXTURE_DIR, fx_new_db_flie_name, 'sqlite')          
     result_not_exist = orm_handler.write_to_transactions(fx_transaction_unique)
-    assert result_not_exist == True, f"History couldn't be written"
-    result_not_exist = orm_handler.find_transaction_checksum(fx_transaction_unique.checksum)
-    assert result_not_exist == True, f"Checksum found in the History table {result_not_exist}"
-    
-    result_exist = orm_handler.write_to_history(fx_transaction_unique)
-    assert result_exist == False, f"History was written again"
-    
+    assert result_not_exist == True, f"Transaction couldn't be written"
+    result_not_exist = orm_handler.find_transaction_checksum(hash(fx_transaction_unique))
+    assert result_not_exist == True, f"Checksum found in the Transactions table {result_not_exist}"
+    ctr_before = orm_handler.get_transaction_ctr()
+    result_exist = orm_handler.write_to_transactions(fx_transaction_unique)
+    assert result_exist == False, f"Transaction was written again"
+    ctr_after = orm_handler.get_transaction_ctr()
+    assert ctr_after == ctr_before, f"New transaction pushed to DB, before: {ctr_before} and after: {ctr_after}"
     
     orm_handler.close_connection()
-    
-    
-    assert True, f"Not implemented"
+    ctr_t1 = orm_handler.get_transaction_ctr()
+    orm_handler2 = bugal_orm.BugalOrm(FIXTURE_DIR, fx_new_db_flie_name, 'sqlite') 
+    ctr_t2 = orm_handler2.get_transaction_ctr()
+    assert ctr_t2 == ctr_t1, f"Not the same number of transactions"
+
+# @pytest.mark.skip()
+def test_connect_to_existing_db():
+    assert True, 'not implemented'
 
 
 '''

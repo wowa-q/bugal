@@ -11,6 +11,8 @@ MAX_COL = 100
 MIN_ROW = 5
 MAX_ROW = 100
 
+ARCHIVE = PTOJECT_DIR.resolve() / 'BUGAL.zip'
+
 COLUMNS = {
     'Datum': 2,
     'Buchungstext': 3,
@@ -98,4 +100,9 @@ class DbConnectionFaild(Exception):
 
 class ImporteFileDuplicate(Exception):
     """ Raised if not valid transaction data were provided
+    """
+
+
+class ModelStackError(Exception):
+    """ Raised if stack produce an error
     """

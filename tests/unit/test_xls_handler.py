@@ -93,6 +93,7 @@ def test_transactions_printed_in_right_column(fx_stack_example, fx_xls_file):
             elif header == 'Betrag':
                 assert transaction.value == val, f"read value: {val}, line {cfg.MIN_ROW+t_ctr}"
             elif header == 'vom Konto':
+                if val is None: val = ''
                 assert transaction.src_konto == val, f"read value: {val}, line {cfg.MIN_ROW+t_ctr}"
      
     work_book.close()

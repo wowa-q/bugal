@@ -167,7 +167,6 @@ class CSVImporter(a.HandlerReadIF):
         self.meta_data = []
         self.input_type = None
 
-    # not tested
     def get_meta_data(self):
         if os.path.isfile(self.pth):
             self.meta_data.append(self._get_meta_data(self.pth))
@@ -184,10 +183,10 @@ class CSVImporter(a.HandlerReadIF):
         meta['checksum'] = self.get_checksum(csv_file)
         meta['file_ext'] = 'csv'
         meta['file_name'] = str(csv_file).strip('.csv')
-        for ctr, line in enumerate(self._read_lines(csv_file)):
+        for ctr, line in enumerate(self.read_lines(csv_file)):
             if ctr == 0:
                 meta['account'] = line[1].replace("Girokonto", "").replace("/", "").strip()
-            if ctr > 5:
+            if ctr > self.input_type.CSV_START_ROW.value:
                 date_str = line[0]
                 try:
                     date_obj = datetime.strptime(date_str, "%d.%m.%Y")
@@ -199,13 +198,13 @@ class CSVImporter(a.HandlerReadIF):
                     meta['end_date'] = date_obj
         return meta
 
-    def _read_lines(self, csv_file):
+    def read_lines(self, csv_file):
         with open(csv_file, encoding='ISO-8859-1') as csvfile:
             reader = csv.reader(csvfile, delimiter=';')
             for row in reader:
                 yield row
 
-    def get_checksum(self, csv_file):
+    def get_checksum(self, csv_file=None):
         """provides hash value for csv file
 
         Args:
@@ -214,6 +213,9 @@ class CSVImporter(a.HandlerReadIF):
         Returns:
             str: calculated hash value as String
         """
+        if csv_file is None:
+            csv_file = self.pth
+
         with open(csv_file, encoding='ISO-8859-1') as csvfile:
             checksum = hashlib.md5(csvfile.read().encode('ISO-8859-1')).hexdigest().upper()
             return checksum
@@ -241,13 +243,27 @@ class CSVImporter(a.HandlerReadIF):
         for csv_file in self.csv_files:
             yield read_lines(csv_file)
 
+    def archive(self):
+        archiver = ArtifactHandler()
+        archiver.archive_imports(self.pth)
 
-class ArtifactHandler():
+
+class ArtifactHandler(a.Artifact):
     """Handles artifacts
     """
-    def archive_imports(self, archive, artifact):
+    def __init__(self, archive=None):
+        if archive is None:
+            self.archive = cfg.ARCHIVE
+        else:
+            self.archive = archive
+
+    def archive_imports(self, artifact=None):
         """adds the imported csv file into archive
         """
-        with zipfile.ZipFile(archive, 'a', compression=zipfile.ZIP_DEFLATED) as newzip:
-            newzip.write(artifact, arcname=artifact.name)
-        artifact.unlink()
+        if artifact is not None:
+            with zipfile.ZipFile(self.archive, 'a', compression=zipfile.ZIP_DEFLATED) as newzip:
+                newzip.write(artifact, arcname=artifact.name)
+            artifact.unlink()
+            return True
+        else:
+            return False

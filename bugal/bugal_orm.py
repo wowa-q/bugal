@@ -5,7 +5,7 @@ import logging  # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
-from sqlalchemy import create_engine, inspect, select
+from sqlalchemy import create_engine, inspect, select, func
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
@@ -40,6 +40,32 @@ class BugalOrm():
         self.inspector = inspect(self.engine)
         Base.metadata.create_all(self.engine)
         logging.info("Repohandler was initalized with DB: %s", pth)
+
+    def get_transaction_ctr(self) -> int:
+        """return the number of rows in transaction table
+
+        Returns:
+            int: number of transactions
+        """
+        try:
+            with Session(self.engine) as session:
+                row_count = session.query(func.count(Transactions.id)).scalar()
+                return row_count
+        except cfg.DbConnectionFaild:
+            return -1
+
+    def get_history_ctr(self) -> int:
+        """return the number of rows in transaction table
+
+        Returns:
+            int: number of transactions
+        """
+        try:
+            with Session(self.engine) as session:
+                row_count = session.query(func.count(History.id)).scalar()
+                return row_count
+        except cfg.DbConnectionFaild:
+            return -1
 
     def write_to_transactions(self, transact: model.Transaction):
         """Write new transaction to database
@@ -153,24 +179,40 @@ class BugalOrm():
             session.commit()
 
     def read_transactions(self, _filter: dict) -> list:
-        # TODO passenden Filter basteln
-        with Session(self.engine, future=True) as session:
-            query = select(Transactions).where(Transactions.datum.like('2022-01%'))
-            result = session.execute(query).scalars().all()
+        """Pulls transactions from the DB table with the matching filter condition
 
-        return result
-
-    def read_history(self, ) -> list:
-        """_summary_
+        Args:
+            _filter (dict): _description_
 
         Returns:
-            list: History entraces
+            list: List, which contains the rows of the table
+        """
+        # TODO passenden Filter basteln
+        # values = []
+        with Session(self.engine, future=True) as session:
+            if 'date-after' in _filter:
+                results = session.query(Transactions).filter(Transactions.datum > _filter['date-after']).all()
+
+                # query = select(Transactions).where(Transactions.datum.like(_filter['date-after']))
+                # results = session.query(Transactions).filter(Transactions.datum.in_(values)).all()
+                # query = select(Transactions).where(Transactions.datum.like('2022-01%'))
+                # result = session.execute(query).scalars().all()
+            else:
+                return None
+
+            return results
+
+    def read_history(self, ) -> list:
+        """read the history rows from the DB table
+
+        Returns:
+            list: History entraces (rows)
         """
         with Session(self.engine, future=True) as session:
             query = select(History)
             result = session.execute(query).scalars().all()
 
-        return result
+            return result
 
     def close_connection(self):
         """closing DB connection

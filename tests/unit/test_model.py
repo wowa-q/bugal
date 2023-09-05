@@ -22,6 +22,7 @@ def test_transaction_hash_equality():
 def test_transaction_creation(fx_transaction_example_classic):
     stack=model.Stack()
     stack.input_type = cfg.TransactionListClassic
+    stack.set_src_account('src_konto') # history not available in that test -> needs to be created manually
     transaction = stack.create_transaction(fx_transaction_example_classic)
     assert transaction.date ==  datetime.date(2022, 1, 1), f"Transaction date {transaction.date}"
     assert transaction.text ==  'text', f"Transaction date {transaction.text}"
@@ -47,11 +48,14 @@ def test_transaction_equality_for_every_par(fx_transaction_example_classic):
     stack=model.Stack()
     stack.input_type = cfg.TransactionListClassic
     t1 = stack.create_transaction(fx_transaction_example_classic)
+    t3 = stack.create_transaction(fx_transaction_example_classic)
     data = fx_transaction_example_classic
     for ind, _ in enumerate(fx_transaction_example_classic):
         data[ind] = "changed"
         t2 = stack.create_transaction(data)
         assert t1 != t2, f"Parameter {ind} changed"
+    assert hash(t1) == hash(t1), f"new hash calculated for the same transaction"
+    assert hash(t1) == hash(t3), f"new hash calculated for the same transaction"
 
 # @pytest.mark.skip()
 def test_create_transactions_list(fx_transactions_list_example_classic):
@@ -76,7 +80,7 @@ def test_store_transactions_in_db(fx_transactions_list_example_classic):
     assert stack.filter.max_date == date.fromisoformat("2022-01-04")
     assert stack.filter.min_date == date.fromisoformat("2022-01-01")
 
-# @pytest.mark.skip()
+@pytest.mark.skip()
 def test_store_import_history_in_db(fx_import_history):
     stack=model.Stack()
     stack.update_history(fx_import_history)

@@ -13,6 +13,26 @@ class Command(abc.ABC):
         ''' interface API '''
 
 
+class Artifact(abc.ABC):
+    """HandlerRead Interface
+
+    APIs:
+        archive
+        remove_from_archive
+    """
+    @abc.abstractmethod
+    def archive_imports(self, artifact) -> str:
+        """Methode to archive the given artifact
+
+        Raises:
+            NotImplementedError:
+
+        Returns:
+            str: single transaction
+        """
+        raise NotImplementedError
+
+
 class HandlerReadIF(abc.ABC):
     """HandlerRead Interface
 

@@ -30,9 +30,11 @@ from fixtures.sql_fx import fx_new_betaTransaction
 from fixtures.sql_fx import fx_new_classicTransactions_banch
 from fixtures.sql_fx import fx_history
 from fixtures.sql_fx import fx_history_unique
+from fixtures.sql_fx import fx_transaction_unique
 from fixtures.sql_fx import fx_checksum_repo_not_exist
 from fixtures.sql_fx import fx_checksum_repo_exist
 
+from fixtures.e2e_fx import fx_test_db
 
 # from fixtures.orm_fx import fx_test_db_new
 # from fixtures.orm_fx import session
