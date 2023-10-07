@@ -1,9 +1,9 @@
+"""Seervice layer of the bugal"""
 
-import pathlib
 
-from . import cfg
-from . import model
-from . import abstract as a
+from bugal import cfg
+from bugal import model
+from bugal import abstract as a
 
 
 class CmdImportNewCsv(a.Command):
@@ -17,7 +17,7 @@ class CmdImportNewCsv(a.Command):
         self.handler_r = handler_r
         # self.csv_path = csv_path
 
-    def execute(self) -> None:
+    def execute(self) -> int:
         ''' execution of the specified command
         1. calculate csv hash
         2. pull csv hash: read history from db
@@ -73,6 +73,21 @@ class CmdImportNewCsv(a.Command):
             return ctr_t
 
 
+class CmdFake(a.Command):
+    """FAke Command for testing purposes
+
+    Args:
+        a (_type_): _description_
+    """
+    def __init__(self, dut: str):
+        self.invoker = dut
+        # self.csv_path = csv_path
+
+    def execute(self) -> int:
+        print(f' # start execution *CmdFake*  {self.invoker}# ')
+        return 1
+
+
 ################################################################
 #                        Invoker                                #
 ################################################################
@@ -99,3 +114,18 @@ class Invoker():
     def set_on_finish(self, command: a.Command):
         ''' setter '''
         self._on_finish = command
+
+    def run_commands(self) -> None:
+        """
+        The Invoker does not depend on concrete command or receiver classes. The
+        Invoker passes a request to a receiver indirectly, by executing a
+        command.
+        """
+        if isinstance(self._on_start, a.Command):
+            self._on_start.execute()
+
+        if isinstance(self._main_command, a.Command):
+            self._main_command.execute()
+
+        if isinstance(self._on_finish, a.Command):
+            self._on_finish.execute()

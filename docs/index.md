@@ -1,9 +1,10 @@
 # BUGAL
 
 1. [Users-Guide](ug.md)
-2. [Release Notes](releasenotes.md)
-3. [Solution Intent](req/goal.md)
-4. [Requirements](req/req.md)
+2. [Solution Intent](req/goal.md)
+3. [API](api.md)
+4. [Release Notes](releasenotes.md)
+5. [Requirements](req/req.md)
 
 For full documentation visit [mkdocs.org](https://www.mkdocs.org).
 
@@ -19,4 +20,10 @@ For full documentation visit [mkdocs.org](https://www.mkdocs.org).
     mkdocs.yml    # The configuration file.
     docs/
         index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+        api.md
+		ug.md
+		releasenotes.md
+		mvp.md
+		req/
+			requirements.md
+			goal.md

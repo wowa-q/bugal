@@ -6,19 +6,20 @@ from dataclasses import dataclass, field
 import dataclasses
 from datetime import date, datetime
 
-from . import cfg
+# from . import cfg
+from bugal import cfg
 
 
 @dataclass(frozen=True, eq=True)
 class History:
-    """Import history
+    """Datclass of History, for importing into DB
     """
     file_name: str
     file_type: str
     account: str
-    import_date: str
-    max_date: str
-    min_date: str
+    import_date: date
+    max_date: date
+    min_date: date
     checksum: str
 
     def __iter__(self):
@@ -43,7 +44,7 @@ class Property:
 
 @dataclass(frozen=True, eq=True)
 class Transaction:
-    """Transaction
+    """Transaction is a Dataclass fot creation of the transactions
     """
     date: date = field(metadata={'printed': True})
     text: str = field(metadata={'printed': True})  # changed
@@ -80,8 +81,6 @@ class Transaction:
 class Filter():
     """Filter template for DB
 
-    Returns:
-        _type_: _description_
     """
     max_date: date
     min_date: date
@@ -91,13 +90,12 @@ class Stack():
     """Stack of transactions
     """
 
-    def __init__(self):
+    def __init__(self, input_type):
         self.transactions = []
         self.checksums = set()
         self.filter = Filter()
         self.nr_transactions = 0
-        self.header = None
-        self.input_type = None
+        self.input_type = input_type
         self.src_account = ''
 
     def init_stack(self):
@@ -106,31 +104,42 @@ class Stack():
         self.transactions.clear()
         self.nr_transactions = 0
         self.input_type = None
+        self.checksums.clear()
+        self.src_account = ''
+
+    def _make_date(self, datum: str) -> date:
+        if isinstance(datum, datetime):
+            return datum
+        try:
+            newdate = datetime.strptime(datum, '%d.%m.%Y').date()
+        except ValueError:
+            print(f'datum provided with false format: {datum}')
+        return newdate
 
     def create_history(self, history: dict) -> History:
-        """_summary_
-
+        """The API is creating a History Dataclass instance,
+            which can be used to be imported into DB.
+            history needs to have:
+            - 'end_date': str object representing a date in a format '%d.%m.%Y'
+            - 'start_date': str object in format '%d.%m.%Y'
+            - 'account': string object showing from which account the data were exported
+            - 'checksum': calculated checksum over the csv file to be compared with checksums from History table in DB
+            - ?
         Args:
             history (dict): data to be used for History creatiion
-
         Returns:
             History: History instance
         """
-        data_list = []
         if isinstance(history, dict):
-            # data_list = history.values
-            data_list.append(history['file_name'])
-            data_list.append(history['file_ext'])
-            data_list.append(history['account'])
-            data_list.append(history['end_date'])
-            data_list.append(history['start_date'])
-            data_list.append(history['checksum'])
+            end_date = self._make_date(history.get('end_date'))
+            start_date = self._make_date(history.get('start_date'))
+
             his = History(history['file_name'],
                           history['file_ext'],
                           history['account'],
                           datetime.now(),
-                          history['end_date'],
-                          history['start_date'],
+                          end_date,             # history['end_date'],
+                          start_date,           # history['start_date'],
                           history['checksum'])
             self.set_src_account(history['account'])
         else:
@@ -152,6 +161,12 @@ class Stack():
 
         Args:
             data (list): data extracted from csv file as a list
+
+        Raises:
+            cfg.NoInputTypeSet: input_type needs to be set before using the Stack
+            cfg.NoValidTransactionData: validation of provided transaction data failed
+            cfg.NoValidTransactionData: validation of provided transaction data failed
+            cfg.NoValidTransactionData: validation of provided transaction data failed
 
         Returns:
             Transaction: transaction object, ready for storage in DB and checking hash

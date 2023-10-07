@@ -26,7 +26,7 @@ def test_write_classic_transactions_to_db(fx_test_db, fx_single_csv):
 
     csv_importer = handler.CSVImporter(fx_single_csv)
     csv_importer.input_type = cfg.TransactionListClassic
-    stack=model.Stack()
+    stack=model.Stack(cfg.TransactionListBeta)
     stack.input_type = cfg.TransactionListClassic
     stack.set_src_account('123456')
     orm_handler = bugal_orm.BugalOrm(fx_test_db[0], fx_test_db[1], 'sqlite')
@@ -85,7 +85,7 @@ def test_write_beta_transactions_to_db(fx_test_db, fx_single_csv_new):
     '''
     csv_importer = handler.CSVImporter(fx_single_csv_new)
     csv_importer.input_type = cfg.TransactionListBeta
-    stack=model.Stack()
+    stack=model.Stack(cfg.TransactionListBeta)
     stack.input_type = cfg.TransactionListBeta
     orm_handler = bugal_orm.BugalOrm(fx_test_db[0], fx_test_db[1], 'sqlite')
     t_ctr_orm = 0
@@ -130,9 +130,9 @@ def test_write_beta_transactions_to_db(fx_test_db, fx_single_csv_new):
     assert account_list[0] == src_account, f"false account pulled from DB"
 
 # @pytest.mark.skip()
-def test_CmdImportNewCsv(fx_test_db, fx_single_csv_new):
-    handler_r = handler.CSVImporter(fx_single_csv_new)
-    stack=model.Stack()
+def test_CmdImportNewCsv(fx_test_db, fx_single_csv):
+    handler_r = handler.CSVImporter(fx_single_csv)
+    stack=model.Stack(cfg.TransactionListBeta)
     handler_r.input_type = cfg.TransactionListBeta
     stack.input_type = cfg.TransactionListBeta
     repo = bugal_orm.BugalOrm(fx_test_db[0], fx_test_db[1], 'sqlite')
@@ -140,6 +140,32 @@ def test_CmdImportNewCsv(fx_test_db, fx_single_csv_new):
     cmd = service.CmdImportNewCsv(repo, stack, handler_r)
     result = cmd.execute()
 
-    assert result > 0, f"No transactions imported {result}"
+    assert result == 5, f"No transactions imported {result}"
+    ctr_t = repo.get_transaction_ctr()
+    ctr_h = repo.get_history_ctr()
+    assert ctr_t == 5, f"number of stored transaction in DB is wrong {ctr_t}"
+    assert ctr_h == 1, f"number of stored history in DB is wrong {ctr_h}"
+    
+    his_l = repo.read_history()
+    his = his_l[0]
+    date_format = "%d.%m.%Y"  # Das Format für "Tag-Monat-Jahr"
+    end_date = datetime.strptime('24.01.2023', date_format).date()
+    start_date = datetime.strptime('16.01.2023', date_format).date()
+    # assert isinstance(his.min_date, datetime)
+    date_format = "%Y-%m-%d"
+    assert his.min_date == start_date, f"false min date: {his.min_date} != {start_date}"
+    assert his.max_date == end_date, f"false min date: {his.max_date} != {end_date}"
+    
+    datum = datetime(2022, 1, 23)
+    filter = {'date-after': datum}
+    tran_l = repo.read_transactions(filter)
+    tran = tran_l[0]
 
+    assert float(tran.value.replace(',', '.')) == -51, f"false transaction value returned: {tran.value}"
+
+    repo.close_connection()
     # assert False, "Test not implemetned: test_CmdImportNewCsv"
+
+
+# # @pytest.mark.skip()
+# def test_CmdImportNewCsvExistingDb(fx_test_db, fx_single_csv):

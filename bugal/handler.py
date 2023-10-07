@@ -156,18 +156,28 @@ class CSVImporter(a.HandlerReadIF):
     """
     csv_hashes = []
 
-    def __init__(self, pth):
+    def __init__(self, pth, input_type=cfg.TransactionListClassic):
         self.pth = pathlib.Path(pth)
-        self.invalid_files = []
         self.csv_files = []
         if self.pth.is_file():
             self.csv_files.append(pth)
         else:
             self.csv_files = list(self.pth.glob('**/*.csv'))
         self.meta_data = []
-        self.input_type = None
+        self.input_type = input_type
 
     def get_meta_data(self):
+        """returns some meta data necessary for creation a history Dataclass instance
+
+        Returns:
+            list: list of dictionpories. Every dict should have:
+            - 'end_date': datetime object in format '%d.%m.%Y'
+            - 'start_date': datetime object in format '%d.%m.%Y'
+            - 'account': string object showing from which account the data were exported
+            - 'checksum': calculated checksum over the csv file to be compared with checksums from History table in DB
+            - file_name': (str) showing the file name
+            - 'file_ext': showing the file extension
+        """
         if os.path.isfile(self.pth):
             self.meta_data.append(self._get_meta_data(self.pth))
         else:
@@ -252,10 +262,10 @@ class ArtifactHandler(a.Artifact):
     """Handles artifacts
     """
     def __init__(self, archive=None):
-        if archive is None:
-            self.archive = cfg.ARCHIVE
-        else:
+        if archive is not None and archive.is_file():
             self.archive = archive
+        else:
+            self.archive = cfg.ARCHIVE
 
     def archive_imports(self, artifact=None):
         """adds the imported csv file into archive

@@ -5,3 +5,5 @@ mypy
 pre-commit
 autopep8
 pytest
+mkdocs
+click

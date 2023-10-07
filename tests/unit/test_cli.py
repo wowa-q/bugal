@@ -3,33 +3,76 @@
 
 import os 
 import pathlib
-
+from subprocess import Popen, PIPE
 import pytest
-
+from click.testing import CliRunner
+from unittest.mock import patch
 
 from context import bugal
-from fixtures.basic import fx_month_data
+from fixtures import basic
+from fixtures import orm_fx
+from fixtures import sql_fx
 # DUT import
 from bugal import cli
 
 
+
 FIXTURE_DIR = pathlib.Path(__file__).parent.parent.resolve() / "fixtures"
+@pytest.fixture
+def mock_subprocess():
+    with patch('subprocess.Popen') as mock_popen:
+        yield mock_popen
 
-def test_import_single_csv(fx_single_csv):
-    result = cli.import_csv(fx_single_csv)
-    assert result[0] == True, f"csv import failed: {result[1]}"
+# positiv test
+@pytest.mark.parametrize(
+    "options",
+    [
+        ("--cmd", "import", "-csv", "test_csv.csv", "-v", "classic"),
+        ("--cmd", "import", "-csv", "test_csv.csv","--variant", "beta"),
+        ("-cmd", "import", "-csv", "test_csv.csv","-v", "beta"),        
+    ],
+)
 
-def test_import_banch_of_csv(fx_banch_of_csv):
+def test_cli_with_system_exit_code_0(options):
+    cli.TEST = True
+    runner = CliRunner()
 
-    result = cli.import_csv(fx_banch_of_csv)
-    assert result[0] == True, f"csv import failed: {result[1]}"
+    result = runner.invoke(cli.execute, options)
 
-def test_export_excel(fx_export_filter_aggregate):
-    result = cli.export_excel(fx_export_filter_aggregate)
-    assert result[0] == True, f"Excel export reported as failed"
-    # assert 'Bugalter.xlsx' in FIXTURE_DIR.glob('*.xlsx')
+    assert result.exit_code == 0, f"{options} exited with"
 
-def test_import_excel(fx_export_filter_aggregate):
-    result = cli.import_excel(fx_export_filter_aggregate)
-    assert result[0] == True, f"Excel import reported as failed"
+# negativ test - exit code 1: Allgemeiner Fehler
+# Dieser Code wird verwendet, um anzuzeigen, dass ein nicht spezifizierter Fehler aufgetreten ist.
+@pytest.mark.parametrize(
+    "options",
+    [
+        ("--cm", "import", "-v", 'True'),
+        ("--cd", "import", "-v", 'test.csv'),
+        ("--cmd", "import", "-csv", "test_csv.csv", "-v", "alt"),    
+    ],
+)
+#@pytest.mark.skip()
+def test_cli_with_system_exit_code_2(options):
+    runner = CliRunner()
 
+    result = runner.invoke(cli.execute, options)
+
+    assert result.exit_code == 2, f"{options} exited with"
+
+# negativ test - exit code 2: Falsche Verwendung / Ungültige Argumente
+# Dieser Code zeigt an, dass der Benutzer das Programm mit ungültigen Argumenten oder einer falschen Verwendung aufgerufen hat.
+#@pytest.mark.skip()
+@pytest.mark.parametrize(
+    "options",
+    [
+        ("--cm", "import", "-v", True),
+        ("--cd", "import", "-v", False),
+        ("--v", "import",), 
+    ],
+)
+def test_cli_with_system_exit_code_2(options):
+    runner = CliRunner()
+
+    result = runner.invoke(cli.execute, options)
+
+    assert result.exit_code == 2, f"{options} exited with"

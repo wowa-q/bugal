@@ -8,6 +8,7 @@ import pathlib
 import shutil
 import random
 import time
+import zipfile
 from datetime import datetime
 
 # 3rd party
@@ -39,7 +40,7 @@ def fx_single_csv():
         f.write('"Buchungstag";"Wertstellung";"Buchungstext";"Auftraggeber / Begünstigter";"Verwendungszweck";"Kontonummer";"BLZ";"Betrag (EUR)";"Gläubiger-ID";"Mandatsreferenz";"Kundenreferenz";\n')
         f.write('"24.01.2023";"24.01.2023";"Classic";"PayPal Europe S.a.r.l. et Cie S.C.A";"1024853056047 . Canon Europa NV, Ihr Einkauf bei Canon Europa NV";"LU89751000135104200E";"PPLXLUL2";"-51,00";"LU96ZZZ0000000000000000058";"";"1024853056047";\n')
         f.write('"24.01.2023";"24.02.2023";"Classic";"PayPal Europe S.a.r.l. et Cie S.C.A";"1024853056047 . Canon Europa NV, Ihr Einkauf bei Canon Europa NV";"LU89751000135104200E";"PPLXLUL2";"-41,00";"LU96ZZZ0000000000000000058";"";"1024853056047";\n')
-        f.write('"23.01.2023";"23.03.2023";"Classic";"Eiscafe + Pizzeria Roni//Braunschweig/DE / Eiscafe + Pizzeria Roni";"2023-01-20T18:24      Debitk.1 2026-12";"DE86300500000001052141";"WELADEDDXXX";"-90,00";"";"";"61475723026701200123182418";\n')
+        f.write('"16.01.2023";"23.03.2023";"Classic";"Eiscafe + Pizzeria Roni//Braunschweig/DE / Eiscafe + Pizzeria Roni";"2023-01-20T18:24      Debitk.1 2026-12";"DE86300500000001052141";"WELADEDDXXX";"-90,00";"";"";"61475723026701200123182418";\n')
         f.write('"23.01.2023";"23.04.2023";"Classic";"ALDI SAGT DANKE";"2023-01-21      Debitk.14 VISA Debit";"DE96120300009005290904";"BYLADEM1001";"-83,99";"";"";"483021509531576";\n')
         f.write('"16.01.2023";"16.05.2023";"Classic";"ROSSMANN//Braunschweig/DE / ROSSMANN";"2023-01-13T17:52      Debitk.1 2026-12";"DE81300500000001078518";"WELADEDDXXX";"-54,41";"";"";"60304412024293130123175213";\n')
         pth = FIXTURE_DIR / 'single.csv'
@@ -167,11 +168,13 @@ def fx_banch_of_invalid_csv(fx_single_csv):
 
 @pytest.fixture
 def fx_zip_archive():
-    zip_file = FIXTURE_DIR.resolve() / 'archive.zip'
+    archive = FIXTURE_DIR.resolve() / 'archive.zip'
+    with zipfile.ZipFile(FIXTURE_DIR.resolve() / 'archive.zip', 'w') as myzip:
+        pass
 
-    yield zip_file
-
+    yield archive
+        
     try:
-        zip_file.unlink()
+        archive.unlink()
     except PermissionError:
         pass

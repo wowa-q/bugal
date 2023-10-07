@@ -57,6 +57,7 @@ class FakeRepo(a.AbstractRepository):
         transaction = []
         return transaction
 
+
 class SqlAlchemyRepository(a.AbstractRepository):
     """Alchemy abstraction
 

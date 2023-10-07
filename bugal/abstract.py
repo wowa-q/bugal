@@ -182,3 +182,10 @@ class AbstractRepository(abc.ABC):
             parameter (_type_): _description_
         """
         pass
+
+
+class UI(abc.ABCMeta):
+
+    @abc.abstractmethod
+    def execute(self, **parameters) -> bool:
+        pass

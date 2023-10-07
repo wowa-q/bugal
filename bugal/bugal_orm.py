@@ -2,9 +2,9 @@
 """
 import pathlib
 import logging  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-
+from datetime import datetime, date
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Date
 from sqlalchemy import create_engine, inspect, select, func
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -26,14 +26,17 @@ class BugalOrm():
             if pathlib.Path(pth).is_file():
                 db_file = pth
             else:
-                db_file = str(pth) + '/' + name + '.db'
+                # Check if the directory specified by 'pth' exists.
+                if not pathlib.Path(pth).is_dir():
+                    raise FileNotFoundError(f"The directory '{pth}' does not exist.")
+
+                # Create the full path to the database file.
+                db_file = pathlib.Path(pth) / (name + '.db')
             self.engine = create_engine(f'sqlite:///{db_file}')
         elif db_type == 'memory':
             self.engine = create_engine("sqlite://")
         else:
-            db_file = cfg.PTOJECT_DIR / 'new_temp.db'
-            self.engine = create_engine(f'sqlite:///{db_file}')
-
+            raise cfg.DbConnectionFaild(f"db type configuration failed '{db_type}'.")
         if self.engine is None:
             raise cfg.DbConnectionFaild
 
@@ -75,6 +78,7 @@ class BugalOrm():
         """
         if not isinstance(transact, model.Transaction):
             raise ValueError
+        # umpacken ist notwendig weil checksum nicht als Attribut in diesm Dataset existiert
         transaction = Transactions(text=transact.text,
                                    datum=transact.date,
                                    status=transact.status,
@@ -102,39 +106,25 @@ class BugalOrm():
             return False
 
     def write_many_to_transactions(self, transactions: list):
-        """Write new transaction to database
+        """can import a list of transactions
 
         Args:
-            transact (model.Transaction): _description_
+            transactions (list): list of model.Transaction items
+
+        Raises:
+            cfg.ImporteFileDuplicate: if duplicate transaction is in the list
         """
-        t_list = []
+        checksums = []
         for tran in transactions:
-            transaction = Transactions(text=tran.text,
-                                       datum=tran.date,
-                                       status=tran.status,
-                                       debitor=tran.debitor,
-                                       verwendung=tran.verwendung,
-                                       konto=tran.konto,
-                                       value=tran.value,
-                                       debitor_id=tran.debitor_id,
-                                       mandats_ref=tran.mandats_ref,
-                                       customer_ref=tran.customer_ref,
-                                       src_konto=tran.src_konto,
-                                       checksum=hash(tran))
-            t_list.append(transaction)
-        try:
-            with Session(self.engine) as session:
-                session.add_all(t_list)
-                session.commit()
-                return True
-        except IntegrityError as exc:
-            print("IntegrityError:", exc)
-            print(f"""csv file with {transaction} was already imported,
-                  checksum {hash(transaction)} exists""")
-            return False
-        except cfg.ImporteFileDuplicate:
-            print(f"csv file with {transaction} was already imported")
-            return False
+            if hash(tran) not in checksums:
+                checksums.append(hash(tran))
+            # skip this transaction as duplicate
+            else:
+                logging.info("Repohandler skipped transaction as duplicate: %s", tran)
+                continue
+            result = self.write_to_transactions(tran)
+            if not result:
+                raise cfg.ImporteFileDuplicate
 
     def write_to_history(self, his: model.History):
         """writing history data into repository
@@ -143,6 +133,9 @@ class BugalOrm():
             history (model.History): History row for a csv file to be imported
         """
         if not isinstance(his, model.History):
+            raise ValueError
+        if not isinstance(his.min_date, date):
+            print('History: date not provided as datetime.date')
             raise ValueError
         history = History(file_name=his.file_name,
                           file_type=his.file_type,
@@ -273,7 +266,7 @@ class Transactions(Base):
     """
     __tablename__ = 'transactions'
     id = Column(Integer, primary_key=True)
-    datum = Column(String)
+    datum = Column(Date)
     text = Column(String)
     status = Column(String)
     debitor = Column(String)
@@ -295,9 +288,9 @@ class History(Base):
     file_name = Column(String)
     file_type = Column(String)
     account = Column(String)
-    min_date = Column(String)
-    max_date = Column(String)
-    import_date = Column(String)
+    min_date = Column(Date)
+    max_date = Column(Date)
+    import_date = Column(Date)
     checksum = Column(String, unique=True)
 
 

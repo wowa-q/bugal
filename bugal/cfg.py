@@ -4,14 +4,20 @@ import enum
 import pathlib
 from datetime import datetime
 
-PTOJECT_DIR = pathlib.Path(__file__).parent.resolve()
+TEST = True
 
 MIN_COL = 2
 MAX_COL = 100
 MIN_ROW = 5
 MAX_ROW = 100
 
+PTOJECT_DIR = pathlib.Path(__file__).parent.resolve()
 ARCHIVE = PTOJECT_DIR.resolve() / 'BUGAL.zip'
+BUGALSPACE = PTOJECT_DIR.parent.resolve() / 'bugal_p'
+DB_NAME = "bugal_default.db"
+FIXTURE_DIR = PTOJECT_DIR.parent.resolve() / 'tests/fixtures'
+
+print(BUGALSPACE)
 
 COLUMNS = {
     'Datum': 2,
@@ -106,3 +112,18 @@ class ImporteFileDuplicate(Exception):
 class ModelStackError(Exception):
     """ Raised if stack produce an error
     """
+
+
+class ConstructorTypeErrors(TypeError):
+    """
+    Helper class that holds a list of error messages. Intended to capture all TypeErrors encountered during a
+    constructor call, instead of raising only the first one.
+    """
+
+    messages: list[str]
+
+    def __init__(self, messages: list[str]):
+        self.messages = messages
+
+    def get_messages(self):
+        return list(self.messages)

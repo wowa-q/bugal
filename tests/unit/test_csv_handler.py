@@ -23,8 +23,21 @@ from fixtures.csv_fx import fx_zip_archive
 
 FIXTURE_DIR = pathlib.Path(__file__).parent.parent.resolve() / "fixtures"
 
+#pytest.mark.skip()
+def test_init_csv_handler(fx_single_csv):
+    h = handler.CSVImporter(fx_single_csv)
+    assert h is not None
+    assert len(h.csv_files) == 1, "number of csv file is incorect"
+    assert h.input_type is not None, "input type"
+    assert h.input_type == cfg.TransactionListClassic, "input type"
 
-# @pytest.mark.skip()
+    hb = handler.CSVImporter(fx_single_csv, cfg.TransactionListBeta)
+    assert hb is not None
+    assert len(hb.csv_files) == 1, "number of csv file is incorect"
+    assert hb.input_type is not None, "input type"
+    assert hb.input_type == cfg.TransactionListBeta, "input type"
+
+#@pytest.mark.skip()
 def test_read_single_csv(fx_single_csv):
     csv_importer = handler.CSVImporter(fx_single_csv)
     csv_importer.input_type = cfg.TransactionListClassic
@@ -45,7 +58,7 @@ def test_read_single_csv(fx_single_csv):
         elif ctr == 7:
             assert line[0] == "24.01.2023", f"reader {line[0]}"
 
-# @pytest.mark.skip()
+#@pytest.mark.skip()
 def test_service_callback_classic(fx_single_csv):
     account = ''
     min_date = None
@@ -74,7 +87,7 @@ def test_service_callback_classic(fx_single_csv):
     assert min_date == datetime.strptime('16.01.2023', "%d.%m.%Y"), f"min. Datum falsch {min_date}"
     assert max_date == datetime.strptime('24.01.2023', "%d.%m.%Y"), f"min. Datum falsch {max_date}"
     
-# @pytest.mark.skip()
+#@pytest.mark.skip()
 def test_service_callback_beta(fx_single_csv_new):
     account = ''
     min_date = None
@@ -103,22 +116,23 @@ def test_service_callback_beta(fx_single_csv_new):
     assert max_date == datetime.strptime('24.02.2023', "%d.%m.%Y"), f"max. Datum falsch {max_date}"
     assert min_date == datetime.strptime('24.01.2022', "%d.%m.%Y"), f"min. Datum falsch {min_date}"
 
-# @pytest.mark.skip()
+#@pytest.mark.skip()
 def test_get_meta_classic(fx_single_csv):
     csv_importer = handler.CSVImporter(fx_single_csv)
     csv_importer.input_type = cfg.TransactionListClassic
-    meta = csv_importer._get_meta_data(fx_single_csv)
-    assert len(meta['checksum']) == 32, f"Checksum: {meta['checksum']}" #  '5BEE30D0ECA3B77D4CC447CE7E52EA69'
-    assert meta['file_ext'] == 'csv'
-    # assert meta['file_name'] == 'D:\\projects\910_prProjects\bugal\tests\fixtures\single', f"File name: {meta['file_name']}"
-    assert meta['account'] == 'DE12345300001019363165', f"Account: {meta['account']}"
-    min_date = meta['start_date']
-    max_date = meta['end_date']
-    assert min_date < max_date, f"Datum falsch {min_date} / {max_date}"
-    assert min_date == datetime.strptime('16.01.2023', "%d.%m.%Y"), f"min. Datum falsch {min_date}"
-    assert max_date == datetime.strptime('24.01.2023', "%d.%m.%Y"), f"min. Datum falsch {max_date}"
+    metas = csv_importer.get_meta_data()
+    for meta in metas:
+        assert len(meta['checksum']) == 32, f"Checksum: {meta['checksum']}" #  '5BEE30D0ECA3B77D4CC447CE7E52EA69'
+        assert meta['file_ext'] == 'csv'
+        # assert meta['file_name'] == 'D:\\projects\910_prProjects\bugal\tests\fixtures\single', f"File name: {meta['file_name']}"
+        assert meta['account'] == 'DE12345300001019363165', f"Account: {meta['account']}"
+        min_date = meta['start_date']
+        max_date = meta['end_date']
+        assert min_date < max_date, f"Datum falsch {min_date} / {max_date}"
+        assert min_date == datetime.strptime('16.01.2023', "%d.%m.%Y"), f"min. Datum falsch {min_date}"
+        assert max_date == datetime.strptime('24.01.2023', "%d.%m.%Y"), f"min. Datum falsch {max_date}"
 
-# @pytest.mark.skip()
+#@pytest.mark.skip()
 def test_get_meta_beta(fx_single_csv_new):
     csv_importer = handler.CSVImporter(fx_single_csv_new)
     csv_importer.input_type = cfg.TransactionListBeta
@@ -133,7 +147,7 @@ def test_get_meta_beta(fx_single_csv_new):
     assert min_date == datetime.strptime('24.01.2022', "%d.%m.%Y"), f"min. Datum falsch {min_date}"
     assert max_date == datetime.strptime('24.02.2023', "%d.%m.%Y"), f"max. Datum falsch {max_date}"
 
-# @pytest.mark.skip()
+#@pytest.mark.skip()
 def test_import_single_csv(fx_single_csv):
     csv_importer = handler.CSVImporter(fx_single_csv)
     csv_importer.input_type = cfg.TransactionListClassic
@@ -147,7 +161,7 @@ def test_import_single_csv(fx_single_csv):
             test_transaction = csv_output[1].copy()
             assert test_transaction[0] == "24.01.2023", f"transaction hat falschen Wert {test_transaction}" 
 
-# @pytest.mark.skip()
+#@pytest.mark.skip()
 def test_import_banch_csv(fx_banch_of_csv):    
     csv_importer = handler.CSVImporter(fx_banch_of_csv)
     csv_importer.input_type = cfg.TransactionListClassic
@@ -163,7 +177,7 @@ def test_import_banch_csv(fx_banch_of_csv):
             assert test_transaction[0] == "24.01.2023", f"transaction hat falschen Wert {test_transaction}" 
             # assert nr_lines == 15, f"number of transactions is incorrect: {nr_lines} instead of 15"
 
-# @pytest.mark.skip()
+#@pytest.mark.skip()
 def test_skip_invalid_csv(fx_single_invalid_csv, fx_banch_of_invalid_csv):
     csv_importer = handler.CSVImporter('')
     # with pytest.raises(FileNotFoundError):
@@ -177,8 +191,19 @@ def test_skip_invalid_csv(fx_single_invalid_csv, fx_banch_of_invalid_csv):
     csv_importer = handler.CSVImporter(fx_single_invalid_csv)
 
     csv_importer = handler.CSVImporter(fx_banch_of_invalid_csv)
-    
-# @pytest.mark.skip()
+
+
+#@pytest.mark.skip()
+def test_artifact_handler_initialization(fx_zip_archive):
+    art1 = ArtifactHandler()
+    assert art1 is not None    
+    assert art1.archive is not None, "archive = None"
+
+    art2 = ArtifactHandler(fx_zip_archive)
+    assert art2 is not None    
+    assert art2.archive is not None, "archive = None"
+
+##@pytest.mark.skip()
 def test_csv_archived(fx_banch_of_csv, fx_zip_archive):
     
     art_handler = ArtifactHandler(fx_zip_archive)

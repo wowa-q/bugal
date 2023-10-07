@@ -62,7 +62,7 @@ def fx_transactions_list_example_beta():
 
 @pytest.fixture
 def fx_stack_example(fx_transactions_list_example_classic):
-    stack = model.Stack()
+    stack = model.Stack(cfg.TransactionListClassic)
     stack.input_type = cfg.TransactionListClassic
     for line in fx_transactions_list_example_classic:
         stack.create_transaction(line)
@@ -73,3 +73,14 @@ def fx_import_history():
     history = ["example.csv", "csv", "01234", "01.12.2023", "31.12.2023", "01.01.2023", "54A489AA87E4A03CF2F0D9F4422833B9"]
     return history
 
+@pytest.fixture
+def fx_csv_meta_dict():
+    datum = '22.09.2023'
+    meta = cfg.CSV_META.copy()
+    meta['end_date'] = '22.09.2023' 
+    meta['start_date'] = '21.09.2023'
+    meta['account'] = 'DE123456789'
+    meta['file_ext'] = 'csv'
+    meta['file_name'] = 'fx_dict'
+
+    return meta
