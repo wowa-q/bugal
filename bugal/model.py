@@ -2,6 +2,7 @@
 Busynes model
 
 """
+import re
 from dataclasses import dataclass, field
 import dataclasses
 from datetime import date, datetime
@@ -110,11 +111,27 @@ class Stack():
     def _make_date(self, datum: str) -> date:
         if isinstance(datum, datetime):
             return datum
+        newdate = None
         try:
-            newdate = datetime.strptime(datum, '%d.%m.%Y').date()
+            if len(datum) == 8:
+                newdate = datetime.strptime(datum, '%d.%m.%y').date()
+            else:
+                newdate = datetime.strptime(datum, '%d.%m.%Y').date()
+
         except ValueError:
             print(f'datum provided with false format: {datum}')
         return newdate
+
+    def _make_num(self, value: str) -> int:
+        cleaned_string = value
+        if '€' in value:
+            cleaned_string = value[:-2]
+        cleaned_string = cleaned_string.replace(' €', '')
+        cleaned_string = cleaned_string.replace('.', '')  # erst die tausender weg
+        cleaned_string = cleaned_string.replace(',', '.')
+        cleaned_string = ''.join(char for char in cleaned_string if char.isdigit() or char == '-' or char == '.')
+
+        return float(cleaned_string)
 
     def create_history(self, history: dict) -> History:
         """The API is creating a History Dataclass instance,
@@ -180,25 +197,24 @@ class Stack():
         # check that only real data are provided
         if len(data) < 7:
             raise cfg.NoValidTransactionData
-
-        date_format = "%d.%m.%Y"  # Das Format, in dem das Datum vorliegt
+        # calculate date
         date_obj = None
-        try:
+        atrs = dir(col)
+        if 'DATE' in atrs:
             date_string = data[col.DATE.value]
-            date_obj = datetime.strptime(date_string, date_format).date()
-        except ValueError:
+            date_obj = self._make_date(date_string)
+        else:
             print(f'Transaction date invalid for transaction: {data}')
-
-        # Text or status is existing
-        try:
+            raise AttributeError
+        if 'STATUS' in atrs:
             status = data[col.STATUS.value]
             text = '-'
-        except AttributeError:
+        else:
             status = '-'
             text = data[col.TEXT.value]
-        try:
+        if 'KONTO' in atrs:
             konto = data[col.KONTO.value]
-        except AttributeError:
+        else:
             # new fashion csv doesn't provide account
             konto = '-'
 
@@ -206,14 +222,14 @@ class Stack():
             src_konto = self.src_account
         else:
             raise cfg.NoValidTransactionData
-
+        value = self._make_num(str(data[col.VALUE.value]))
         transaction = Transaction(date_obj,
                                   text,
                                   status,
                                   data[col.RECEIVER.value],
                                   data[col.VERWENDUNG.value],
                                   konto,
-                                  data[col.VALUE.value],
+                                  value,
                                   data[col.DEBITOR_ID.value],
                                   data[col.MANDATS_REF.value],
                                   data[col.CUSTOMER_REF.value],

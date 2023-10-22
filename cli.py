@@ -3,9 +3,10 @@ The user can access the services from bugal App throug this CLI
 """
 
 from pathlib import Path
-import click
 import logging
 import sys
+
+import click
 
 from bugal import service
 from bugal import model
@@ -15,10 +16,14 @@ from bugal import cfg
 
 
 def _get_receivers(csv_pth, input_type):
-    if cfg.TEST:
-        repo_instance = repo.BugalOrm(cfg.FIXTURE_DIR, cfg.DB_NAME)
-    else:
-        repo_instance = repo.BugalOrm(cfg.BUGALSPACE, cfg.DB_NAME)
+
+    repo_instance = repo.BugalOrm(cfg.DBFILE)
+    print('#')
+    print(cfg.DBFILE)
+    # if cfg.TEST is True:
+    #     repo_instance = repo.BugalOrm(cfg.FIXTURE_DIR, cfg.DB_NAME)
+    # else:
+    #     repo_instance = repo.BugalOrm(cfg.DBFILE)
 
     stack_instance = model.Stack(input_type)
     handler_instance = handler.CSVImporter(csv_pth)
@@ -39,7 +44,7 @@ def create_fake_invoker(dut: str):
     return invoker
 
 
-def create_import_csv_invoker(csv_pth: Path, input_type):
+def create_import_csv_invoker(csv_pth: Path):
     """creates the import csv invoker by initialising receiver instances for commands
 
     Args:
@@ -48,6 +53,9 @@ def create_import_csv_invoker(csv_pth: Path, input_type):
     Returns:
         service.Invoker: Invoker instance which can run the configured commands
     """
+    if cfg.TYPE == 'BETA':
+        input_type = cfg.TransactionListBeta
+
     rep, stack, handl = _get_receivers(csv_pth, input_type)
     import_invoker = service.Invoker()
     import_invoker.set_main_command(service.CmdImportNewCsv(rep, stack, handl))
@@ -60,18 +68,7 @@ def create_import_csv_invoker(csv_pth: Path, input_type):
               "-cmd",
               required=True,
               help="Command to be executed")
-@click.option("--csv_name",
-              "-csv",
-              required=True,
-              help="Specifying the csv file which shall be imported",
-              )
-@click.option("--variant",
-              "-v",
-              required=False,
-              help="Specifying the variant of the csv file, Classic=True, Beta=False",
-              default="classic"
-              )
-def execute(cmd, variant, csv_name):
+def execute(cmd):
     """API for cli
     Args:
         import_csv (_type_): _description_
@@ -81,31 +78,11 @@ def execute(cmd, variant, csv_name):
         invoker = None
         # configure the invoker depndent on the provided command options
         if "import" in cmd:
-            click.echo(f'Hello {cmd} will be executed with following parameters: \
-                       {variant}, {csv_name}!')
-            if cfg.TEST:
-                pth = cfg.FIXTURE_DIR / csv_name
-            else:
-                pth = cfg.BUGALSPACE / csv_name
-            # configure the csv variant
-            if variant == "classic":
-                click.echo(f'Importing classic variant of {csv_name}')
-                if cfg.TEST:
-                    invoker = create_fake_invoker("import classic variant")
-                else:
-                    invoker = create_import_csv_invoker(pth, cfg.TransactionListClassic)
-            elif variant == "beta":
-                click.echo(f'Importing beta variant of {csv_name}')
-                if cfg.TEST:
-                    invoker = create_fake_invoker("import beta variant")
-                else:
-                    invoker = create_import_csv_invoker(pth, cfg.TransactionListBeta)
-            # one those two must be elected
-            else:
-                click.echo('NO CSV VARIANT SET')
-                sys.exit(1)
-            # if outfile == "-":
-            #     click.echo('DB FILE NOT CONFIGURED')
+            click.echo(f'Hello {cmd} will be executed!')
+            csv_file = cfg.CSVFILE
+            click.echo(f'Importing classic variant of {csv_file}')
+            invoker = create_import_csv_invoker(csv_file)
+
         else:
             click.echo('INVALID COMMAND')
             sys.exit(1)

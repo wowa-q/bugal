@@ -9,8 +9,8 @@ from sqlalchemy import create_engine, inspect, select, func
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
-from . import model
-from . import cfg
+from bugal import model
+from bugal import cfg
 
 logging.basicConfig(filename='orm.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -21,18 +21,9 @@ Base = declarative_base()
 class BugalOrm():
     """DB APIs
     """
-    def __init__(self, pth='', name='', db_type='sqlite'):
+    def __init__(self, pth, db_type='sqlite'):
         if db_type == 'sqlite':
-            if pathlib.Path(pth).is_file():
-                db_file = pth
-            else:
-                # Check if the directory specified by 'pth' exists.
-                if not pathlib.Path(pth).is_dir():
-                    raise FileNotFoundError(f"The directory '{pth}' does not exist.")
-
-                # Create the full path to the database file.
-                db_file = pathlib.Path(pth) / (name + '.db')
-            self.engine = create_engine(f'sqlite:///{db_file}')
+            self.engine = create_engine(f'sqlite:///{pth}?create_db=true')
         elif db_type == 'memory':
             self.engine = create_engine("sqlite://")
         else:

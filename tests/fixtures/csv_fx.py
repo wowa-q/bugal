@@ -18,7 +18,7 @@ import pytest
 # user packages
 from context import bugal
 from bugal import model
-from bugal import cfg
+from bugal import cfg as tom
 
 FIXTURE_DIR = pathlib.Path(__file__).parent.resolve()
 
@@ -61,23 +61,27 @@ def fx_single_csv_new():
     """
     pth = ''
     with open(FIXTURE_DIR / 'single_new.csv', 'w') as f:
-        f.write('"Konto";"Girokonto DE12345300001019363165";\n')
-        f.write('\n')
-        f.write('"Kontostand vom 08.06.2023:"; "-152,71 EUR";\n')
-        f.write('\n')
-        f.write('"Buchungsdatum";"Wertstellung";"Status";"Zahlungspflichtige*r";"Zahlungsempfänger*in";"Verwendungszweck";"Umsatztyp";"Betrag";"Gläubiger-ID";"Mandatsreferenz";"Kundenreferenz";\n')
-        f.write('"24.01.2022";"24.01.2023";"Gebucht";"Hanse-Merkur";"KLOOS, WALDEMARs";"083257346A00016 07.06.2023- 1";"Eingang";"54,97 €";"";"";"21521570";\n')
-        f.write('"24.02.2023";"24.01.2023";"Gebucht";"Hanse-Merkur";"KLOOSs, WALDEMAR";"083257346A00016 07.06.2023- 1";"Eingang";"54,97 €";"";"";"21521570";\n')
-        f.write('"24.03.2022";"";"Vorgemerkt";"F579947274755";"";"EC 54405140 070623145529 01";"Ausgang";"-42,60 €";"";"";"";\n')
 
+        f.write('"Konto";"Girokonto DE12345300001019363165";\n')
+        f.write('"";\n')
+        f.write('"Kontostand vom 20.10.2023:";"6,37 EUR";\n')
+        f.write('"";\n')
+        f.write('"Buchungsdatum";"Wertstellung";"Status";"Zahlungspflichtige*r";"Zahlungsempfänger*in";"Verwendungszweck";"Umsatztyp";"Betrag";"Gläubiger-ID";"Mandatsreferenz";"Kundenreferenz";\n')
+        f.write('"19.10.23";"19.10.23";"Gebucht";"Angelina Merkel";"Angelina Merkel";"";"Ausgang";"-40,00 €";"";"";"";\n')
+        f.write('"18.10.23";"18.10.23";"Gebucht";"Angelina Merkel";"Angelina Merkel";"";"Ausgang";"-100,00 €";"";"";"";\n')
+        f.write('"18.10.23";"18.10.23";"Gebucht";"ISSUER";"Amazon.de/AMAZON.DE//LU";"2023-10-17 Debitk.17 VISA Debit";"Ausgang";"-39,61 €";"";"";"483287233545819";\n')
+        f.write('"17.10.23";"17.10.23";"Gebucht";"Bundesagentur für Arbeit - Familienkasse";"Merkel, Angelina                                                      Bochumer Str. 17";"KG237007FK840606 1023 06054073515/3000170761965";"Eingang";"250,00 €";"";"";"06054073515";\n')
+        f.write('"17.10.23";"17.10.23";"Gebucht";"Angelina Merkel                                                       Bochumerstr. 17";"PayPal Europe S.a.r.l. et Cie S.C.A";"1030022989820 . Gymondo GmbH, Ihr Einkauf bei Gymondo GmbH";"Ausgang";"-59,88 €";"LU96ZZZ0000000000000000058";"4NS2224N238BJ";"1030022989820";\n')
+        f.write('"17.10.23";"17.10.23";"Gebucht";"ALTEN Technology GmbH                                                 Gasstr. 4";"Merkel Angelina                                                       NA";"Lohn-Gehalt Abrechnung 09/2023";"Eingang";"2.228,57 €";"";"";"032SALA019182";\n')
+        
         pth = FIXTURE_DIR / 'single_new.csv'
 
     yield pth 
     # delete the modified db file and copy one to make repeat of the test possible
-    try:
-        pth.unlink()
-    except FileNotFoundError:
-        pass 
+    # try:
+    #     pth.unlink()
+    # except FileNotFoundError:
+    #     pass 
 
 @pytest.fixture
 def fx_single_csv_single_line():
@@ -103,7 +107,6 @@ def fx_single_csv_single_line():
         pth.unlink()
     except FileNotFoundError:
         pass 
-
 
 @pytest.fixture
 def fx_banch_of_csv(fx_single_csv):
@@ -171,6 +174,25 @@ def fx_zip_archive():
     archive = FIXTURE_DIR.resolve() / 'archive.zip'
     with zipfile.ZipFile(FIXTURE_DIR.resolve() / 'archive.zip', 'w') as myzip:
         pass
+
+    yield archive
+        
+    try:
+        archive.unlink()
+    except PermissionError:
+        pass
+
+@pytest.fixture
+def fx_zip_archive_configured():
+    config = tom.load_config()
+    src_config = config['bugal']['src']
+    for cfg in src_config:
+        if pathlib.Path(cfg.get('zip_file')).is_file():
+            archive = tom.ARCHIVE
+        else:
+            archive = pathlib.Path(cfg.get('zip_file'))
+            with zipfile.ZipFile(archive, 'w') as myzip:
+                pass
 
     yield archive
         

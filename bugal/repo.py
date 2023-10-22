@@ -1,11 +1,13 @@
 """_summary_
 
 """
+import types
 import sqlite3 as sql
 
-from . import model
-from . import abstract as a
-from . import bugal_orm
+from bugal import cfg
+from bugal import model
+from bugal import abstract as a
+# from bugal import bugal_orm
 
 
 class FakeRepo(a.AbstractRepository):
@@ -25,14 +27,13 @@ class FakeRepo(a.AbstractRepository):
         stack.push_transactions()
 
     def get_stack(self, fil: model.Filter) -> model.Stack:
-        # TODO SQL data request
+
         sql_data = None
-        stack_from_db = model.Stack()
+        stack_from_db = model.Stack(cfg.TransactionListClassic)
         stack_from_db.filter = fil
-        
+
         for sql_datum in sql_data:
             stack_from_db.create_transaction(sql_datum)
-        
         return stack_from_db
 
     def get_mapping(self):
@@ -58,47 +59,88 @@ class FakeRepo(a.AbstractRepository):
         return transaction
 
 
-class SqlAlchemyRepository(a.AbstractRepository):
-    """Alchemy abstraction
+class TransactionsRepo():
 
-    Args:
-        AbstractRepository (_type_): _description_
-    """
-    def __init__(self, session):
-        self.session = session
+    def __init__(self, orm):
+        if orm is None:
+            raise cfg.DbConnectionFaild
+        self.orm = orm
 
-    def add_stack(self, stack: model.Stack) -> bool:
-        stack_from_db = self.get_stack(stack.filter)
-        # remove douplicate entries
-        for ind, new in enumerate(stack.transactions):
-            for from_db in stack_from_db:
-                if from_db == new:
-                    stack.transactions.pop(ind)
+    def find_checksum(self, checksum: str):
+        """Looks for the checksum of the transaction
 
-        stack.push_transactions() 
+        Args:
+            checksum (str): checksum of the transaction
 
-        self.session.add(stack.transactions)
+        Returns:
+            Bool: If checksum could be found True is returned
+        """
+        if len(checksum) == 0:
+            print(f"invalid checksum received for searching: {checksum}")
+            raise cfg.RepoUseageError
+        if self.orm.find_transaction_checksum(checksum) is not None :
+            self.orm.close_connection()
+            return True
 
-    def get_stack(self, fil: model.Filter) -> model.Stack:
-        # TODO SQL data request
-        sql_data = None
-        stack_from_db = model.Stack()
-        stack_from_db.filter = fil
+    # def push_transactions(self, trans):
+    #     """Push transactions into DB
 
-        for sql_datum in sql_data:
-            stack_from_db.create_transaction(sql_datum)
+    #     Args:
+    #         trans (list): List of model.Transaction items
 
-        return stack_from_db
+    #     Raises:
+    #         cfg.NoValidTransactionData: if not a list is received
+    #         cfg.NoValidTransactionData: if list items are not model.Transaction
+    #     """
+    #     if not isinstance(trans, list) or isinstance(trans, types.GeneratorType):
+    #         raise cfg.NoValidTransactionData
+    #     for tran in trans:
+    #         if not isinstance(tran, model.Transaction):
+    #             raise cfg.NoValidTransactionData
+    #         self.orm.write_to_transactions(tran)
+    #     self.orm.close_connection()
 
-    def get_history(self) -> model.Stack:
-        orm = bugal_orm.BugalOrm()
-        orm.read_history()
-        orm.close_connection()
+# class SqlAlchemyRepository(a.AbstractRepository):
+#     """Alchemy abstraction
 
-    def get_mapping(self) -> model.Stack:
-        orm = bugal_orm.BugalOrm()
-        orm.read_history()
-        orm.close_connection()
+#     Args:
+#         AbstractRepository (_type_): _description_
+#     """
+#     def __init__(self, session):
+#         self.session = session
+
+#     def add_stack(self, stack: model.Stack) -> bool:
+#         stack_from_db = self.get_stack(stack.filter)
+#         # remove douplicate entries
+#         for ind, new in enumerate(stack.transactions):
+#             for from_db in stack_from_db:
+#                 if from_db == new:
+#                     stack.transactions.pop(ind)
+
+#         stack.push_transactions() 
+
+#         self.session.add(stack.transactions)
+
+#     def get_stack(self, fil: model.Filter) -> model.Stack:
+
+#         sql_data = None
+#         stack_from_db = model.Stack()
+#         stack_from_db.filter = fil
+
+#         for sql_datum in sql_data:
+#             stack_from_db.create_transaction(sql_datum)
+
+#         return stack_from_db
+
+#     def get_history(self) -> model.Stack:
+#         orm = bugal_orm.BugalOrm()
+#         orm.read_history()
+#         orm.close_connection()
+
+#     def get_mapping(self) -> model.Stack:
+#         orm = bugal_orm.BugalOrm()
+#         orm.read_history()
+#         orm.close_connection()
 
     # def set_history(self, his) -> bool:
     #     pass

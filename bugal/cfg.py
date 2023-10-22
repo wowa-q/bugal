@@ -4,7 +4,7 @@ import enum
 import pathlib
 from datetime import datetime
 
-TEST = True
+import tomli
 
 MIN_COL = 2
 MAX_COL = 100
@@ -17,8 +17,53 @@ BUGALSPACE = PTOJECT_DIR.parent.resolve() / 'bugal_p'
 DB_NAME = "bugal_default.db"
 FIXTURE_DIR = PTOJECT_DIR.parent.resolve() / 'tests/fixtures'
 
-print(BUGALSPACE)
 
+def load_config():
+    """loading configuration from config.tmol
+    """
+    # read the config from config.toml
+    with open(PTOJECT_DIR / "config.toml", "rb") as toml_file:
+        toml_config = tomli.load(toml_file)
+    return toml_config
+
+
+config = load_config()
+run_config = config['bugal']['run']
+for cfg in run_config:
+    TEST = bool(cfg.get('TEST'))
+    break
+
+CSVFILE = None
+DBFILE = None
+ARCHIVE = None
+EXCEL = None
+# configuration of files
+src_config = config['bugal']['src']
+for cfg in src_config:
+    #if pathlib.Path(cfg.get('csv_file')).is_file():
+    CSVFILE = pathlib.Path(cfg.get('csv_file'))
+    #if pathlib.Path(cfg.get('db_file')).is_file():
+    DBFILE = pathlib.Path(cfg.get('db_file'))
+    #if pathlib.Path(cfg.get('zip_file')).is_file():
+    ARCHIVE = pathlib.Path(cfg.get('zip_file'))
+    #if pathlib.Path(cfg.get('xls_file')).is_file():
+    EXCEL = pathlib.Path(cfg.get('xls_file'))
+
+TYPE = 'BETA'
+type_config = config['bugal']['type']
+for cfg in type_config:
+    TYPE = cfg.get('type')
+
+CSV_META = {
+    'file_name': '',
+    'file_ext': '',
+    'checksum': '',
+    'account': '',
+    'start_date': datetime.strptime('01.01.3000', "%d.%m.%Y"),
+    'end_date': datetime.strptime('01.01.1000', "%d.%m.%Y"),
+}
+
+# Excel columns
 COLUMNS = {
     'Datum': 2,
     'Buchungstext': 3,
@@ -30,30 +75,13 @@ COLUMNS = {
     'Checksum': 9,
 }
 
-CSV_META = {
-    'file_name': '',
-    'file_ext': '',
-    'checksum': '',
-    'account': '',
-    'start_date': datetime.strptime('01.01.3000', "%d.%m.%Y"),
-    'end_date': datetime.strptime('01.01.1000', "%d.%m.%Y"),
-}
-
-
-class InputType(enum.Enum):
-    """Configuration which input is expected (e.g. classic csv)
-    """
-    CLASSIC = 0
-    BETA = 1
-
-
-class TransactionsSheetCfg(enum.Enum):
-    """Configuration Transaction table in excel
-    """
-    MIN_COL = 2
-    MAX_COL = 100
-    MIN_ROW = 5
-    MAX_ROW = 100
+# class TransactionsSheetCfg(enum.Enum):
+#     """Configuration Transaction table in excel
+#     """
+#     MIN_COL = 2
+#     MAX_COL = 100
+#     MIN_ROW = 5
+#     MAX_ROW = 100
 
 
 class TransactionListClassic(enum.Enum):
@@ -127,3 +155,8 @@ class ConstructorTypeErrors(TypeError):
 
     def get_messages(self):
         return list(self.messages)
+
+
+class RepoUseageError(Exception):
+    """Raised if Repo is not used in correct way
+    """

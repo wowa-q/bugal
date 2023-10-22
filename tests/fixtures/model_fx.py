@@ -22,41 +22,43 @@ FIXTURE_DIR = pathlib.Path(__file__).parent.resolve()
 
 @pytest.fixture
 def fx_transaction_example_classic():
-    data = ["01.01.2022", "01.01.2022", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    data = ["01.01.2022", "01.01.2022", "text", "debitor", "verwendung", "konto", "blz", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     return data
 
 @pytest.fixture
 def fx_transactions_list_example_classic():
     transactions = []
-    data = ["01.01.2022", "01.01.2022", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    data = ["01.01.2022", "01.01.2022", "text", "debitor", "verwendung", "konto", "blz", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     transactions.append(data)
-    data = ["02.01.2022", "01.01.2022", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    data = ["02.01.2022", "01.01.2022", "text", "debitor", "verwendung", "konto", "blz", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     transactions.append(data)
-    data = ["03.01.2022", "01.01.2022", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    data = ["03.01.2022", "01.01.2022", "text", "debitor", "verwendung", "konto", "blz", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     transactions.append(data)
-    data = ["04.01.2022", "01.01.2022", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    data = ["04.01.2022", "01.01.2022", "text", "debitor", "verwendung", "konto", "blz", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     transactions.append(data)
-    data = ["01.01.2022", "01.01.2022", "text", "debitor", "verwendung", "konto", "blz", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    data = ["01.01.2022", "01.01.2022", "text", "debitor", "verwendung", "konto", "blz", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     transactions.append(data)
     return transactions
 
 @pytest.fixture
 def fx_transaction_example_beta():
-    data = ["01.01.2022", "01.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    #data = ["01.01.22", "01.01.22", "STATUS", "sender", "receiver", "verwendung", "typ", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    
+    data = ["19.10.23","19.10.23","Gebucht","Angelina Merkel","Angelina Merkel","","Ausgang","-40,00 €","","",""]
     return data
 
 @pytest.fixture
 def fx_transactions_list_example_beta():
     transactions = []
-    data = ["01.01.2022", "01.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    data = ["01.01.2022", "01.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     transactions.append(data)
-    data = ["02.01.2022", "01.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    data = ["02.01.2022", "01.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     transactions.append(data)
-    data = ["03.01.2022", "01.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    data = ["03.01.2022", "01.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     transactions.append(data)
-    data = ["04.01.2022", "01.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    data = ["04.01.2022", "01.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     transactions.append(data)
-    data = ["01.01.2022", "01.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    data = ["01.01.2022", "01.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     transactions.append(data)
     return transactions
 

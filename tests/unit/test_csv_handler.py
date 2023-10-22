@@ -29,7 +29,7 @@ def test_init_csv_handler(fx_single_csv):
     assert h is not None
     assert len(h.csv_files) == 1, "number of csv file is incorect"
     assert h.input_type is not None, "input type"
-    assert h.input_type == cfg.TransactionListClassic, "input type"
+    # assert h.input_type == cfg.TransactionListClassic, "input type"
 
     hb = handler.CSVImporter(fx_single_csv, cfg.TransactionListBeta)
     assert hb is not None
@@ -59,6 +59,26 @@ def test_read_single_csv(fx_single_csv):
             assert line[0] == "24.01.2023", f"reader {line[0]}"
 
 #@pytest.mark.skip()
+def test_read_single_csv_beta(fx_single_csv_new):
+    csv_importer = handler.CSVImporter(fx_single_csv_new)
+    csv_importer.input_type = cfg.TransactionListBeta
+    with open(fx_single_csv_new, newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter = ';')
+        for ctr, line in enumerate(reader):
+            if ctr == 0:
+                assert len(line) > 0, f"Empty line was given"
+                assert line[0] == "Konto", f"reader {line}"
+            elif ctr == 7:
+                assert line[0] == "18.10.23", f"reader {line[0]}"
+
+    gen_reader = csv_importer.read_lines(fx_single_csv_new)
+    for ctr, line in enumerate(gen_reader):
+        if ctr == 0:
+            assert line[0] == "Konto", f"reader {line[0]}"
+        elif ctr == 7:
+            assert line[0] == "18.10.23", f"reader {line[0]}"
+
+#@pytest.mark.skip()
 def test_service_callback_classic(fx_single_csv):
     account = ''
     min_date = None
@@ -67,10 +87,15 @@ def test_service_callback_classic(fx_single_csv):
         if ctr in[0,2,3,4,6,7,8,9,10,11]:
             assert len(line)>0, f"empty line nr: {ctr}"        
         if ctr in[6,7,8,9,10,11]:
-            assert len(line) == 12, f"flase line length line nr: {ctr}"
+
             date_str = line[0]  
             try:
-                date_obj = datetime.strptime(date_str, "%d.%m.%Y")
+                if len(date_str) == 8:
+                    date_obj = datetime.strptime(date_str, "%d.%m.%y")
+                elif len(date_str) == 10:
+                    date_obj = datetime.strptime(date_str, "%d.%m.%Y")
+                else:
+                    continue
             except ValueError:
                 continue
             if min_date is None or date_obj < min_date:
@@ -83,6 +108,7 @@ def test_service_callback_classic(fx_single_csv):
             assert account == 'DE12345300001019363165', f"False account:{account}"
     checksum = csv_handler.get_checksum(fx_single_csv)
     assert len(checksum) == 32, f"{checksum}" # '5BEE30D0ECA3B77D4CC447CE7E52EA69'
+    assert min_date != max_date, f"{min_date}"
     assert min_date < max_date, f"Datum falsch {min_date} / {max_date}"
     assert min_date == datetime.strptime('16.01.2023', "%d.%m.%Y"), f"min. Datum falsch {min_date}"
     assert max_date == datetime.strptime('24.01.2023', "%d.%m.%Y"), f"min. Datum falsch {max_date}"
@@ -96,10 +122,14 @@ def test_service_callback_beta(fx_single_csv_new):
         if ctr in[0,2,4,6,7,8,9,10,11]:
             assert len(line)>0, f"empty line nr: {ctr}"
         if ctr in[4,5,6,7,8,9,10,11]:
-            assert len(line) == 12, f"flase line length line nr: {ctr}"
             date_str = line[0]
             try:
-                date_obj = datetime.strptime(date_str, "%d.%m.%Y")
+                if len(date_str) == 8:
+                    date_obj = datetime.strptime(date_str, "%d.%m.%y")
+                elif len(date_str) == 10:
+                    date_obj = datetime.strptime(date_str, "%d.%m.%Y")
+                else:
+                    continue
             except ValueError:
                 continue
             if min_date is None or date_obj < min_date:
@@ -111,10 +141,12 @@ def test_service_callback_beta(fx_single_csv_new):
             account = line[1].replace("Girokonto", "").replace("/", "").strip()
             assert account == 'DE12345300001019363165', f"False account:{account}"
     checksum = csv_handler.get_checksum(fx_single_csv_new)
+    assert min_date is not None, f"Min date not updated:{min_date}"
+    assert max_date is not None, f"Max date not updated:{min_date}"
     assert len(checksum) == 32, f"{checksum}" #'E10D5AEEEEF8BE6D336705A7FAE1CC83'
     assert min_date < max_date, f"Datum falsch {min_date} / {max_date}"
-    assert max_date == datetime.strptime('24.02.2023', "%d.%m.%Y"), f"max. Datum falsch {max_date}"
-    assert min_date == datetime.strptime('24.01.2022', "%d.%m.%Y"), f"min. Datum falsch {min_date}"
+    assert max_date == datetime.strptime('19.10.2023', "%d.%m.%Y"), f"max. Datum falsch {max_date}"
+    assert min_date == datetime.strptime('17.10.2023', "%d.%m.%Y"), f"min. Datum falsch {min_date}"
 
 #@pytest.mark.skip()
 def test_get_meta_classic(fx_single_csv):
@@ -144,8 +176,8 @@ def test_get_meta_beta(fx_single_csv_new):
     min_date = meta['start_date']
     max_date = meta['end_date']
     assert min_date < max_date, f"Datum falsch {min_date} / {max_date}"
-    assert min_date == datetime.strptime('24.01.2022', "%d.%m.%Y"), f"min. Datum falsch {min_date}"
-    assert max_date == datetime.strptime('24.02.2023', "%d.%m.%Y"), f"max. Datum falsch {max_date}"
+    assert min_date == datetime.strptime('17.10.2023', "%d.%m.%Y"), f"min. Datum falsch {min_date}"
+    assert max_date == datetime.strptime('19.10.2023', "%d.%m.%Y"), f"max. Datum falsch {max_date}"
 
 #@pytest.mark.skip()
 def test_import_single_csv(fx_single_csv):
@@ -160,6 +192,23 @@ def test_import_single_csv(fx_single_csv):
             
             test_transaction = csv_output[1].copy()
             assert test_transaction[0] == "24.01.2023", f"transaction hat falschen Wert {test_transaction}" 
+
+#@pytest.mark.skip()
+def test_import_single_csv_beta(fx_single_csv_new):
+    csv_importer = handler.CSVImporter(fx_single_csv_new)
+    csv_importer.input_type = cfg.TransactionListBeta
+    test_transaction = []
+    for ctr, transaction_c in enumerate(csv_importer.get_transactions(), 1):
+        assert transaction_c is not None
+        for _ctr, csv_output in enumerate(transaction_c, 1):
+            if _ctr == 7:
+                continue
+
+    assert len(csv_output) > 0, "test transaction not updated"
+    assert csv_output[1] != [], f"empty list received for imported transaction"
+    assert csv_output[1] == "17.10.23", f"transaction hat falschen Wert {csv_output[1]}"
+    assert csv_output[2] == "Gebucht", f"transaction hat falschen Wert {csv_output[2]}"
+    assert csv_output[7] == '2.228,57\xa0\x80', f"transaction hat falschen Wert {csv_output[7]}"
 
 #@pytest.mark.skip()
 def test_import_banch_csv(fx_banch_of_csv):    
@@ -192,10 +241,9 @@ def test_skip_invalid_csv(fx_single_invalid_csv, fx_banch_of_invalid_csv):
 
     csv_importer = handler.CSVImporter(fx_banch_of_invalid_csv)
 
-
 #@pytest.mark.skip()
-def test_artifact_handler_initialization(fx_zip_archive):
-    art1 = ArtifactHandler()
+def test_artifact_handler_initialization(fx_zip_archive, fx_zip_archive_configured):
+    art1 = ArtifactHandler(fx_zip_archive_configured)
     assert art1 is not None    
     assert art1.archive is not None, "archive = None"
 

@@ -33,7 +33,7 @@ class CmdImportNewCsv(a.Command):
         '''
         print(' # start execution *CmdImportNewCsv* # ')
         # self.handler_r.CSVImporter(self.csv_path)
-        self.handler_r.input_type = cfg.TransactionListClassic
+        # self.handler_r.input_type = cfg.TransactionListClassic
         meta = self.handler_r.get_meta_data()
         # leave the function if checksum exists in DB history
         # search the checksum in the meta table

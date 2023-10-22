@@ -16,6 +16,7 @@ from fixtures.csv_fx import fx_banch_of_csv
 from fixtures.csv_fx import fx_single_invalid_csv
 from fixtures.csv_fx import fx_banch_of_invalid_csv
 from fixtures.csv_fx import fx_zip_archive
+from fixtures.csv_fx import fx_zip_archive_configured
 
 from fixtures.model_fx import fx_transaction_example_classic
 from fixtures.model_fx import fx_transactions_list_example_classic

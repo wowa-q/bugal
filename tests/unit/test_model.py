@@ -18,6 +18,7 @@ def test_transaction_hash_equality(fx_transaction_example_classic):
     assert t1 == t2, "Two equel transaction objects must have equal hash value"
     assert t1 != t3, "Different hash value due to different objects"
     stack=model.Stack(cfg.TransactionListClassic)
+    stack.set_src_account('')
     transaction1 = stack.create_transaction(fx_transaction_example_classic)
     transaction2 = stack.create_transaction(fx_transaction_example_classic)
     fx_transaction_example_classic[2] = "new text"
@@ -53,7 +54,8 @@ def test_transaction_creation_beta(fx_transaction_example_beta):
     stack.input_type = cfg.TransactionListBeta
     sums1 = len(stack.checksums)
     trns1 = stack.nr_transactions
-    stack.create_transaction(fx_transaction_example_beta)
+    stack.set_src_account('1234')
+    transaction = stack.create_transaction(fx_transaction_example_beta)
     sums2 = len(stack.checksums)
     trns2 = stack.nr_transactions
     acc = stack.src_account
@@ -61,7 +63,7 @@ def test_transaction_creation_beta(fx_transaction_example_beta):
     assert sums2 > sums1, f"No new checksums created {sums2} > {sums1}"
     assert trns2 != 0, f"No new transactions created {trns2}"
     assert trns2 > trns1, f"No new transactions created {trns2} > {trns1}"
-    assert acc == '', f"source account not updated {acc}"
+    assert acc == '1234', f"source account not updated {acc}"
     stack.init_stack()
     trns2 = stack.nr_transactions
     sums2 = len(stack.checksums)
@@ -69,7 +71,20 @@ def test_transaction_creation_beta(fx_transaction_example_beta):
     assert sums2 == 0, f"No new checksums created {sums2}"
     assert trns2 == 0, f"No new transactions created {trns2}"
     assert acc == '', f"source account not updated {acc}"
-
+    datum = "19.10.23"
+    assert transaction.date == datetime.strptime(datum, '%d.%m.%y').date()
+    assert transaction.text ==  '-', f"Transaction text {transaction.text}"
+    assert transaction.status ==  'Gebucht', f"Transaction status {transaction.status}"
+    assert transaction.debitor ==  'Angelina Merkel', f"Transaction debitor {transaction.debitor}"
+    assert transaction.verwendung ==  '', f"Transaction verwendung {transaction.verwendung}"
+    assert transaction.konto ==  '-', f"Transaction konto {transaction.konto}"
+    
+    assert transaction.debitor_id ==  '', f"Transaction debitor_id {transaction.debitor_id}"
+    assert transaction.mandats_ref ==  '', f"Transaction mandats_ref {transaction.mandats_ref}"
+    assert transaction.customer_ref ==  '', f"Transaction customer_ref {transaction.customer_ref}"
+    assert transaction.src_konto ==  '1234', f"Transaction src_konto {transaction.src_konto}"
+    assert isinstance(transaction.value, float), f"Transaction value is not Integer"
+    assert transaction.value ==  -40, f"Transaction value {transaction.value}"
 # @pytest.mark.skip()
 def test_transaction_equality_for_every_par(fx_transaction_example_classic):
     stack=model.Stack(cfg.TransactionListClassic)
@@ -78,7 +93,7 @@ def test_transaction_equality_for_every_par(fx_transaction_example_classic):
     t3 = stack.create_transaction(fx_transaction_example_classic)
     data = fx_transaction_example_classic
     for ind, _ in enumerate(fx_transaction_example_classic):
-        data[ind] = "changed"
+        data[ind] = "20"
         t2 = stack.create_transaction(data)
         assert t1 != t2, f"Parameter {ind} changed"
     assert hash(t1) == hash(t1), f"new hash calculated for the same transaction"

@@ -10,13 +10,13 @@ import hashlib
 import zipfile
 import csv
 import pathlib
-from datetime import date, datetime
+from datetime import datetime
 
 from openpyxl import Workbook
 # from openpyxl.utils import exceptions as openpyxl_exception
 
-from . import cfg
-from . import abstract as a
+from bugal import cfg
+from bugal import abstract as a
 
 
 class NoCsvFilesFound(Exception):
@@ -164,7 +164,13 @@ class CSVImporter(a.HandlerReadIF):
         else:
             self.csv_files = list(self.pth.glob('**/*.csv'))
         self.meta_data = []
-        self.input_type = input_type
+        # input type setting
+        if cfg.TYPE == 'BETA':
+            self.input_type = cfg.TransactionListBeta
+        elif cfg.TYPE == 'CLASSIC':
+            self.input_type = cfg.TransactionListClassic
+        else:
+            self.input_type = input_type
 
     def get_meta_data(self):
         """returns some meta data necessary for creation a history Dataclass instance
@@ -175,7 +181,7 @@ class CSVImporter(a.HandlerReadIF):
             - 'start_date': datetime object in format '%d.%m.%Y'
             - 'account': string object showing from which account the data were exported
             - 'checksum': calculated checksum over the csv file to be compared with checksums from History table in DB
-            - file_name': (str) showing the file name
+            - 'file_name': (str) showing the file name
             - 'file_ext': showing the file extension
         """
         if os.path.isfile(self.pth):
@@ -193,19 +199,43 @@ class CSVImporter(a.HandlerReadIF):
         meta['checksum'] = self.get_checksum(csv_file)
         meta['file_ext'] = 'csv'
         meta['file_name'] = str(csv_file).strip('.csv')
+        meta['start_date'] = datetime.strptime('01.01.3000', "%d.%m.%Y")
+        meta['end_date'] = datetime.strptime('01.01.1000', "%d.%m.%Y")
         for ctr, line in enumerate(self.read_lines(csv_file)):
+            if len(line) == 0:
+                continue
             if ctr == 0:
                 meta['account'] = line[1].replace("Girokonto", "").replace("/", "").strip()
-            if ctr > self.input_type.CSV_START_ROW.value:
+            else:
                 date_str = line[0]
                 try:
-                    date_obj = datetime.strptime(date_str, "%d.%m.%Y")
+                    if len(date_str) == 8:
+                        date_obj = datetime.strptime(date_str, "%d.%m.%y")
+                    elif len(date_str) == 10:
+                        date_obj = datetime.strptime(date_str, "%d.%m.%Y")
+                    else:
+                        continue
+                    if date_obj < meta['start_date']:
+                        meta['start_date'] = date_obj
+                    if date_obj > meta['end_date']:
+                        meta['end_date'] = date_obj
                 except ValueError:
                     continue
-                if meta['start_date'] is None or date_obj < meta['start_date']:
-                    meta['start_date'] = date_obj
-                if meta['end_date'] is None or date_obj > meta['end_date']:
-                    meta['end_date'] = date_obj
+                # if meta['start_date'] is None or date_obj < meta['start_date']:
+                #     meta['start_date'] = date_obj
+                # if meta['end_date'] is None or date_obj > meta['end_date']:
+                #     meta['end_date'] = date_obj
+
+            # if ctr > self.input_type.CSV_START_ROW.value:
+            #     date_str = line[0]
+            #     try:
+            #         date_obj = datetime.strptime(date_str, "%d.%m.%Y")
+            #     except ValueError:
+            #         continue
+            #     if meta['start_date'] is None or date_obj < meta['start_date']:
+            #         meta['start_date'] = date_obj
+            #     if meta['end_date'] is None or date_obj > meta['end_date']:
+            #         meta['end_date'] = date_obj
         return meta
 
     def read_lines(self, csv_file):
@@ -243,8 +273,9 @@ class CSVImporter(a.HandlerReadIF):
             raise cfg.NoInputTypeSet
 
         def read_lines(csv_file):
-            # with open(csv_file, newline='', encoding='utf-8') as csvfile:
-            with open(csv_file, encoding='ISO-8859-1') as csvfile:
+            # with open(csv_file, mode='r', encoding='utf-8', newline='') as csvfile:
+            # with open(csv_file, encoding='ISO-8859-1') as csvfile:
+            with open(csv_file, mode='r', encoding='ISO-8859-15', newline='') as csvfile:
                 reader = csv.reader(csvfile, delimiter=';')
                 for ctr, line in enumerate(reader):
                     if ctr > self.input_type.CSV_START_ROW.value:
@@ -254,7 +285,7 @@ class CSVImporter(a.HandlerReadIF):
             yield read_lines(csv_file)
 
     def archive(self):
-        archiver = ArtifactHandler()
+        archiver = ArtifactHandler(cfg.ARCHIVE)
         archiver.archive_imports(self.pth)
 
 

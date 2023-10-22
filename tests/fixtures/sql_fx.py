@@ -28,7 +28,7 @@ FIXTURE_DIR = pathlib.Path(__file__).parent.resolve()
 def fx_new_db_file_name():
     name = 'fx_new_db_created'
     file_path = pathlib.Path(FIXTURE_DIR / (name + '.db'))
-    yield name
+    yield file_path
     time.sleep(0.1)
     try:
         file_path.unlink()
@@ -46,9 +46,9 @@ def fx_new_betaTransaction():
 def fx_new_classicTransactions_banch():
     stack = model.Stack(cfg.TransactionListClassic)
     stack.input_type = cfg.TransactionListClassic
-    t1 = stack.create_transaction(["01.01.2022", "text", "status", "debitor", "verwendung", "konto", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"])
-    t2 = stack.create_transaction(["01.03.2022", "text", "status", "debitor", "verwendung", "konto", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"])
-    t3 = stack.create_transaction(["01.04.2022", "text", "status", "debitor", "verwendung", "konto", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"])
+    t1 = stack.create_transaction(["01.01.2022", "01.01.2022", "text", "status", "debitor", "verwendung", "konto", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"])
+    t2 = stack.create_transaction(["01.03.2022", "01.03.2022", "text", "status", "debitor", "verwendung", "konto", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"])
+    t3 = stack.create_transaction(["01.04.2022", "01.04.2022", "text", "status", "debitor", "verwendung", "konto", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"])
 
     return [t1, t2, t3]
 
@@ -94,7 +94,7 @@ def fx_history_unique():
 
 @pytest.fixture
 def fx_transaction_unique():
-    data = ["01.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", random.randint(100000, 999999), str(random.randint(100000, 999999)), "mandats_ref", "customer_ref", "src_konto"]
+    data = ["01.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", str(random.randint(100000, 999999)), str(random.randint(100000, 999999)), "mandats_ref", "customer_ref", "src_konto"]
     stack = model.Stack(cfg.TransactionListClassic)
     transaction = stack.create_transaction(data)
 
