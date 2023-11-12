@@ -21,153 +21,133 @@ from fixtures import e2e_fx
 
 FIXTURE_DIR = pathlib.Path(__file__).parent.resolve()
 
-@pytest.mark.skip()
-def test_write_classic_transactions_to_db(fx_test_db, fx_single_csv):
-
-    csv_importer = handler.CSVImporter(fx_single_csv)
-    csv_importer.input_type = cfg.TransactionListClassic
-    stack=model.Stack(cfg.TransactionListBeta)
-    stack.input_type = cfg.TransactionListClassic
-    stack.set_src_account('123456')
-   
-    orm = bugal_orm.BugalOrm(fx_test_db[0], fx_test_db[1], 'sqlite')
-    t_repo = repo.TransactionsRepo(orm)
-    t_ctr_orm = 0
-    history_data = csv_importer.get_meta_data()
-    stack_history = stack.create_history(history_data[0])
+def push_transactions(orm_handler, stack, csv_importer):
+    hashes = []
     for ctr, transactions in enumerate(csv_importer.get_transactions()):
-        t_repo.push_transactions(transactions)
-        for ctr_t, transaction_c in enumerate(transactions, 1):
-            assert len(transaction_c) > 0, f"the line is empty {transaction_c}"
-            transaction_m = stack.create_transaction(transaction_c)
-            orm.write_to_transactions(transaction_m)
-    assert ctr_t == 5, f"not all transactions generated {ctr_t}"
-    t_ctr_orm = orm.get_transaction_ctr()
-    assert t_ctr_orm == 5, f"no transaction pushed {t_ctr_orm}"
-    
-    assert stack_history is not None, f"No history created"
-    assert isinstance(stack_history, model.History), f""
-    result =  orm.write_to_history(stack_history)
-    h_ctr_orm = orm.get_history_ctr()
-    assert result, f"pushing history to the DB failed"
-    assert h_ctr_orm == 1, f"the history counter was not increased"
-    src_account = stack_history.account
-    datum = datetime(2023, 1, 23)
-    filter = {'date-after': datum}
-    rows = orm.read_transactions(filter)
-    assert len(rows) == 2, f"number of transactionrows isnot as expected"
-    datum_list = []
-    value_list = []
-    account_list = []
-    for row in rows:
-        datum_list.append(row.datum)
-        value_list.append(row.value)
-        account_list.append(row.src_konto)
-    assert '-51,00' in value_list, f"value not in the list" # \x80 ist Unicode-Zeichen für Euro
-    assert account_list[0] == src_account, f"false account pulled from DB"
-
-# @pytest.mark.skip()
-def test_write_beta_transactions_to_db(fx_test_db, fx_single_csv_new):
-    '''
-    0. preparation
-    0.1 new db 
-    0.2 csv with transactions
-    
-    1. read csv file
-    2. create csv transactions
-    3. create stack transactions
-    4. push stack transactions
-    5. check number of transactions the same as in csv
-    6. create history
-    7. push the history to db
-    8. check the number of history entries
-    9. try to push the history again
-    10. check the number of history entries
-    11. check transaction table contant
-    12. check history table contant
-    '''
-    csv_importer = handler.CSVImporter(fx_single_csv_new)
-    csv_importer.input_type = cfg.TransactionListBeta
-    stack=model.Stack(cfg.TransactionListBeta)
-    stack.input_type = cfg.TransactionListBeta
-    orm_handler = bugal_orm.BugalOrm(fx_test_db[0], fx_test_db[1], 'sqlite')
-    t_ctr_orm = 0
-    history_data = csv_importer.get_meta_data()
-    stack_history = stack.create_history(history_data[0])
-    src_account = stack_history.account
-    
-    for ctr, transactions in enumerate(csv_importer.get_transactions()):
-        for ctr_t, transaction_c in enumerate(transactions, 1):
-            assert len(transaction_c) > 0, f"the line is empty {transaction_c}"
-            transaction_m = stack.create_transaction(transaction_c)
-            assert transaction_m.src_konto == src_account, f"transaction false"
+        # get transaction from csv
+        for ctr_t, transaction_c in enumerate(transactions, 1):            
+            # make transaction from csv
+            transaction_m = stack.create_transaction(transaction_c)                     
+            # push transaction to DB
             orm_handler.write_to_transactions(transaction_m)
-    assert ctr_t == 3, f"not all transactions generated {ctr_t}"
-    t_ctr_orm = orm_handler.get_transaction_ctr()
-    assert t_ctr_orm == 3, f"no transaction pushed {t_ctr_orm}"
-    
-    
-    assert stack_history is not None, f"No history created"
-    assert isinstance(stack_history, model.History), f""
-    result =  orm_handler.write_to_history(stack_history)
-    h_ctr_orm = orm_handler.get_history_ctr()
-    assert result, f"pushing history to the DB failed"
-    assert h_ctr_orm == 1, f"the history counter was not increased"
-    """
-    Buchungsdatum [24.01.2022, 24.02.2022, 24.03.2022]
-    value 54,97, 54,97, -42,60
-    """
-    datum = datetime(2022, 1, 23)
-    filter = {'date-after': datum}
-    rows = orm_handler.read_transactions(filter)
-    assert len(rows) == 3, f"number of transactionrows isnot as expected"
-    datum_list = []
-    value_list = []
-    account_list = []
-    for row in rows:
-        datum_list.append(row.datum)
-        value_list.append(row.value)
-        account_list.append(row.src_konto)
+            hashes.append(transaction_m.__hash__())
+    return (ctr_t, hashes)
 
-    assert '54,97 \x80' in value_list, f"value not in the list" # \x80 ist Unicode-Zeichen für Euro
-    assert account_list[0] == src_account, f"false account pulled from DB"
 
 # @pytest.mark.skip()
-def test_CmdImportNewCsv(fx_test_db, fx_single_csv):
-    handler_r = handler.CSVImporter(fx_single_csv)
-    stack=model.Stack(cfg.TransactionListBeta)
-    handler_r.input_type = cfg.TransactionListBeta
-    orm = bugal_orm.BugalOrm(fx_test_db[0], fx_test_db[1], 'sqlite')
+@pytest.mark.parametrize("csv_fixture, start, end, value, expected", [
+    ('beta', '17.10.2023', '19.10.2023', -40, 5),  # 5 number of transactions
+    ('alpha', '16.01.2023', '24.01.2023', -51, 5),   # 5 number of transactions
+])
+def test_CmdImportCsv(fx_test_beta_csv, fx_test_classic_csv, fx_test_db, csv_fixture, start, end, value, expected):
+    # PREPARATION
+    # create model
+    stack=model.Stack(cfg.TransactionListBeta)  
+    # parametrize test 
+    if csv_fixture == 'alpha':
+        stack.input_type = cfg.TransactionListClassic
+        single_csv_1, single_csv_2 = fx_test_classic_csv
+        # create data for csv handler 1
+        csv_importer1 = handler.CSVImporter(single_csv_1)
+        csv_importer1.input_type = cfg.TransactionListClassic
+        history_data1 = csv_importer1.get_meta_data()
+        # create data for csv handler 2
+        csv_importer2 = handler.CSVImporter(single_csv_2)
+        csv_importer2.input_type = cfg.TransactionListClassic
+        
+    elif csv_fixture == 'beta':
+        stack.input_type = cfg.TransactionListBeta
+        single_csv_1, single_csv_2 = fx_test_beta_csv
+        # create data for csv handler 1
+        csv_importer1 = handler.CSVImporter(single_csv_1)
+        csv_importer1.input_type = cfg.TransactionListBeta
+        history_data1 = csv_importer1.get_meta_data()
+        # create data for csv handler 2
+        csv_importer2 = handler.CSVImporter(single_csv_2)
+        csv_importer2.input_type = cfg.TransactionListBeta
+        
+    else:
+        assert False, "Invalid Parameter"
+    assert isinstance(single_csv_1, pathlib.Path), f" fixture is not Path"
+
+
+    orm = bugal_orm.BugalOrm(fx_test_db, 'sqlite')
     t_repo = repo.TransactionsRepo(orm)
-    cmd = service.CmdImportNewCsv(orm, stack, handler_r)
+    cmd = service.CmdImportNewCsv(orm, stack, csv_importer1)
     result = cmd.execute()
 
-    assert result == 5, f"No transactions imported {result}"
+    assert result == expected, f"No transactions imported {result}"
     ctr_t = orm.get_transaction_ctr()
     ctr_h = orm.get_history_ctr()
-    assert ctr_t == 5, f"number of stored transaction in DB is wrong {ctr_t}"
+    assert ctr_t == expected, f"number of stored transaction in DB is wrong {ctr_t}"
     assert ctr_h == 1, f"number of stored history in DB is wrong {ctr_h}"
-    
+    # test if history has the same start and end date from csv
     his_l = orm.read_history()
     his = his_l[0]
     date_format = "%d.%m.%Y"  # Das Format für "Tag-Monat-Jahr"
-    end_date = datetime.strptime('24.01.2023', date_format).date()
-    start_date = datetime.strptime('16.01.2023', date_format).date()
-    # assert isinstance(his.min_date, datetime)
-    date_format = "%Y-%m-%d"
+    end_date = datetime.strptime(end, date_format).date()
+    start_date = datetime.strptime(start, date_format).date()
     assert his.min_date == start_date, f"false min date: {his.min_date} != {start_date}"
     assert his.max_date == end_date, f"false min date: {his.max_date} != {end_date}"
-    
-    datum = datetime(2022, 1, 23)
-    filter = {'date-after': datum}
+    # test imported value in DB is correct
+    filter = {'date-after': start_date}
     tran_l = orm.read_transactions(filter)
     tran = tran_l[0]
-
-    assert float(tran.value.replace(',', '.')) == -51, f"false transaction value returned: {tran.value}"
+    assert tran.value == value, f"false transaction value returned: {tran.value}"
 
     orm.close_connection()
-    # assert False, "Test not implemetned: test_CmdImportNewCsv"
 
+# @pytest.mark.skip()
+@pytest.mark.parametrize("csv_fixture, expected", [
+    ('beta', 5),  # 5 number of transactions
+    ('alpha', 5),   # 5 number of transactions
+])
+def test_duplicate_transaction_import(fx_test_beta_csv, fx_test_classic_csv, fx_test_db, csv_fixture, expected):
+    # PREPARATION
+    # create model
+    stack=model.Stack(cfg.TransactionListBeta)  
+    # parametrize test 
+    if csv_fixture == 'alpha':
+        stack.input_type = cfg.TransactionListClassic
+        single_csv_1, single_csv_2 = fx_test_classic_csv
+        # create data for csv handler 1
+        csv_importer1 = handler.CSVImporter(single_csv_1)
+        csv_importer1.input_type = cfg.TransactionListClassic
+        history_data1 = csv_importer1.get_meta_data()
+        # create data for csv handler 2
+        csv_importer2 = handler.CSVImporter(single_csv_2)
+        csv_importer2.input_type = cfg.TransactionListClassic
+        
+    elif csv_fixture == 'beta':
+        stack.input_type = cfg.TransactionListBeta
+        single_csv_1, single_csv_2 = fx_test_beta_csv
+        # create data for csv handler 1
+        csv_importer1 = handler.CSVImporter(single_csv_1)
+        csv_importer1.input_type = cfg.TransactionListBeta
+        history_data1 = csv_importer1.get_meta_data()
+        # create data for csv handler 2
+        csv_importer2 = handler.CSVImporter(single_csv_2)
+        csv_importer2.input_type = cfg.TransactionListBeta
+        
+    else:
+        assert False, "Invalid Parameter"
+    assert isinstance(single_csv_1, pathlib.Path), f" fixture is not Path"
+    history_data2 = csv_importer2.get_meta_data()
+    
+    # create ORM
+    orm_handler = bugal_orm.BugalOrm(fx_test_db, 'sqlite')
+    # get first the number of existing transactions for comparison
+    t_ctr_orm_init = orm_handler.get_transaction_ctr()
+    assert t_ctr_orm_init == 0, f"Flase transaction init value"
+    # EXECUTION
+    ctr_t, hashes = push_transactions(orm_handler, stack, csv_importer1)    
+    assert ctr_t == expected, f"not all transactions generated {ctr_t}"
+    unique = set(hashes)
+    assert len(hashes) == len(unique), f"number of unique hashes is different"
+    t_ctr_orm = orm_handler.get_transaction_ctr()
+    assert t_ctr_orm == t_ctr_orm_init + 5, f"no transaction pushed {t_ctr_orm}"
+    ctr_t, hashes = push_transactions(orm_handler, stack, csv_importer2)
+    assert ctr_t == expected, f"not all transactions generated {ctr_t}"
+    t_ctr_orm = orm_handler.get_transaction_ctr()
+    assert t_ctr_orm == t_ctr_orm_init + 8, f"no transaction pushed {t_ctr_orm}"
 
-# # @pytest.mark.skip()
-# def test_CmdImportNewCsvExistingDb(fx_test_db, fx_single_csv):

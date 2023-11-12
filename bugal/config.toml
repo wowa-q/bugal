@@ -3,6 +3,8 @@ label = "bugal"
 
 # Configure the file locations absolute path
 [[bugal.src]]
+# genral source path
+srcpath = "d:/projects/910_prProjects/bugal/bugal_p"
 # csv file to be imported
 csv_file = "d:/projects/910_prProjects/bugal/bugal_p/1001670080-2021.csv"
 # db file to be used
@@ -14,8 +16,21 @@ xls_file = "d:/projects/910_prProjects/bugal/bugal_p/bugal_view_1.xlsx"
 
 # Configure a test run with "True" or real run with "False"
 [[bugal.run]]
-TEST = "False"
+TEST = "True"
+
+[[bugal.test]]
+# genral source path
+srcpath = "d:/projects/910_prProjects/bugal/bugal_p"
+# csv file to be imported
+csv_file = "d:/projects/910_prProjects/bugal/tests/fixtures/single_new.csv"
+# db file to be used
+db_file = "d:/projects/910_prProjects/bugal/tests/fixtures/import_2.db"
+# zip file to be used
+zip_file = "d:/projects/910_prProjects/bugal/tests/fixtures/archive_1.zip"
+# excel file to be used
+xls_file = "d:/projects/910_prProjects/bugal/tests/fixtures/bugal_view_1.xlsx"
+
 
 # configuration of the source file type [BETA, CLASSIC]
 [[bugal.type]]
-type = "CLASSIC"
+type = "BETA"

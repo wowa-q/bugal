@@ -60,6 +60,8 @@ def fx_transactions_list_example_beta():
     transactions.append(data)
     data = ["01.01.2022", "01.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     transactions.append(data)
+    data = ["01.01.2022", "01.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    transactions.append(data)
     return transactions
 
 @pytest.fixture

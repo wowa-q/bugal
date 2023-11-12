@@ -37,19 +37,28 @@ CSVFILE = None
 DBFILE = None
 ARCHIVE = None
 EXCEL = None
+
+
+print(f'TEST: {TEST}')
 # configuration of files
-src_config = config['bugal']['src']
+if TEST:
+    src_config = config['bugal']['test']
+else:
+    src_config = config['bugal']['src']
+
 for cfg in src_config:
-    #if pathlib.Path(cfg.get('csv_file')).is_file():
+    # TODO: check the commented code if needed and delte if not
+    SRCPATH = pathlib.Path(cfg.get('srcpath'))
+    # if pathlib.Path(cfg.get('csv_file')).is_file():
     CSVFILE = pathlib.Path(cfg.get('csv_file'))
-    #if pathlib.Path(cfg.get('db_file')).is_file():
+    # if pathlib.Path(cfg.get('db_file')).is_file():
     DBFILE = pathlib.Path(cfg.get('db_file'))
-    #if pathlib.Path(cfg.get('zip_file')).is_file():
+    # if pathlib.Path(cfg.get('zip_file')).is_file():
     ARCHIVE = pathlib.Path(cfg.get('zip_file'))
-    #if pathlib.Path(cfg.get('xls_file')).is_file():
+    # if pathlib.Path(cfg.get('xls_file')).is_file():
     EXCEL = pathlib.Path(cfg.get('xls_file'))
 
-TYPE = 'BETA'
+TYPE = ''
 type_config = config['bugal']['type']
 for cfg in type_config:
     TYPE = cfg.get('type')
@@ -144,7 +153,8 @@ class ModelStackError(Exception):
 
 class ConstructorTypeErrors(TypeError):
     """
-    Helper class that holds a list of error messages. Intended to capture all TypeErrors encountered during a
+    Helper class that holds a list of error messages. Intended to capture all TypeErrors
+    encountered during a
     constructor call, instead of raising only the first one.
     """
 
@@ -154,6 +164,11 @@ class ConstructorTypeErrors(TypeError):
         self.messages = messages
 
     def get_messages(self):
+        """Provide Exception error message
+
+        Returns:
+            list: list of messages to be reported by the exception
+        """
         return list(self.messages)
 
 

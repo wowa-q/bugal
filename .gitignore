@@ -1,4 +1,7 @@
+
 # not used files in the project
+local/
+temp/
 *.wsd
 *.vscode
 *.csv

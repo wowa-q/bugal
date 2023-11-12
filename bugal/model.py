@@ -71,7 +71,9 @@ class Transaction:
                 self.verwendung,
                 self.konto,
                 self.value,
-                self.src_konto
+                self.src_konto,
+                self.mandats_ref,
+                self.customer_ref
                 )
         return hash(data)
 
@@ -124,6 +126,7 @@ class Stack():
 
     def _make_num(self, value: str) -> int:
         cleaned_string = value
+        print(value)
         if '€' in value:
             cleaned_string = value[:-2]
         cleaned_string = cleaned_string.replace(' €', '')
@@ -190,8 +193,6 @@ class Stack():
         """
         if self.input_type is None:     # cfg.TransactionListBeta or cfg.TransactionListClassic
             raise cfg.NoInputTypeSet
-        else:
-            col = self.input_type
         if not isinstance(data, list):
             raise cfg.NoValidTransactionData
         # check that only real data are provided
@@ -199,21 +200,21 @@ class Stack():
             raise cfg.NoValidTransactionData
         # calculate date
         date_obj = None
-        atrs = dir(col)
+        atrs = dir(self.input_type)
         if 'DATE' in atrs:
-            date_string = data[col.DATE.value]
+            date_string = data[self.input_type.DATE.value]
             date_obj = self._make_date(date_string)
         else:
             print(f'Transaction date invalid for transaction: {data}')
             raise AttributeError
         if 'STATUS' in atrs:
-            status = data[col.STATUS.value]
+            status = data[self.input_type.STATUS.value]
             text = '-'
         else:
             status = '-'
-            text = data[col.TEXT.value]
+            text = data[self.input_type.TEXT.value]
         if 'KONTO' in atrs:
-            konto = data[col.KONTO.value]
+            konto = data[self.input_type.KONTO.value]
         else:
             # new fashion csv doesn't provide account
             konto = '-'
@@ -222,17 +223,17 @@ class Stack():
             src_konto = self.src_account
         else:
             raise cfg.NoValidTransactionData
-        value = self._make_num(str(data[col.VALUE.value]))
+        value = self._make_num(str(data[self.input_type.VALUE.value]))
         transaction = Transaction(date_obj,
                                   text,
                                   status,
-                                  data[col.RECEIVER.value],
-                                  data[col.VERWENDUNG.value],
+                                  data[self.input_type.RECEIVER.value],
+                                  data[self.input_type.VERWENDUNG.value],
                                   konto,
                                   value,
-                                  data[col.DEBITOR_ID.value],
-                                  data[col.MANDATS_REF.value],
-                                  data[col.CUSTOMER_REF.value],
+                                  data[self.input_type.DEBITOR_ID.value],
+                                  data[self.input_type.MANDATS_REF.value],
+                                  data[self.input_type.CUSTOMER_REF.value],
                                   src_konto)
 
         if hash(transaction) not in self.checksums:

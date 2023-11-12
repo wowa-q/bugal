@@ -72,6 +72,7 @@ def test_transaction_creation_beta(fx_transaction_example_beta):
     assert trns2 == 0, f"No new transactions created {trns2}"
     assert acc == '', f"source account not updated {acc}"
     datum = "19.10.23"
+
     assert transaction.date == datetime.strptime(datum, '%d.%m.%y').date()
     assert transaction.text ==  '-', f"Transaction text {transaction.text}"
     assert transaction.status ==  'Gebucht', f"Transaction status {transaction.status}"
@@ -107,6 +108,17 @@ def test_create_transactions_list(fx_transactions_list_example_classic):
         stack.create_transaction(line)
     
     assert len(fx_transactions_list_example_classic) == 5
+
+# @pytest.mark.skip()
+def test_create_transactions_list_beta(fx_transactions_list_example_beta):
+    stack=model.Stack(cfg.TransactionListBeta)
+    stack.input_type = cfg.TransactionListBeta
+    for line in fx_transactions_list_example_beta:
+        stack.create_transaction(line)
+    
+    assert len(fx_transactions_list_example_beta) == 6
+    assert len(stack.transactions) == 4
+    assert stack.nr_transactions == 4
 
 # @pytest.mark.skip()
 def test_store_transactions_in_db(fx_transactions_list_example_classic):

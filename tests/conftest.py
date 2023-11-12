@@ -36,6 +36,8 @@ from fixtures.sql_fx import fx_checksum_repo_not_exist
 from fixtures.sql_fx import fx_checksum_repo_exist
 
 from fixtures.e2e_fx import fx_test_db
+from fixtures.e2e_fx import fx_test_classic_csv
+from fixtures.e2e_fx import fx_test_beta_csv
 
 # from fixtures.orm_fx import fx_test_db_new
 # from fixtures.orm_fx import session

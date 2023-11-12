@@ -15,7 +15,7 @@ from bugal import handler as handler
 from bugal import cfg
 
 
-def _get_receivers(csv_pth, input_type):
+def _get_receivers(csv_pth):
 
     repo_instance = repo.BugalOrm(cfg.DBFILE)
     print('#')
@@ -24,7 +24,10 @@ def _get_receivers(csv_pth, input_type):
     #     repo_instance = repo.BugalOrm(cfg.FIXTURE_DIR, cfg.DB_NAME)
     # else:
     #     repo_instance = repo.BugalOrm(cfg.DBFILE)
-
+    if cfg.TYPE == 'BETA':
+        input_type = cfg.TransactionListBeta
+    else:
+        input_type = cfg.TransactionListClassic
     stack_instance = model.Stack(input_type)
     handler_instance = handler.CSVImporter(csv_pth)
     return repo_instance, stack_instance, handler_instance
@@ -53,10 +56,8 @@ def create_import_csv_invoker(csv_pth: Path):
     Returns:
         service.Invoker: Invoker instance which can run the configured commands
     """
-    if cfg.TYPE == 'BETA':
-        input_type = cfg.TransactionListBeta
 
-    rep, stack, handl = _get_receivers(csv_pth, input_type)
+    rep, stack, handl = _get_receivers(csv_pth)
     import_invoker = service.Invoker()
     import_invoker.set_main_command(service.CmdImportNewCsv(rep, stack, handl))
 
@@ -80,7 +81,7 @@ def execute(cmd):
         if "import" in cmd:
             click.echo(f'Hello {cmd} will be executed!')
             csv_file = cfg.CSVFILE
-            click.echo(f'Importing classic variant of {csv_file}')
+            click.echo(f'Bugal Importing:  {csv_file}')
             invoker = create_import_csv_invoker(csv_file)
 
         else:

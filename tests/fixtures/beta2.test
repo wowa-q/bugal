@@ -1,0 +1,10 @@
+Konto;Girokonto DE12345300001019363165;;;;;;;;;
+;;;;;;;;;;
+Kontostand vom 20.10.2023:;6,37 EUR;;;;;;;;;
+;;;;;;;;;;
+Buchungsdatum;Wertstellung;Status;Zahlungspflichtige*r;Zahlungsempfänger*in;Verwendungszweck;Umsatztyp;Betrag;Gläubiger-ID;Mandatsreferenz;Kundenreferenz
+19.10.2023;19.10.2023;Gebucht;Angelina Merkel;Angelina Merkel;;Ausgang;-40,00 €;;1;
+18.10.2023;18.10.2023;Gebucht;Angelina Merkel;Angelina Merkel;;Ausgang;-100,00 €;;6;
+18.10.2023;18.10.2023;Gebucht;ISSUER;Amazon.de/AMAZON.DE//LU;2023-10-17 Debitk.17 VISA Debit;Ausgang;-39,61 €;;7;4,83E+14
+17.10.2023;17.10.2023;Gebucht;ALTEN Technology GmbH                                                 Gasstr. 4;Merkel Angelina                                                       NA;Lohn-Gehalt Abrechnung 09/2023;Eingang;2.228,57 €;;9;032SALA019182
+17.10.2023;17.10.2023;Gebucht;ALTEN Technology GmbH                                                 Gasstr. 4;Merkel Angelina                                                       NA;Lohn-Gehalt Abrechnung 09/2023;Eingang;2.228,57 €;;9;032SALA019182
