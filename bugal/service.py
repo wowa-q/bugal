@@ -1,9 +1,13 @@
 """Seervice layer of the bugal"""
 
+import logging
 
 from bugal import cfg
 from bugal import model
 from bugal import abstract as a
+
+
+logger = logging.getLogger(__name__)
 
 
 class CmdImportNewCsv(a.Command):
@@ -15,6 +19,7 @@ class CmdImportNewCsv(a.Command):
         self.repo = rep
         self.stack = stack
         self.handler_r = handler_r
+        logger.info("Command initialized: CmdImportNewCsv")
         # self.csv_path = csv_path
 
     def execute(self) -> int:
@@ -31,24 +36,18 @@ class CmdImportNewCsv(a.Command):
         10. archive csv
         11. write history
         '''
-        print(' # start execution *CmdImportNewCsv* # ')
-        # self.handler_r.CSVImporter(self.csv_path)
-        # self.handler_r.input_type = cfg.TransactionListClassic
-        meta = self.handler_r.get_meta_data()
+        logger.info("# start execution CmdImportNewCsv #")
         # leave the function if checksum exists in DB history
         # search the checksum in the meta table
         csv_checksum = self.handler_r.get_checksum()
         # check if checksum already exists
         lresults = self.repo.find_csv_checksum(csv_checksum)
-        if lresults:
-            # an entry was found in the meta table -> csv is already imported
-            print('CmdImportNewCsv: CSV already imported')
-            # exit the execution
-            return -1
-        else:
+        if not lresults:
+            meta = self.handler_r.get_meta_data()
             # first build history and init some data
             history_entry = self.stack.create_history(meta[0])
             if history_entry is None:
+                logger.debug("History could not be created")
                 raise cfg.ModelStackError
 
             ctr_t = 0
@@ -59,7 +58,7 @@ class CmdImportNewCsv(a.Command):
                     lresults = self.repo.find_transaction_checksum(hash(transaction_m))
                     if lresults:
                         # an entry was found with the same hash -> transaction exists already
-                        print('CmdImportNewCsv: transaction already imported')
+                        logger.warning("CmdImportNewCsv: transaction already imported: %s", transaction_m)
                         # exit the execution
                         continue
                     else:
@@ -68,9 +67,12 @@ class CmdImportNewCsv(a.Command):
             if ctr_t > 0:
                 self.repo.write_to_history(history_entry)
                 self.handler_r.archive()
-                print(f"number of transactions imported: {ctr_t}")
+                logger.info("number of transaction imported: %s", ctr_t)
             # return number of imported transactions
             return ctr_t
+        else:
+            logger.warning("CmdImportNewCsv: CSV already imported")
+            return -1
 
 
 class CmdFake(a.Command):
@@ -81,10 +83,9 @@ class CmdFake(a.Command):
     """
     def __init__(self, dut: str):
         self.invoker = dut
-        # self.csv_path = csv_path
 
     def execute(self) -> int:
-        print(f' # start execution *CmdFake*  {self.invoker}# ')
+        logger.info("# start execution CmdFake # %s", self.invoker)
         return 1
 
 

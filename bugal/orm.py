@@ -1,12 +1,15 @@
 """Definition of DB Tables
 """
 # TODO: can be used for refactoring, but not now used
-
+import logging
 from sqlalchemy import Table, MetaData, Column, Integer, String, Date
 from sqlalchemy.orm import mapper  # relationship
 
-from . import model
 
+from bugal import model
+
+
+logger = logging.getLogger(__name__)
 metadata = MetaData()
 
 transaction = Table(
@@ -33,8 +36,8 @@ history = Table(
     Column("file_name", String),
     Column("file_type", String),
     Column("account", String),
-    Column("min_date", String),
-    Column("max_date", String),
+    Column("min_date", Date),
+    Column("max_date", Date),
     Column("import_date", String),
     Column("checksum", String)
 

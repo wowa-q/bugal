@@ -3,8 +3,15 @@
 import enum
 import pathlib
 from datetime import datetime
-
+import logging
 import tomli
+
+
+logging.basicConfig(filename='bugal.log',
+                    filemode='a',
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 MIN_COL = 2
 MAX_COL = 100
@@ -24,6 +31,7 @@ def load_config():
     # read the config from config.toml
     with open(PTOJECT_DIR / "config.toml", "rb") as toml_file:
         toml_config = tomli.load(toml_file)
+    logger.info("Configuration loaded %s", toml_config)
     return toml_config
 
 
@@ -31,6 +39,7 @@ config = load_config()
 run_config = config['bugal']['run']
 for cfg in run_config:
     TEST = bool(cfg.get('TEST'))
+    logger.info("Configuration loaded in TEST mode")
     break
 
 CSVFILE = None
@@ -39,7 +48,6 @@ ARCHIVE = None
 EXCEL = None
 
 
-print(f'TEST: {TEST}')
 # configuration of files
 if TEST:
     src_config = config['bugal']['test']

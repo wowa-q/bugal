@@ -7,7 +7,8 @@ import time
 # SPDX-License-Identifier: Apache-2.0
 # https://github.com/spdx/tools-python/blob/main/pyproject.toml
 from dataclasses import dataclass
-from cfg import ModelStackError
+
+from bugal import cfg
 
 
 def dataclass_with_properties(cls):
@@ -32,7 +33,7 @@ def make_setter(field_name, field_type):
     def set_field_with_error_conversion(self, value: field_type):
         try:
             set_field(self, value)
-        except ModelStackError as err:
+        except cfg.ModelStackError as err:
             error_message: str = f"SetterError {self.__class__.__name__}: {err}"
 
             # As setters are created dynamically, their argument name is always "value". We replace it by the
@@ -79,7 +80,6 @@ class ExecutionTimer:
             return result
 
         return timer
-
 
 
 '''

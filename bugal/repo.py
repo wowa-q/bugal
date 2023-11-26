@@ -3,11 +3,15 @@
 """
 import types
 import sqlite3 as sql
+import logging
 
 from bugal import cfg
 from bugal import model
 from bugal import abstract as a
 # from bugal import bugal_orm
+
+
+logger = logging.getLogger(__name__)
 
 
 class FakeRepo(a.AbstractRepository):
@@ -76,7 +80,7 @@ class TransactionsRepo():
             Bool: If checksum could be found True is returned
         """
         if len(checksum) == 0:
-            print(f"invalid checksum received for searching: {checksum}")
+            logger.warning("Invalid hash value received for searching: %s", checksum)
             raise cfg.RepoUseageError
         if self.orm.find_transaction_checksum(checksum) is not None :
             self.orm.close_connection()

@@ -22,7 +22,7 @@ TEST = "True"
 # genral source path
 srcpath = "d:/projects/910_prProjects/bugal/bugal_p"
 # csv file to be imported
-csv_file = "d:/projects/910_prProjects/bugal/tests/fixtures/single_new.csv"
+csv_file = "d:/projects/910_prProjects/bugal/tests/fixtures/classic2.csv"
 # db file to be used
 db_file = "d:/projects/910_prProjects/bugal/tests/fixtures/import_2.db"
 # zip file to be used
@@ -33,4 +33,4 @@ xls_file = "d:/projects/910_prProjects/bugal/tests/fixtures/bugal_view_1.xlsx"
 
 # configuration of the source file type [BETA, CLASSIC]
 [[bugal.type]]
-type = "BETA"
+type = "CLASSIC"

@@ -6,9 +6,13 @@ import re
 from dataclasses import dataclass, field
 import dataclasses
 from datetime import date, datetime
+import logging
 
 # from . import cfg
 from bugal import cfg
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True, eq=True)
@@ -100,6 +104,7 @@ class Stack():
         self.nr_transactions = 0
         self.input_type = input_type
         self.src_account = ''
+        logger.info("Stack initialized with input type: %s", input_type)
 
     def init_stack(self):
         """emptying the list of transactions on created instance
@@ -109,9 +114,11 @@ class Stack():
         self.input_type = None
         self.checksums.clear()
         self.src_account = ''
+        logger.info("Stack re-initialized with input type: %s", self.input_type)
 
     def _make_date(self, datum: str) -> date:
         if isinstance(datum, datetime):
+            logger.debug("datum provided not as string, but as datetime: %s", datum)
             return datum
         newdate = None
         try:
@@ -121,19 +128,18 @@ class Stack():
                 newdate = datetime.strptime(datum, '%d.%m.%Y').date()
 
         except ValueError:
-            print(f'datum provided with false format: {datum}')
+            logger.exception("datum provided with false format: %s", datum)
         return newdate
 
     def _make_num(self, value: str) -> int:
         cleaned_string = value
-        print(value)
         if '€' in value:
             cleaned_string = value[:-2]
         cleaned_string = cleaned_string.replace(' €', '')
         cleaned_string = cleaned_string.replace('.', '')  # erst die tausender weg
         cleaned_string = cleaned_string.replace(',', '.')
         cleaned_string = ''.join(char for char in cleaned_string if char.isdigit() or char == '-' or char == '.')
-
+        logger.debug("cleaned string: %s", cleaned_string)
         return float(cleaned_string)
 
     def create_history(self, history: dict) -> History:
@@ -163,6 +169,7 @@ class Stack():
                           history['checksum'])
             self.set_src_account(history['account'])
         else:
+            logger.debug("History is not instance of dict")
             return None
 
         return his
@@ -174,6 +181,7 @@ class Stack():
         Args:
             account (str): _description_
         """
+        logger.info("source account set to: %s", account)
         self.src_account = account
 
     def create_transaction(self, data: list) -> Transaction:
@@ -192,11 +200,14 @@ class Stack():
             Transaction: transaction object, ready for storage in DB and checking hash
         """
         if self.input_type is None:     # cfg.TransactionListBeta or cfg.TransactionListClassic
+            logger.debug("NoInputTypeSet is not set")
             raise cfg.NoInputTypeSet
         if not isinstance(data, list):
+            logger.debug("#Data provided is not instance of list")
             raise cfg.NoValidTransactionData
         # check that only real data are provided
         if len(data) < 7:
+            logger.debug("#Data provided has not correct length: %s", len(data))
             raise cfg.NoValidTransactionData
         # calculate date
         date_obj = None
@@ -205,7 +216,7 @@ class Stack():
             date_string = data[self.input_type.DATE.value]
             date_obj = self._make_date(date_string)
         else:
-            print(f'Transaction date invalid for transaction: {data}')
+            logger.debug("Transaction date invalid for transaction: %s", data)
             raise AttributeError
         if 'STATUS' in atrs:
             status = data[self.input_type.STATUS.value]
@@ -222,6 +233,7 @@ class Stack():
         if self.src_account is not None:
             src_konto = self.src_account
         else:
+            logger.info("TSource account not initialized: %s", self.src_account)
             raise cfg.NoValidTransactionData
         value = self._make_num(str(data[self.input_type.VALUE.value]))
         transaction = Transaction(date_obj,
@@ -239,7 +251,7 @@ class Stack():
         if hash(transaction) not in self.checksums:
             self.transactions.append(transaction)
             self.checksums.add(hash(transaction))
-            # self.nr_transactions += 1
+
         self.nr_transactions = len(self.transactions)
 
         return transaction
@@ -250,6 +262,7 @@ class Stack():
         for transaction in self.transactions:
             if transaction.date > max_date:
                 max_date = transaction.date
+        logger.info("Maximum transaction date found: %s", max_date)
         return max_date
 
     # das Datum wird aus csv history extrahiert. Braucht man das noch?
@@ -258,6 +271,7 @@ class Stack():
         for transaction in self.transactions:
             if transaction.date < min_date:
                 min_date = transaction.date
+        logger.info("Minimum transaction date found: %s", min_date)
         return min_date
 
     # PLANNED METHODS
@@ -279,4 +293,4 @@ class Stack():
                           date.fromisoformat(hist[4]),
                           date.fromisoformat(hist[5]),
                           hist[6])
-        print(history)
+        logger.info("History was updated")

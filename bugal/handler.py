@@ -11,12 +11,16 @@ import zipfile
 import csv
 import pathlib
 from datetime import datetime
+import logging
 
 from openpyxl import Workbook
 # from openpyxl.utils import exceptions as openpyxl_exception
 
 from bugal import cfg
 from bugal import abstract as a
+
+
+logger = logging.getLogger(__name__)
 
 
 class NoCsvFilesFound(Exception):
@@ -135,7 +139,7 @@ class ExcelWriter(a.HandlerWriteIF):
             try:
                 self._work_book.remove('Sheet')
             except ValueError:
-                pass
+                logger.exception("Could not delete sheet with the name: %s", 'Sheet')
             self._work_book.save(self.xls_file)
             self._work_book.close()
             success = True
@@ -146,7 +150,7 @@ class ExcelWriter(a.HandlerWriteIF):
             #     input()
 
         except ValueError as value:
-            print(f"An error occurred while writing to the Excel file: {value}")
+            logger.exception("An error occurred while writing to the Excel file: %s", value)
             self._work_book.close()
         return success
 
@@ -171,6 +175,7 @@ class CSVImporter(a.HandlerReadIF):
             self.input_type = cfg.TransactionListClassic
         else:
             self.input_type = input_type
+        logger.info("CSV Handler initialized")
 
     def get_meta_data(self):
         """returns some meta data necessary for creation a history Dataclass instance
@@ -220,27 +225,14 @@ class CSVImporter(a.HandlerReadIF):
                     if date_obj > meta['end_date']:
                         meta['end_date'] = date_obj
                 except ValueError:
+                    logger.debug("DAte could not be axtracted from CSV line: %s", date_str)
                     continue
-                # if meta['start_date'] is None or date_obj < meta['start_date']:
-                #     meta['start_date'] = date_obj
-                # if meta['end_date'] is None or date_obj > meta['end_date']:
-                #     meta['end_date'] = date_obj
-
-            # if ctr > self.input_type.CSV_START_ROW.value:
-            #     date_str = line[0]
-            #     try:
-            #         date_obj = datetime.strptime(date_str, "%d.%m.%Y")
-            #     except ValueError:
-            #         continue
-            #     if meta['start_date'] is None or date_obj < meta['start_date']:
-            #         meta['start_date'] = date_obj
-            #     if meta['end_date'] is None or date_obj > meta['end_date']:
-            #         meta['end_date'] = date_obj
         return meta
 
     def read_lines(self, csv_file):
         with open(csv_file, encoding='ISO-8859-1') as csvfile:
             reader = csv.reader(csvfile, delimiter=';')
+            logger.info("reader initialized with encoding: %s", 'ISO-8859-1')
             for row in reader:
                 yield row
 
@@ -258,6 +250,7 @@ class CSVImporter(a.HandlerReadIF):
 
         with open(csv_file, encoding='ISO-8859-1') as csvfile:
             checksum = hashlib.md5(csvfile.read().encode('ISO-8859-1')).hexdigest().upper()
+            logger.info("csv hash calculated: %s", checksum)
             return checksum
 
     def get_transactions(self):
@@ -270,6 +263,7 @@ class CSVImporter(a.HandlerReadIF):
             generator: to get the line as a list two for loops are necessary
         """
         if self.input_type is None:
+            logger.debug("No input type set")
             raise cfg.NoInputTypeSet
 
         def read_lines(csv_file):
@@ -305,6 +299,7 @@ class ArtifactHandler(a.Artifact):
             with zipfile.ZipFile(self.archive, 'a', compression=zipfile.ZIP_DEFLATED) as newzip:
                 newzip.write(artifact, arcname=artifact.name)
             artifact.unlink()
+            logger.info("CSV file archived in %s: ", self.archive)
             return True
         else:
             return False

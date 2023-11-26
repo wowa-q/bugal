@@ -11,15 +11,15 @@ import click
 from bugal import service
 from bugal import model
 from bugal import bugal_orm as repo     # TODO: needs to be replaced by the repo after refactoring
-from bugal import handler as handler
+from bugal import handler
 from bugal import cfg
+
+logger = logging.getLogger(__name__)
 
 
 def _get_receivers(csv_pth):
 
     repo_instance = repo.BugalOrm(cfg.DBFILE)
-    print('#')
-    print(cfg.DBFILE)
     # if cfg.TEST is True:
     #     repo_instance = repo.BugalOrm(cfg.FIXTURE_DIR, cfg.DB_NAME)
     # else:
@@ -82,6 +82,7 @@ def execute(cmd):
             click.echo(f'Hello {cmd} will be executed!')
             csv_file = cfg.CSVFILE
             click.echo(f'Bugal Importing:  {csv_file}')
+            logger.info("Import csv file requested: %s", csv_file)
             invoker = create_import_csv_invoker(csv_file)
 
         else:

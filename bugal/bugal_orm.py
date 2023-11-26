@@ -1,8 +1,7 @@
 """_summary_
 """
-import pathlib
 import logging  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-from datetime import datetime, date
+from datetime import date
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Date
 from sqlalchemy import create_engine, inspect, select, func
@@ -12,8 +11,8 @@ from sqlalchemy.exc import IntegrityError
 from bugal import model
 from bugal import cfg
 
-logging.basicConfig(filename='orm.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)  # Erstelle Logger-Instanz für dieses Modul
+
 
 Base = declarative_base()
 
@@ -27,13 +26,15 @@ class BugalOrm():
         elif db_type == 'memory':
             self.engine = create_engine("sqlite://")
         else:
+            logger.exception("BugalOrm initialization failed, db type selection wrong %s", db_type)
             raise cfg.DbConnectionFaild(f"db type configuration failed '{db_type}'.")
         if self.engine is None:
+            logger.exception("BugalOrm: DB engine connection failed, db type selection %s", db_type)
             raise cfg.DbConnectionFaild
 
         self.inspector = inspect(self.engine)
         Base.metadata.create_all(self.engine)
-        logging.info("Repohandler was initalized with DB: %s", pth)
+        logger.info("Repohandler was initalized with DB: %s", pth)
 
     def get_transaction_ctr(self) -> int:
         """return the number of rows in transaction table
@@ -46,6 +47,7 @@ class BugalOrm():
                 row_count = session.query(func.count(Transactions.id)).scalar()
                 return row_count
         except cfg.DbConnectionFaild:
+            logger.exception("BugalOrm: DB session connection failed")
             return -1
 
     def get_history_ctr(self) -> int:
@@ -59,6 +61,7 @@ class BugalOrm():
                 row_count = session.query(func.count(History.id)).scalar()
                 return row_count
         except cfg.DbConnectionFaild:
+            logger.exception("Getting history counter from DB failed. Engine %s", self.engine)
             return -1
 
     def write_to_transactions(self, transact: model.Transaction):
@@ -68,6 +71,9 @@ class BugalOrm():
             transact (model.Transaction): _description_
         """
         if not isinstance(transact, model.Transaction):
+            logger.exception("""Transaction provided to push to DB is not
+                             model.Transaction instance. Transaction %s""",
+                             transact)
             raise ValueError
         # umpacken ist notwendig weil checksum nicht als Attribut in diesm Dataset existiert
         transaction = Transactions(text=transact.text,
@@ -88,12 +94,12 @@ class BugalOrm():
                 session.commit()
                 return True
         except IntegrityError as exc:
-            print("IntegrityError:", exc)
-            print(f"""csv file with {transaction} was already imported,
-                  checksum {transaction.checksum} exists""")
+            logger.exception("""Pushing transaction to DB failed
+                             IntegratyError %s""",
+                             exc)
             return False
         except cfg.ImporteFileDuplicate:
-            print(f"csv file with {transaction} was already imported")
+            logger.exception("csv file with %s was already imported", transaction)
             return False
 
     def write_many_to_transactions(self, transactions: list):
@@ -111,10 +117,11 @@ class BugalOrm():
                 checksums.append(hash(tran))
             # skip this transaction as duplicate
             else:
-                logging.info("Repohandler skipped transaction as duplicate: %s", tran)
+                logging.warning("Repohandler skipped transaction as duplicate: %s", tran)
                 continue
             result = self.write_to_transactions(tran)
             if not result:
+                logging.warning("CSV not pushed to DB: %s", cfg.ImporteFileDuplicate)
                 raise cfg.ImporteFileDuplicate
 
     def write_to_history(self, his: model.History):
@@ -124,9 +131,13 @@ class BugalOrm():
             history (model.History): History row for a csv file to be imported
         """
         if not isinstance(his, model.History):
+            logger.exception("""History provided to push to DB is not
+                             model.History instance. History: %s""",
+                             his)
             raise ValueError
         if not isinstance(his.min_date, date):
-            print('History: date not provided as datetime.date')
+            logger.exception("""History: date not provided as datetime.date: %s""",
+                             his.min_date)
             raise ValueError
         history = History(file_name=his.file_name,
                           file_type=his.file_type,
@@ -142,25 +153,25 @@ class BugalOrm():
                 session.commit()
                 return True
         except IntegrityError as exc:
-            print("IntegrityError:", exc)
-            print(f"""csv file with {history} was already imported,
-                  checksum {history.checksum} exists""")
+            logger.exception("""Pushing History to DB failed
+                             IntegratyError %s""",
+                             exc)
             return False
         except cfg.ImporteFileDuplicate:
-            print(f"csv file with {history} was already imported")
+            logger.exception("csv file with %s was already imported", history)
             return False
-
-    def write_to_property(self, prop: model.Property):
-        eigenschaften = Property(inout=prop.inout,
-                                 name=prop.name,
-                                 type=prop.type,
-                                 cycle=prop.cycle,
-                                 # number=1,               # muss beim Update/setzen incrementiert werden
-                                 # sum=property.sum,
-                                 )
-        with Session(self.engine) as session:
-            session.add(eigenschaften)
-            session.commit()
+    # TODO: To be implemented
+    # def write_to_property(self, prop: model.Property):
+    #     eigenschaften = Property(inout=prop.inout,
+    #                              name=prop.name,
+    #                              type=prop.type,
+    #                              cycle=prop.cycle,
+    #                              # number=1,               # muss beim Update/setzen incrementiert werden
+    #                              # sum=property.sum,
+    #                              )
+    #     with Session(self.engine) as session:
+    #         session.add(eigenschaften)
+    #         session.commit()
 
     def read_transactions(self, _filter: dict) -> list:
         """Pulls transactions from the DB table with the matching filter condition
@@ -201,6 +212,7 @@ class BugalOrm():
     def close_connection(self):
         """closing DB connection
         """
+        logger.info("Closing DB connection")
         self.engine.dispose()
 
     def find_csv_checksum(self, hash_string=''):
@@ -221,11 +233,8 @@ class BugalOrm():
                 raise cfg.DbConnectionFaild
             # Überprüfen, ob der Hash in der Tabelle "History" vorhanden ist
             result = session.query(History).filter(History.checksum == hash_string).first()
-            # query = select(History).where(History.checksum.like(hash_string))
-            # result = session.execute(query).scalars().all()
         # just information found or not is needed
         return result is not None
-        # return query
 
     def find_transaction_checksum(self, hash_string=''):
         """find the checksum in the transactions table
