@@ -53,6 +53,19 @@ def fx_new_classicTransactions_banch():
     return [t1, t2, t3]
 
 @pytest.fixture
+def fx_new_betaTransactions_banch():
+    
+    stack = model.Stack(cfg.TransactionListClassic)
+    stack.input_type = cfg.TransactionListClassic
+    data = ["01.01.2022", "0.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    t1 = stack.create_transaction(data)
+    data = ["01.01.2022", "0.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", 11, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    t2 = stack.create_transaction(data)
+    data = ["01.01.2022", "0.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", 12, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    t3 = stack.create_transaction(data)
+    return [t1, t2, t3]
+
+@pytest.fixture
 def fx_history(fx_checksum_repo_exist):
     stack = model.Stack(cfg.TransactionListClassic)
     meta = cfg.CSV_META.copy()

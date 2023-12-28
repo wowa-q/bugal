@@ -17,6 +17,9 @@ from fixtures.csv_fx import fx_single_invalid_csv
 from fixtures.csv_fx import fx_banch_of_invalid_csv
 from fixtures.csv_fx import fx_zip_archive
 from fixtures.csv_fx import fx_zip_archive_configured
+from fixtures.csv_fx import fx_csv_broken_date_classic
+from fixtures.csv_fx import fx_csv_broken_date_beta
+
 
 from fixtures.model_fx import fx_transaction_example_classic
 from fixtures.model_fx import fx_transactions_list_example_classic
@@ -29,6 +32,7 @@ from fixtures.model_fx import fx_csv_meta_dict
 from fixtures.sql_fx import fx_new_db_file_name
 from fixtures.sql_fx import fx_new_betaTransaction
 from fixtures.sql_fx import fx_new_classicTransactions_banch
+from fixtures.sql_fx import fx_new_betaTransactions_banch
 from fixtures.sql_fx import fx_history
 from fixtures.sql_fx import fx_history_unique
 from fixtures.sql_fx import fx_transaction_unique

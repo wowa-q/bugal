@@ -2,7 +2,7 @@
 Busynes model
 
 """
-import re
+
 from dataclasses import dataclass, field
 import dataclasses
 from datetime import date, datetime
@@ -127,8 +127,9 @@ class Stack():
             else:
                 newdate = datetime.strptime(datum, '%d.%m.%Y').date()
 
-        except ValueError:
+        except ValueError as error:
             logger.exception("datum provided with false format: %s", datum)
+            raise ValueError(f"datum provided with false format: {datum}") from error
         return newdate
 
     def _make_num(self, value: str) -> int:
@@ -233,8 +234,9 @@ class Stack():
         if self.src_account is not None:
             src_konto = self.src_account
         else:
-            logger.info("TSource account not initialized: %s", self.src_account)
+            logger.debug("Source account not initialized: %s", self.src_account)
             raise cfg.NoValidTransactionData
+
         value = self._make_num(str(data[self.input_type.VALUE.value]))
         transaction = Transaction(date_obj,
                                   text,
@@ -286,11 +288,11 @@ class Stack():
         """push import history into database
         """
         # TODO: not implermented
-        history = History(hist[0],
-                          hist[1],
-                          hist[2],
-                          date.fromisoformat(hist[3]),
-                          date.fromisoformat(hist[4]),
-                          date.fromisoformat(hist[5]),
-                          hist[6])
+        # history = History(hist[0],
+        #                   hist[1],
+        #                   hist[2],
+        #                   date.fromisoformat(hist[3]),
+        #                   date.fromisoformat(hist[4]),
+        #                   date.fromisoformat(hist[5]),
+        #                   hist[6])
         logger.info("History was updated")

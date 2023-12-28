@@ -7,6 +7,7 @@ import logging
 
 from bugal import cfg
 from bugal import model
+from bugal import bugal_orm
 from bugal import abstract as a
 # from bugal import bugal_orm
 
@@ -63,12 +64,26 @@ class FakeRepo(a.AbstractRepository):
         return transaction
 
 
-class TransactionsRepo():
-
+class TransactionsRepo(a.AbstractRepository):
+    """Repository resource for transactions
+    """
     def __init__(self, orm):
         if orm is None:
             raise cfg.DbConnectionFaild
+        elif not isinstance(orm, bugal_orm.BugalOrm):
+            raise cfg.DbConnectionFaild(f"not correct instance of orm {orm}")
+
         self.orm = orm
+        self.mapping = None
+        self.history = None
+
+    # context manager enter function, reserves orm
+    def __enter__(self):
+        return self.orm
+
+    # context manager exit function, close connection of the orm session
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.orm.close_connection()
 
     def find_checksum(self, checksum: str):
         """Looks for the checksum of the transaction
@@ -83,8 +98,38 @@ class TransactionsRepo():
             logger.warning("Invalid hash value received for searching: %s", checksum)
             raise cfg.RepoUseageError
         if self.orm.find_transaction_checksum(checksum) is not None :
-            self.orm.close_connection()
+            # self.orm.close_connection() # not required due to context manager
             return True
+
+    def add_stack(self, stack: model.Stack) -> bool:
+        logger.info("Adding stack to DB")
+        super().add_stack(stack)
+
+    def get_stack(self, fil: model.Filter) -> model.Stack:
+        logger.info("Getting stack from DB")
+        return super().get_stack(fil)
+
+    def get_mapping(self):
+        mapping = []
+        return mapping
+
+    def set_mapping(self, mapping):
+        self.mapping = mapping
+
+    def get_history(self):
+        history = []
+        return history
+
+    def set_history(self, history):
+        self.history = history
+
+    def find_csv_checksum(self, checksum):
+        transaction = []
+        return transaction
+
+    def find_transaction(self, parameter, value):
+        transaction = []
+        return transaction
 
     # def push_transactions(self, trans):
     #     """Push transactions into DB
@@ -102,7 +147,7 @@ class TransactionsRepo():
     #         if not isinstance(tran, model.Transaction):
     #             raise cfg.NoValidTransactionData
     #         self.orm.write_to_transactions(tran)
-    #     self.orm.close_connection()
+    #     self.orm.close_connection() # not required due to context manager
 
 # class SqlAlchemyRepository(a.AbstractRepository):
 #     """Alchemy abstraction

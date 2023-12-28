@@ -69,19 +69,19 @@ def fx_single_csv_new():
         f.write('"Buchungsdatum";"Wertstellung";"Status";"Zahlungspflichtige*r";"Zahlungsempfänger*in";"Verwendungszweck";"Umsatztyp";"Betrag";"Gläubiger-ID";"Mandatsreferenz";"Kundenreferenz";\n')
         f.write('"19.10.23";"19.10.23";"Gebucht";"Angelina Merkel";"Angelina Merkel";"";"Ausgang";"-40,00 €";"";"";"";\n')
         f.write('"18.10.23";"18.10.23";"Gebucht";"Angelina Merkel";"Angelina Merkel";"";"Ausgang";"-100,00 €";"";"";"";\n')
-        f.write('"18.10.23";"18.10.23";"Gebucht";"ISSUER";"Amazon.de/AMAZON.DE//LU";"2023-10-17 Debitk.17 VISA Debit";"Ausgang";"-39,61 €";"";"";"483287233545819";\n')
-        f.write('"17.10.23";"17.10.23";"Gebucht";"Bundesagentur für Arbeit - Familienkasse";"Merkel, Angelina                                                      Bochumer Str. 17";"KG237007FK840606 1023 06054073515/3000170761965";"Eingang";"250,00 €";"";"";"06054073515";\n')
-        f.write('"17.10.23";"17.10.23";"Gebucht";"Angelina Merkel                                                       Bochumerstr. 17";"PayPal Europe S.a.r.l. et Cie S.C.A";"1030022989820 . Gymondo GmbH, Ihr Einkauf bei Gymondo GmbH";"Ausgang";"-59,88 €";"LU96ZZZ0000000000000000058";"4NS2224N238BJ";"1030022989820";\n')
-        f.write('"17.10.23";"17.10.23";"Gebucht";"ALTEN Technology GmbH                                                 Gasstr. 4";"Merkel Angelina                                                       NA";"Lohn-Gehalt Abrechnung 09/2023";"Eingang";"2.228,57 €";"";"";"032SALA019182";\n')
+        f.write('"17.10.23";"18.10.23";"Gebucht";"ISSUER";"Amazon.de/AMAZON.DE//LU";"2023-10-17 Debitk.17 VISA Debit";"Ausgang";"-39,61 €";"";"";"483287233545819";\n')
+        f.write('"16.10.23";"17.10.23";"Gebucht";"Bundesagentur für Arbeit - Familienkasse";"Merkel, Angelina                                                      Bochumer Str. 17";"KG237007FK840606 1023 06054073515/3000170761965";"Eingang";"250,00 €";"";"";"06054073515";\n')
+        f.write('"15.10.23";"17.10.23";"Gebucht";"Angelina Merkel                                                       Bochumerstr. 17";"PayPal Europe S.a.r.l. et Cie S.C.A";"1030022989820 . Gymondo GmbH, Ihr Einkauf bei Gymondo GmbH";"Ausgang";"-59,88 €";"LU96ZZZ0000000000000000058";"4NS2224N238BJ";"1030022989820";\n')
+        f.write('"14.10.23";"17.10.23";"Gebucht";"ALTEN Technology GmbH                                                 Gasstr. 4";"Merkel Angelina                                                       NA";"Lohn-Gehalt Abrechnung 09/2023";"Eingang";"2.228,57 €";"";"";"032SALA019182";\n')
         
         pth = FIXTURE_DIR / 'single_new.csv'
 
     yield pth 
     # delete the modified db file and copy one to make repeat of the test possible
-    # try:
-    #     pth.unlink()
-    # except FileNotFoundError:
-    #     pass 
+    try:
+        pth.unlink()
+    except FileNotFoundError:
+        pass 
 
 @pytest.fixture
 def fx_single_csv_single_line():
@@ -107,6 +107,59 @@ def fx_single_csv_single_line():
         pth.unlink()
     except FileNotFoundError:
         pass 
+
+@pytest.fixture
+def fx_csv_broken_date_classic():
+    """Definitiaon of csv file, which shall be created and deleted when the test was done
+
+    Yields:
+        path string: file path
+    """
+    pth = ''
+    with open(FIXTURE_DIR / 'single_new_single.csv', 'w') as f:
+        f.write('Kontonummer:;DE12345300001019363165 / Girokonto;;;;;;;;;;\n')
+        f.write(';;;;;;;;;;\n')
+        f.write('Von:;31.12.2022;;;;;;;;;\n')
+        f.write('Bis:;24.01.2023;;;;;;;;;\n')
+        f.write('"Kontostand vom 08.06.2023:"; "-152,71 EUR";\n')
+        f.write(';;;;;;;;;;\n')
+        f.write('"Buchungsdatum";"Wertstellung";"Status";"Zahlungspflichtige*r";"Zahlungsempfänger*in";"Verwendungszweck";"Umsatztyp";"Betrag";"Gläubiger-ID";"Mandatsreferenz";"Kundenreferenz";\n')
+        f.write('"1a.a1.23";"1a.10.23";"Gebucht";"Hanse-Merkur";"KLOOS, WALDEMAR";"083257346A00016 07.06.2023- 1";"Eingang";"54,97 €";"";"";"21521570";\n')
+       
+    pth = FIXTURE_DIR / 'single_new_single.csv'
+
+    yield pth 
+    # delete the modified db file and copy one to make repeat of the test possible
+    try:
+        pth.unlink()
+    except FileNotFoundError:
+        pass 
+
+@pytest.fixture
+def fx_csv_broken_date_beta():
+    """Definitiaon of csv file, which shall be created and deleted when the test was done
+
+    Yields:
+        path string: file path
+    """
+    pth = ''
+    with open(FIXTURE_DIR / 'single_new.csv', 'w') as f:
+
+        f.write('"Konto";"Girokonto DE12345300001019363165";\n')
+        f.write('"";\n')
+        f.write('"Kontostand vom 20.10.2023:";"6,37 EUR";\n')
+        f.write('"";\n')
+        f.write('"Buchungsdatum";"Wertstellung";"Status";"Zahlungspflichtige*r";"Zahlungsempfänger*in";"Verwendungszweck";"Umsatztyp";"Betrag";"Gläubiger-ID";"Mandatsreferenz";"Kundenreferenz";\n')
+        f.write('"24.a1.2022";"1a1023";"Gebucht";"Angelina Merkel";"Angelina Merkel";"";"Ausgang";"-40,00 €";"";"";"";\n')
+        
+        pth = FIXTURE_DIR / 'single_new.csv'
+
+    yield pth 
+    # delete the modified db file and copy one to make repeat of the test possible
+    try:
+        pth.unlink()
+    except FileNotFoundError:
+        pass
 
 @pytest.fixture
 def fx_banch_of_csv(fx_single_csv):
@@ -196,7 +249,7 @@ def fx_zip_archive_configured():
 
     yield archive
         
-    try:
-        archive.unlink()
-    except PermissionError:
-        pass
+    # try:
+    #     archive.unlink()
+    # except PermissionError:
+    #     pass

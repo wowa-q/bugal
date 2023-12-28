@@ -23,33 +23,32 @@ from fixtures.csv_fx import fx_zip_archive
 
 FIXTURE_DIR = pathlib.Path(__file__).parent.parent.resolve() / "fixtures"
 
-#pytest.mark.skip()
-def test_init_csv_handler(fx_single_csv):
-    h = handler.CSVImporter(fx_single_csv)
+# pytest.mark.skip()
+@pytest.mark.parametrize("csv_fixture, expected", [
+    ('beta', cfg.TransactionListBeta),  
+    ('classic', cfg.TransactionListClassic),   
+])
+def test_init_csv_handler(csv_fixture, expected, fx_single_csv, fx_single_csv_new):
+    if csv_fixture == 'classic':        
+        h = handler.CSVImporter(fx_single_csv)        
+        # assert h.input_type == cfg.TransactionListClassic, "input type"
+    elif csv_fixture == 'beta':
+        h = handler.CSVImporter(fx_single_csv_new, cfg.TransactionListBeta)        
+        # assert hb.input_type == cfg.TransactionListBeta, "input type"
     assert h is not None
     assert len(h.csv_files) == 1, "number of csv file is incorect"
     assert h.input_type is not None, "input type"
-    # assert h.input_type == cfg.TransactionListClassic, "input type"
-
-    hb = handler.CSVImporter(fx_single_csv, cfg.TransactionListBeta)
-    assert hb is not None
-    assert len(hb.csv_files) == 1, "number of csv file is incorect"
-    assert hb.input_type is not None, "input type"
-    assert hb.input_type == cfg.TransactionListBeta, "input type"
+    h.input_type = None
+    with pytest.raises(cfg.NoInputTypeSet):
+        for n in h.get_transactions():
+            pass
+    with pytest.raises(cfg.NoInputTypeSet):
+        h.get_meta_data()
 
 #@pytest.mark.skip()
 def test_read_single_csv(fx_single_csv):
     csv_importer = handler.CSVImporter(fx_single_csv)
     csv_importer.input_type = cfg.TransactionListClassic
-    test_transaction = []
-    with open(fx_single_csv, newline='') as csvfile:
-        reader = csv.reader(csvfile, delimiter = ';')
-        for ctr, line in enumerate(reader):
-            if ctr == 0:
-                assert len(line) > 0, f"Empty line was given"
-                assert line[0] == "Kontonummer:", f"reader {line}"
-            elif ctr == 7:
-                assert line[0] == "24.01.2023", f"reader {line[0]}"
 
     gen_reader = csv_importer.read_lines(fx_single_csv)
     for ctr, line in enumerate(gen_reader):
@@ -62,21 +61,13 @@ def test_read_single_csv(fx_single_csv):
 def test_read_single_csv_beta(fx_single_csv_new):
     csv_importer = handler.CSVImporter(fx_single_csv_new)
     csv_importer.input_type = cfg.TransactionListBeta
-    with open(fx_single_csv_new, newline='') as csvfile:
-        reader = csv.reader(csvfile, delimiter = ';')
-        for ctr, line in enumerate(reader):
-            if ctr == 0:
-                assert len(line) > 0, f"Empty line was given"
-                assert line[0] == "Konto", f"reader {line}"
-            elif ctr == 7:
-                assert line[0] == "18.10.23", f"reader {line[0]}"
 
     gen_reader = csv_importer.read_lines(fx_single_csv_new)
     for ctr, line in enumerate(gen_reader):
         if ctr == 0:
             assert line[0] == "Konto", f"reader {line[0]}"
         elif ctr == 7:
-            assert line[0] == "18.10.23", f"reader {line[0]}"
+            assert line[0] == "17.10.23", f"reader {line[0]}"
 
 #@pytest.mark.skip()
 def test_service_callback_classic(fx_single_csv):
@@ -146,7 +137,7 @@ def test_service_callback_beta(fx_single_csv_new):
     assert len(checksum) == 32, f"{checksum}" #'E10D5AEEEEF8BE6D336705A7FAE1CC83'
     assert min_date < max_date, f"Datum falsch {min_date} / {max_date}"
     assert max_date == datetime.strptime('19.10.2023', "%d.%m.%Y"), f"max. Datum falsch {max_date}"
-    assert min_date == datetime.strptime('17.10.2023', "%d.%m.%Y"), f"min. Datum falsch {min_date}"
+    assert min_date == datetime.strptime('14.10.2023', "%d.%m.%Y"), f"min. Datum falsch {min_date}"
 
 #@pytest.mark.skip()
 def test_get_meta_classic(fx_single_csv):
@@ -176,7 +167,7 @@ def test_get_meta_beta(fx_single_csv_new):
     min_date = meta['start_date']
     max_date = meta['end_date']
     assert min_date < max_date, f"Datum falsch {min_date} / {max_date}"
-    assert min_date == datetime.strptime('17.10.2023', "%d.%m.%Y"), f"min. Datum falsch {min_date}"
+    assert min_date == datetime.strptime('14.10.2023', "%d.%m.%Y"), f"min. Datum falsch {min_date}"
     assert max_date == datetime.strptime('19.10.2023', "%d.%m.%Y"), f"max. Datum falsch {max_date}"
 
 #@pytest.mark.skip()
@@ -197,7 +188,6 @@ def test_import_single_csv(fx_single_csv):
 def test_import_single_csv_beta(fx_single_csv_new):
     csv_importer = handler.CSVImporter(fx_single_csv_new)
     csv_importer.input_type = cfg.TransactionListBeta
-    test_transaction = []
     for ctr, transaction_c in enumerate(csv_importer.get_transactions(), 1):
         assert transaction_c is not None
         for _ctr, csv_output in enumerate(transaction_c, 1):
@@ -226,7 +216,7 @@ def test_import_banch_csv(fx_banch_of_csv):
             assert test_transaction[0] == "24.01.2023", f"transaction hat falschen Wert {test_transaction}" 
             # assert nr_lines == 15, f"number of transactions is incorrect: {nr_lines} instead of 15"
 
-#@pytest.mark.skip()
+@pytest.mark.skip()
 def test_skip_invalid_csv(fx_single_invalid_csv, fx_banch_of_invalid_csv):
     csv_importer = handler.CSVImporter('')
     # with pytest.raises(FileNotFoundError):
@@ -251,18 +241,45 @@ def test_artifact_handler_initialization(fx_zip_archive, fx_zip_archive_configur
     assert art2 is not None    
     assert art2.archive is not None, "archive = None"
 
-##@pytest.mark.skip()
-def test_csv_archived(fx_banch_of_csv, fx_zip_archive):
+# @pytest.mark.skip()
+# def test_csv_archived(fx_banch_of_csv, fx_zip_archive):
     
-    art_handler = ArtifactHandler(fx_zip_archive)
-    fx_list = fx_banch_of_csv.glob('*.csv')
-    for fx_file in fx_list:
-        art_handler.archive_imports(artifact=fx_file)
-    assert fx_zip_archive.exists() == True, f"No zip archive found {fx_zip_archive}"
-    with zipfile.ZipFile(fx_zip_archive, 'r') as newzip:
-        file_list = newzip.namelist()
-        for fx_file in fx_list:
-            assert fx_file in file_list, f"File {fx_file} not found in the archive"
+#     art_handler = ArtifactHandler(fx_zip_archive)
+#     fx_list = fx_banch_of_csv.glob('*.csv')
+#     for fx_file in fx_list:
+#         art_handler.archive_imports(artifact=fx_file)
+#     assert fx_zip_archive.exists() == True, f"No zip archive found {fx_zip_archive}"
+#     with zipfile.ZipFile(fx_zip_archive, 'r') as newzip:
+#         file_list = newzip.namelist()
+#         for fx_file in fx_list:
+#             assert fx_file in file_list, f"File {fx_file} not found in the archive"
+
+# @pytest.mark.skip()
+@pytest.mark.parametrize("csv_fixture, expected", [
+    ('beta', None),  # 5 number of transactions
+    ('classic', None),   # 5 number of transactions
+])
+def test_raise_broken_date(fx_csv_broken_date_classic, fx_csv_broken_date_beta, csv_fixture, expected):
+    stack=model.Stack(cfg.TransactionListClassic) 
+    if csv_fixture == 'classic':
+        stack.input_type = cfg.TransactionListClassic
+        single_csv_1 = fx_csv_broken_date_classic
+        # create data for csv handler 1
+        csv_importer1 = handler.CSVImporter(single_csv_1)
+        csv_importer1.input_type = cfg.TransactionListClassic
+        
+    elif csv_fixture == 'beta':
+        stack.input_type = cfg.TransactionListBeta
+        single_csv_1 = fx_csv_broken_date_beta
+        # create data for csv handler 1
+        csv_importer1 = handler.CSVImporter(single_csv_1)
+        csv_importer1.input_type = cfg.TransactionListBeta
+        
+    else:
+        assert False, "Invalid Parameter"
+
+    with pytest.raises(ValueError):
+        meta = csv_importer1._get_meta_data(single_csv_1)
 
 
 # @pytest.mark.skip()

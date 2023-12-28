@@ -160,7 +160,7 @@ class CSVImporter(a.HandlerReadIF):
     """
     csv_hashes = []
 
-    def __init__(self, pth, input_type=cfg.TransactionListClassic):
+    def __init__(self, pth, input_type=None):
         self.pth = pathlib.Path(pth)
         self.csv_files = []
         if self.pth.is_file():
@@ -178,6 +178,16 @@ class CSVImporter(a.HandlerReadIF):
         logger.info("CSV Handler initialized")
 
     def get_meta_data(self):
+        if os.path.isfile(self.pth):
+            self.meta_data.append(self._get_meta_data(self.pth))
+        else:
+            # TODO: to be tested
+            files = list(self.pth.glob('**/*.csv'))
+            for fl_pth in files:
+                self.meta_data.append(self._get_meta_data(fl_pth))
+        return self.meta_data
+
+    def _get_meta_data(self, csv_file):
         """returns some meta data necessary for creation a history Dataclass instance
 
         Returns:
@@ -189,15 +199,6 @@ class CSVImporter(a.HandlerReadIF):
             - 'file_name': (str) showing the file name
             - 'file_ext': showing the file extension
         """
-        if os.path.isfile(self.pth):
-            self.meta_data.append(self._get_meta_data(self.pth))
-        else:
-            files = list(self.pth.glob('**/*.csv'))
-            for fl_pth in files:
-                self.meta_data.append(self._get_meta_data(fl_pth))
-        return self.meta_data
-
-    def _get_meta_data(self, csv_file):
         if self.input_type is None:
             raise cfg.NoInputTypeSet
         meta = cfg.CSV_META.copy()
@@ -207,27 +208,44 @@ class CSVImporter(a.HandlerReadIF):
         meta['start_date'] = datetime.strptime('01.01.3000', "%d.%m.%Y")
         meta['end_date'] = datetime.strptime('01.01.1000', "%d.%m.%Y")
         for ctr, line in enumerate(self.read_lines(csv_file)):
-            if len(line) == 0:
+            if len(line) < 2:
                 continue
             if ctr == 0:
                 meta['account'] = line[1].replace("Girokonto", "").replace("/", "").strip()
-            else:
+            elif ctr > self.input_type.CSV_START_ROW.value:
                 date_str = line[0]
-                try:
-                    if len(date_str) == 8:
-                        date_obj = datetime.strptime(date_str, "%d.%m.%y")
-                    elif len(date_str) == 10:
-                        date_obj = datetime.strptime(date_str, "%d.%m.%Y")
-                    else:
-                        continue
+                date_obj = self._get_date_object(date_str)
+                if date_obj:
                     if date_obj < meta['start_date']:
                         meta['start_date'] = date_obj
                     if date_obj > meta['end_date']:
                         meta['end_date'] = date_obj
-                except ValueError:
-                    logger.debug("DAte could not be axtracted from CSV line: %s", date_str)
-                    continue
+            else:
+                logger.warning("Kein toter Code, line: %s", ctr)
         return meta
+
+    def _get_date_object(self, date_str: str) -> datetime:
+        try:
+            if len(date_str) == 8:
+                date_obj = datetime.strptime(date_str, "%d.%m.%y")
+            elif len(date_str) == 10:
+                date_obj = datetime.strptime(date_str, "%d.%m.%Y")
+            else:
+                return False
+            return date_obj
+        except ValueError as error:
+            logger.debug("Date could not be extracted from CSV line: %s", date_str)
+            logger.exception("A %s has occurred", type(error).__name__)
+            raise ValueError(f"datum provided with false format: {date_str}") from error
+        except KeyError as error:
+            logger.debug("Dictionary does not have the key")
+            logger.exception("A %s has occurred", type(error).__name__)
+        except AttributeError as error:
+            logger.exception("A %s has occurred", type(error).__name__)
+            logger.debug("start_date or end_date is not datetime")
+        except TypeError as error:
+            logger.exception("A %s has occurred", type(error).__name__)
+            logger.debug("start_date or end_date is not datetime")
 
     def read_lines(self, csv_file):
         with open(csv_file, encoding='ISO-8859-1') as csvfile:
@@ -267,8 +285,6 @@ class CSVImporter(a.HandlerReadIF):
             raise cfg.NoInputTypeSet
 
         def read_lines(csv_file):
-            # with open(csv_file, mode='r', encoding='utf-8', newline='') as csvfile:
-            # with open(csv_file, encoding='ISO-8859-1') as csvfile:
             with open(csv_file, mode='r', encoding='ISO-8859-15', newline='') as csvfile:
                 reader = csv.reader(csvfile, delimiter=';')
                 for ctr, line in enumerate(reader):

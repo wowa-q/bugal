@@ -77,6 +77,20 @@ def test_create_banch_of_transactions_with_duplicate(fx_new_db_file_name, fx_new
     assert ctr ==  3, f"duplicate transaction imported {ctr}"
 
 # @pytest.mark.skip()
+def test_single_transactions_with_duplicate(fx_new_db_file_name, fx_new_classicTransactions_banch):
+    orm_handler = bugal_orm.BugalOrm(fx_new_db_file_name, 'sqlite')
+    fx_new_classicTransactions_banch.append(fx_new_classicTransactions_banch[0])
+    for ctr, trns in enumerate(fx_new_classicTransactions_banch):
+        if ctr < 3:
+            assert orm_handler.write_to_transactions(trns), "transaction was not pushed to DB"
+        else:
+            assert not orm_handler.write_to_transactions(trns), "duplicate transaction was writen to DB"
+    
+    ctr = orm_handler.get_transaction_ctr()
+    assert len(fx_new_classicTransactions_banch) > 3, f"List was not enhanced"
+    assert ctr ==  3, f"duplicate transaction imported {ctr}"
+
+# @pytest.mark.skip()
 def test_read_transactions(fx_new_db_file_name, fx_new_classicTransactions_banch):
     
     # orm_handler = bugal_orm.BugalOrm('memory')
@@ -178,60 +192,82 @@ def test_repo_push_transaction(fx_new_db_file_name, fx_transaction_unique):
     ctr_t2 = orm_handler2.get_transaction_ctr()
     assert ctr_t2 == ctr_t1, f"Not the same number of transactions"
 
-@pytest.mark.skip()
-def test_init_bugal_orm(fx_new_db_file_name):
-    with pytest.raises(FileNotFoundError):
-        orm = bugal_orm.BugalOrm('FIXTURE_DIR')
+# @pytest.mark.skip()
+@pytest.mark.parametrize("type_, expected", [
+    ('invalid', 'FNFError'),
+    ('sqlite', 'OK'),
+    ('memory', 'OK'), 
+])
+def test_init_bugal_orm(type_, fx_new_db_file_name, expected):
+    if expected == 'OK':
+        orm = bugal_orm.BugalOrm(fx_new_db_file_name, type_)
+        assert orm is not None, "ORM engine not created"
+        assert orm.engine is not None, "Engine was not created"
+        assert orm.inspector is not None, "Inspector was not created"
+        
+    elif expected == 'FNFError':
+        with pytest.raises(cfg.DbConnectionFaild):
+            orm = bugal_orm.BugalOrm('FIXTURE_DIR', type_)
+            orm.get_history_ctr()
 
-    with pytest.raises(cfg.DbConnectionFaild):
-        orm = bugal_orm.BugalOrm(FIXTURE_DIR, db_type='')
-    
-    orm = bugal_orm.BugalOrm(FIXTURE_DIR)
-    assert orm is not None, f"undefined initialization"
-    assert orm.engine is not None, f"orm engine was not created"
-    db_file = FIXTURE_DIR / pathlib.Path('.db')
-    try:
-        db_file.unlink()
-    except FileNotFoundError as e:
-        print(f"Error deleting file: {e}")
+# @pytest.mark.skip()
+@pytest.mark.parametrize("type_, id_,, remove_, expected", [
+    ('beta', 1, 'id', 'OK'),
+    ('classic', 1, 'id', 'OK'),
+    ('beta', 5, 'id', 'NOK'),
+    ('classic', 5, 'id', 'NOK'),
+    ('classic', 0, 'crc', 'OK'),
+    ('beta', 0, 'crc', 'NOK'),
+])
+def test_remove_transaction(type_, id_, remove_, expected, fx_new_classicTransactions_banch, fx_new_betaTransactions_banch, fx_new_db_file_name):
+    # TEST preparation
+    orm_handler = bugal_orm.BugalOrm(fx_new_db_file_name, 'sqlite')          
+    ctr_ = orm_handler.get_transaction_ctr()
+    if type_ == 'beta':
+        orm_handler.write_many_to_transactions(fx_new_betaTransactions_banch)
+        crc = hash(fx_new_betaTransactions_banch[0])
+    else:
+        orm_handler.write_many_to_transactions(fx_new_classicTransactions_banch)
+        crc = hash(fx_new_classicTransactions_banch[0])
+    ctr_after = orm_handler.get_transaction_ctr()
+    assert ctr_after == (ctr_+3), "Not all transactions added"
+    # TEST execution
+    if remove_ == 'id':
+        if expected == 'OK':
+            remove_result = orm_handler.remove_transaction(id=id_)
+            ctr_ = orm_handler.get_transaction_ctr()
+            assert ctr_after == (ctr_+1), f"Transaction not removed: {ctr_} {ctr_after}"
+            assert remove_result == True
+            orm_handler.close_connection()
+        if expected == 'NOK':
+            remove_result = orm_handler.remove_transaction(id=id_)
+            ctr_ = orm_handler.get_transaction_ctr()
+            assert ctr_after == (ctr_), f"Transaction removed even not expected: {ctr_} {ctr_after}"
+            assert remove_result == True
+            orm_handler.close_connection()
+    else:
+        assert crc is not None, f"Transaction hash not calculated {crc}"
+        if expected == 'OK':
+            remove_result = orm_handler.remove_transaction(hash=crc)
+            ctr_ = orm_handler.get_transaction_ctr()
+            assert ctr_after == (ctr_+1), f"Transaction not removed: {ctr_} {ctr_after}"
+            assert remove_result == True
+        if expected == 'NOK':
+            remove_result = orm_handler.remove_transaction(hash=123456789)
+            ctr_ = orm_handler.get_transaction_ctr()
+            assert ctr_after == (ctr_), f"Transaction removed even not expected: {ctr_} {ctr_after}"
+            assert remove_result == True
+            remove_result = orm_handler.remove_transaction(crc=123456789)
+            assert ctr_after == (ctr_), f"Transaction removed even not expected: {ctr_} {ctr_after}"
+            assert remove_result == False
+        orm_handler.close_connection()
 
-    orm = bugal_orm.BugalOrm(FIXTURE_DIR, 'test')
-    assert orm is not None, f"undefined initialization"
-    assert orm.engine is not None, f"orm engine was not created"
 
-    with open('test.db', 'w') as datei:
-        datei.write('test')
-    file_pth = FIXTURE_DIR / pathlib.Path('test.db')
-    orm = bugal_orm.BugalOrm(file_pth)
-    assert orm is not None, f"undefined initialization"
-    assert orm.engine is not None, f"orm engine was not created"
-    db_file = FIXTURE_DIR / pathlib.Path('test.db')
-    try:
-        db_file.unlink()
-    except FileNotFoundError as e:
-        print(f"Error deleting file: {e}")
-    # NOT SUPPORTED
-    # orm_handler = bugal_orm.BugalOrm(FIXTURE_DIR, fx_new_db_file_name, 'sqlite')
-    # assert orm_handler is not None, "bugal_orm couldn not be correctly initialized"
-    # assert orm_handler.engine is not None, f"orm engine was not created"
-    # db_file = FIXTURE_DIR / pathlib.Path(fx_new_db_file_name + '.db')
-    # try:
-    #     db_file.unlink()
-    # except FileNotFoundError as e:
-    #     print(f"Error deleting file: {e}")
-    
-    # orm_handler = bugal_orm.BugalOrm(FIXTURE_DIR, fx_new_db_file_name, 'memory')
-    # assert orm_handler is not None, "bugal_orm couldn not be correctly initialized"
-    # assert orm_handler.engine is not None, f"orm engine was not created"
-
-    orm_handler = bugal_orm.BugalOrm(db_type='memory')
-    assert orm_handler is not None, "bugal_orm couldn not be correctly initialized"
-    assert orm_handler.engine is not None, f"orm engine was not created"
 '''
 Tests to be executed:
-    DB created
+    DB created  DONE
     Table creation
-    connection
+    connection DONE
     commit 
     rollback
 

@@ -94,7 +94,7 @@ def test_transaction_equality_for_every_par(fx_transaction_example_classic):
     t3 = stack.create_transaction(fx_transaction_example_classic)
     data = fx_transaction_example_classic
     for ind, _ in enumerate(fx_transaction_example_classic):
-        data[ind] = "20"
+        data[ind] = "20.12.1918"
         t2 = stack.create_transaction(data)
         assert t1 != t2, f"Parameter {ind} changed"
     assert hash(t1) == hash(t1), f"new hash calculated for the same transaction"
@@ -186,5 +186,63 @@ def test_store_import_history_in_db(fx_import_history):
     stack.update_history(fx_import_history)
     assert False, f"Not implemented"
     meta = cfg.CSV_META.copy()
+
+def check_behavior():
+    date_str = "1a1023"
+    date_obj = datetime.strptime(date_str, "%d.%m.%y")
+
+# @pytest.mark.skip()
+@pytest.mark.parametrize("datum, expected", [
+    ('invalid', 'Error'),   # invalid date format
+    ('010101', 'Error'),   # invalid date format
+    ('1a.10.23', 'Error'),   # invalid date format
+    ('01.01.2023', 'OK'),   # valid date format
+])
+def test_invalid_date_handling(datum, expected, caplog):
+    stack=model.Stack(cfg.TransactionListBeta)
+    if expected == 'Error':
+        with pytest.raises(ValueError):
+            stack._make_date(datum)
+        # test the original date is placed into the log
+        assert datum in caplog.text
+    else:
+        result_date = stack._make_date(datum)
+        # Überprüfen, ob das Ergebnis ein 'date'-Objekt ist und den erwarteten Wert hat
+        assert isinstance(result_date, date)
+        assert result_date == date(2023, 1, 1)
+data_ = ["01.01.2022", "01.01.2022", "text", "debitor", "verwendung", "konto", "blz", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+dataset = set(data_)
+# @pytest.mark.skip()
+@pytest.mark.parametrize("data, expected", [
+    ('invalid', 'input_type'),   
+    ('010101', 'input_type'),   
+    ('1a.10.23', 'input_type'),   
+    (dataset, 'list'),
+    ([1,2,3,], 'list'),
+    (data_, 'DATE'),
+    (data_, 'src_account'),
+    (data_, 'OK'),  
+])
+def test_invalid_data_transaction(data, expected):
+    stack=model.Stack(cfg.TransactionListBeta)
     
+    if expected == 'input_type':
+        stack.init_stack()
+        with pytest.raises(cfg.NoInputTypeSet):
+            stack.create_transaction(data)
+    elif expected == 'list':
+        with pytest.raises(cfg.NoValidTransactionData):
+            stack.create_transaction(data)
+    elif expected == 'DATE':
+        stack.input_type = data # just something which is not None
+        with pytest.raises(AttributeError):
+            stack.create_transaction(data)
+    elif expected == 'src_account':
+        stack.src_account = None
+
+        with pytest.raises(cfg.NoValidTransactionData):
+            stack.create_transaction(data)
+    else:
+        result_date = stack.create_transaction(data)
+        assert result_date is not None
 

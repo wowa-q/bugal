@@ -30,6 +30,8 @@ def load_config():
     """
     # read the config from config.toml
     with open(PTOJECT_DIR / "config.toml", "rb") as toml_file:
+        if toml_file is None:
+            raise NoValidInputFilesFound(f"Config file not found {toml_file}")
         toml_config = tomli.load(toml_file)
     logger.info("Configuration loaded %s", toml_config)
     return toml_config

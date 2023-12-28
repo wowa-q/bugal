@@ -3,8 +3,8 @@
 import logging  # DEBUG, INFO, WARNING, ERROR, CRITICAL
 from datetime import date
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Date
-from sqlalchemy import create_engine, inspect, select, func
+from sqlalchemy import Column, Integer, Table, String, Date
+from sqlalchemy import create_engine, inspect, select, func, delete
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
@@ -20,6 +20,7 @@ Base = declarative_base()
 class BugalOrm():
     """DB APIs
     """
+    
     def __init__(self, pth, db_type='sqlite'):
         if db_type == 'sqlite':
             self.engine = create_engine(f'sqlite:///{pth}?create_db=true')
@@ -92,14 +93,17 @@ class BugalOrm():
             with Session(self.engine) as session:
                 session.add(transaction)
                 session.commit()
+                logger.exception("""Pushing transaction to DB completed""")
                 return True
         except IntegrityError as exc:
-            logger.exception("""Pushing transaction to DB failed
+            logger.exception("""PUSHING transaction to DB failed
                              IntegratyError %s""",
                              exc)
+            logger.exception("A %s has occurred", type(exc).__name__)
             return False
-        except cfg.ImporteFileDuplicate:
+        except cfg.ImporteFileDuplicate as exc:
             logger.exception("csv file with %s was already imported", transaction)
+            logger.exception("A %s has occurred", type(exc).__name__)
             return False
 
     def write_many_to_transactions(self, transactions: list):
@@ -255,6 +259,26 @@ class BugalOrm():
             result = session.query(Transactions).filter(Transactions.checksum == hash_string).first()
         # just information found or not is needed
         return result is not None
+
+    def remove_transaction(self, *arg, **args):
+        with Session(self.engine, future=True) as session:
+            # test if such table exists
+            if not self.inspector.has_table('transactions'):
+                raise cfg.DbConnectionFaild
+
+            # Die Tabelle, aus der der Eintrag gelöscht werden soll
+            transactions_table = Table('transactions', Base.metadata, autoload=True)
+            if 'id' in args:
+                # Die Bedingung, die den Eintrag auswählt, der gelöscht werden soll (z. B. basierend auf der ID)
+                condition = transactions_table.c.id == args.get('id')  # Annahme: Sie möchten den Eintrag mit der ID 5 löschen
+            elif 'hash' in args:
+                condition = transactions_table.c.checksum == args.get('hash')
+            else:
+                return False
+            # Erstellen und Ausführen der DELETE-Anweisung
+            delete_statement = delete(transactions_table).where(condition)
+            self.engine.execute(delete_statement)
+            return True
 
 ################################################################
 #                        Tables                                #
