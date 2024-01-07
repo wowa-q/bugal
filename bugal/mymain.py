@@ -1,50 +1,52 @@
-# pylint: skip-file
-# flake8: noqa
+class Target:
+    """
+    The Target defines the domain-specific interface used by the client code.
+    """
 
-from enum import Enum
-import re
+    def request(self) -> str:
+        return "Target: The default target's behavior."
 
-class MyEnum(Enum):
-    FIRST = 1
-    SECOND = 2
-    THIRD = 3
 
-# Alle Attribute der Enum-Klasse abrufen
-all_attributes = dir(MyEnum)
+class Adaptee:
+    """
+    The Adaptee contains some useful behavior, but its interface is incompatible
+    with the existing client code. The Adaptee needs some adaptation before the
+    client code can use it.
+    """
 
-# Nur die tatsächlichen Enum-Mitglieder (Attribute) auswählen
-enum_attributes = [attr for attr in all_attributes if not attr.startswith('_')]
+    def specific_request(self) -> str:
+        return ".eetpadA eht fo roivaheb laicepS"
 
-# Die Liste der Enum-Mitglieder ausgeben
-# print(enum_attributes)
 
-# if 'FIRST' in enum_attributes:
-#     print('gefunden')
+class Adapter(Target, Adaptee):
+    """
+    The Adapter makes the Adaptee's interface compatible with the Target's
+    interface via multiple inheritance.
+    """
 
-def _make_int(value: str) -> int:
-    # Verwenden Sie einen regulären Ausdruck, um nur Zahlen und Dezimalpunkt zu behalten
-    cleaned_string = re.sub(r'[^\d.]', '', value)
-    print(float(cleaned_string))
-    value.replace(',', '.')
-    value.replace('\xa0€', '')
-    print(value)
-    value.replace(' €', '')
-    print(value)
-    cleaned_string = value[:-2]
-    print(cleaned_string)
-    print(len(cleaned_string))
+    def request(self) -> str:
+        return f"Adapter: (TRANSLATED) {self.specific_request()[::-1]}"
 
-def _make_num(value: str) -> float:
-        # cleaned_string = value[:-2]
-        if '€' in value: print('€')
-        cleaned_string = value.replace(' €', '')
-        cleaned_string = cleaned_string.replace(',', '.')
-        print(cleaned_string)
-        # print(float(cleaned_string))
-        # return float(cleaned_string)
+
+def client_code(target: "Target") -> None:
+    """
+    The client code supports all classes that follow the Target interface.
+    """
+
+    print(target.request(), end="")
+
 
 if __name__ == "__main__":
-    #_make_int("200.00 €")
-    s1 = '-40,00\xa0€'
-    #_make_int(s1)
-    _make_num(s1)
+    print("Client: I can work just fine with the Target objects:")
+    target = Target()
+    client_code(target)
+    print("\n")
+
+    adaptee = Adaptee()
+    print("Client: The Adaptee class has a weird interface. "
+          "See, I don't understand it:")
+    print(f"Adaptee: {adaptee.specific_request()}", end="\n\n")
+
+    print("Client: But I can work with it via the Adapter:")
+    adapter = Adapter()
+    client_code(adapter)

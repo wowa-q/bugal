@@ -164,18 +164,6 @@ class BugalOrm():
         except cfg.ImporteFileDuplicate:
             logger.exception("csv file with %s was already imported", history)
             return False
-    # TODO: To be implemented
-    # def write_to_property(self, prop: model.Property):
-    #     eigenschaften = Property(inout=prop.inout,
-    #                              name=prop.name,
-    #                              type=prop.type,
-    #                              cycle=prop.cycle,
-    #                              # number=1,               # muss beim Update/setzen incrementiert werden
-    #                              # sum=property.sum,
-    #                              )
-    #     with Session(self.engine) as session:
-    #         session.add(eigenschaften)
-    #         session.commit()
 
     def read_transactions(self, _filter: dict) -> list:
         """Pulls transactions from the DB table with the matching filter condition

@@ -1,14 +1,13 @@
 """_summary_
 
 """
-import types
-import sqlite3 as sql
 import logging
 
-from bugal import cfg
+
 from bugal import model
-from bugal import bugal_orm
 from bugal import abstract as a
+from bugal import repo_adapter
+from bugal import cfg
 # from bugal import bugal_orm
 
 
@@ -21,201 +20,175 @@ class FakeRepo(a.AbstractRepository):
     Args:
         AbstractRepository (_type_): _description_
     """
-    def add_stack(self, stack: model.Stack) -> bool:
-        stack_from_db = self.get_stack(stack.filter)
+    def __init__(self, tctr=0, hctr=0):
+        self.tctr = tctr    # transaction counter
+        self.hctr = hctr    # history counter
+        self.hashes = []
+        self.hists = []
+        self.trns = []
 
-        for ind, new in enumerate(stack.transactions):
-            for from_db in stack_from_db:
-                if from_db == new:
-                    stack.transactions.pop(ind)
+    def add_transaction(self, transaction):  # tested
+        if isinstance(transaction, model.Transaction):
+            crc = hash(transaction)
+            if crc in self.hashes:
+                raise cfg.ImportDuplicateTransaction
+            else:
+                self.hashes.append(crc)
+                self.trns.append(transaction)
+                self.tctr += 1
+            return True
+        else:
+            raise cfg.NoValidTransactionData
 
-        stack.push_transactions()
+    def add_history(self, history):
+        if isinstance(history, model.History):
+            crc = history.checksum
+            if crc in self.hashes:
+                raise cfg.ImportFileDuplicate
+            else:
+                self.hashes.append(crc)
+                self.hists.append(history)
+                self.hctr += 1
+            return True
+        else:
+            raise cfg.NoValidHistoryData
 
-    def get_stack(self, fil: model.Filter) -> model.Stack:
+    def get_transaction_ctr(self):
+        return self.tctr
 
-        sql_data = None
-        stack_from_db = model.Stack(cfg.TransactionListClassic)
-        stack_from_db.filter = fil
+    def get_history_ctr(self):
+        return self.hctr
 
-        for sql_datum in sql_data:
-            stack_from_db.create_transaction(sql_datum)
-        return stack_from_db
+    def get_transaction(self, *arg, **args) -> bool:
+        """_summary_
 
-    def get_mapping(self):
-        mapping = []
-        return mapping
+        Raises:
+            NotImplementedError: _description_
+        """
+        if len(self.trns) > 0:
+            return self.trns[0]
 
-    def set_mapping(self, mapping):
-        self.mapping = mapping
+    def get_history(self, *arg, **args) -> bool:
+        """_summary_
 
-    def get_history(self):
-        history = []
-        return history
+        Raises:
+            NotImplementedError: _description_
+        """
+        if len(self.hists) > 0:
+            return self.hists[0]
 
-    def set_history(self, history):
-        self.history = history
+    def del_history(self, *arg, **args) -> bool:
+        """emulates deleting history from table
+        """
+        self.hashes = []
+        self.hctr -= 1
+        return True
 
-    def find_csv_checksum(self, checksum):
-        transaction = []
-        return transaction
-
-    def find_transaction(self, parameter, value):
-        transaction = []
-        return transaction
+    def del_transaction(self, *arg, **args) -> bool:
+        """emulates deleting history from table
+        """
+        self.hashes = []
+        self.tctr -= 1
+        return True
 
 
 class TransactionsRepo(a.AbstractRepository):
     """Repository resource for transactions
     """
-    def __init__(self, orm):
-        if orm is None:
-            raise cfg.DbConnectionFaild
-        elif not isinstance(orm, bugal_orm.BugalOrm):
-            raise cfg.DbConnectionFaild(f"not correct instance of orm {orm}")
+    def __init__(self, pth='', db_type='sqlite'):  # tested
+        self.adapter = repo_adapter.RepoAdapter(pth, db_type)
 
-        self.orm = orm
-        self.mapping = None
-        self.history = None
+    def add_transaction(self, transaction):  # tested
+        result = False
+        result = self.adapter.add_transaction(transaction)
+        logger.debug("""Pushing transaction to DB""")
+        return result
 
-    # context manager enter function, reserves orm
-    def __enter__(self):
-        return self.orm
+    def get_transaction_ctr(self):  # tested
+        ctr = self.adapter.get_transaction_ctr()
+        return ctr
 
-    # context manager exit function, close connection of the orm session
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.orm.close_connection()
-
-    def find_checksum(self, checksum: str):
-        """Looks for the checksum of the transaction
-
-        Args:
-            checksum (str): checksum of the transaction
+    def get_transaction(self, *arg, **kwargs):  # tested
+        """retrive transaction from DB by ID or hash value
 
         Returns:
-            Bool: If checksum could be found True is returned
+            orm.Transaction: transaction row from table
         """
-        if len(checksum) == 0:
-            logger.warning("Invalid hash value received for searching: %s", checksum)
-            raise cfg.RepoUseageError
-        if self.orm.find_transaction_checksum(checksum) is not None :
-            # self.orm.close_connection() # not required due to context manager
-            return True
+        if 'id_' in kwargs:  #
+            return self.adapter.get_transaction(id_=kwargs.get('id_'))
+        elif 'hash_' in kwargs:  #
+            return self.adapter.get_transaction(hash_=kwargs.get('hash_'))
+        else:
+            return None
 
-    def add_stack(self, stack: model.Stack) -> bool:
-        logger.info("Adding stack to DB")
-        super().add_stack(stack)
+    def del_transaction(self, *arg, **kwargs) -> bool:  # tested
+        """deleting transaction from table"""
+        logger.debug("""Deleting transaction from DB: %s""", kwargs)
+        if 'id_' in kwargs:  #
+            return self.adapter.del_transaction(id_=kwargs.get('id_'))
+        elif 'hash_' in kwargs:  #
+            return self.adapter.del_transaction(hash_=kwargs.get('hash_'))
+        else:
+            return False
 
-    def get_stack(self, fil: model.Filter) -> model.Stack:
-        logger.info("Getting stack from DB")
-        return super().get_stack(fil)
+    # interface satisfaction
+    def del_history(self, *arg, **kwargs) -> bool:
+        raise NotImplementedError
 
-    def get_mapping(self):
-        mapping = []
-        return mapping
+    def add_history(self, history):
+        raise NotImplementedError
 
-    def set_mapping(self, mapping):
-        self.mapping = mapping
+    def get_history_ctr(self):
+        raise NotImplementedError
 
-    def get_history(self):
-        history = []
-        return history
-
-    def set_history(self, history):
-        self.history = history
-
-    def find_csv_checksum(self, checksum):
-        transaction = []
-        return transaction
-
-    def find_transaction(self, parameter, value):
-        transaction = []
-        return transaction
-
-    # def push_transactions(self, trans):
-    #     """Push transactions into DB
-
-    #     Args:
-    #         trans (list): List of model.Transaction items
-
-    #     Raises:
-    #         cfg.NoValidTransactionData: if not a list is received
-    #         cfg.NoValidTransactionData: if list items are not model.Transaction
-    #     """
-    #     if not isinstance(trans, list) or isinstance(trans, types.GeneratorType):
-    #         raise cfg.NoValidTransactionData
-    #     for tran in trans:
-    #         if not isinstance(tran, model.Transaction):
-    #             raise cfg.NoValidTransactionData
-    #         self.orm.write_to_transactions(tran)
-    #     self.orm.close_connection() # not required due to context manager
-
-# class SqlAlchemyRepository(a.AbstractRepository):
-#     """Alchemy abstraction
-
-#     Args:
-#         AbstractRepository (_type_): _description_
-#     """
-#     def __init__(self, session):
-#         self.session = session
-
-#     def add_stack(self, stack: model.Stack) -> bool:
-#         stack_from_db = self.get_stack(stack.filter)
-#         # remove douplicate entries
-#         for ind, new in enumerate(stack.transactions):
-#             for from_db in stack_from_db:
-#                 if from_db == new:
-#                     stack.transactions.pop(ind)
-
-#         stack.push_transactions() 
-
-#         self.session.add(stack.transactions)
-
-#     def get_stack(self, fil: model.Filter) -> model.Stack:
-
-#         sql_data = None
-#         stack_from_db = model.Stack()
-#         stack_from_db.filter = fil
-
-#         for sql_datum in sql_data:
-#             stack_from_db.create_transaction(sql_datum)
-
-#         return stack_from_db
-
-#     def get_history(self) -> model.Stack:
-#         orm = bugal_orm.BugalOrm()
-#         orm.read_history()
-#         orm.close_connection()
-
-#     def get_mapping(self) -> model.Stack:
-#         orm = bugal_orm.BugalOrm()
-#         orm.read_history()
-#         orm.close_connection()
-
-    # def set_history(self, his) -> bool:
-    #     pass
-
-    # def set_mapping(self, map) -> model.Stack:
-    #     pass
-
-    # def get(self, reference):
-    #     return self.session.query(model.Batch).filter_by(reference=reference).one()
-
-    # def list(self):
-    #     return self.session.query(model.Batch).all()
+    def get_history(self, *arg, **kwargs):
+        raise NotImplementedError
 
 
-class SqlRepo():
+class HistoryRepo(a.AbstractRepository):
+    """Repository resource for history
+    """
+    def __init__(self, pth='', db_type='sqlite'):  # tested
+        self.adapter = repo_adapter.RepoAdapter(pth=pth, db_type=db_type)
 
-    def __init__(self, db_type) -> None:
-        self.db_type = db_type
-        self.extension = '.db'
-        self.cur = None
+    def add_history(self, history):  # tested
+        result = False
+        result = self.adapter.add_history(history)
+        logger.debug("""Pushing history to DB""")
+        return result
 
-    def create_new_db(self, pth: str, name: str) -> bool:
-        file_name = name + self.extension
-        db_file = pth / file_name
-        connection = sql.connect(db_file)
+    def get_history(self, *arg, **kwargs):  # tested
+        if 'id_' in kwargs:  # tested
+            return self.adapter.get_history(id_=kwargs.get('id_'))
+        elif 'hash_' in kwargs:  # tested
+            return self.adapter.get_history(hash_=kwargs.get('hash_'))
+        else:
+            return None
 
-        self.cur = connection.cursor()
+    def get_history_ctr(self):  # tested
+        ctr = self.adapter.get_history_ctr()
+        return ctr
 
-        return True
+    def del_history(self, *arg, **kwargs) -> bool:  # tested
+        """deleting history from table
+        """
+        logger.debug("""Deleting history from DB: %s""", kwargs)
+        if 'id_' in kwargs:  # tested
+            return self.adapter.del_history(id_=kwargs.get('id_'))
+        elif 'hash_' in kwargs:  # tested
+            return self.adapter.del_history(hash_=kwargs.get('hash_'))
+        else:
+            return False
+
+    # interface satisfaction
+    def add_transaction(self, transaction):
+        raise NotImplementedError
+
+    def get_transaction_ctr(self):
+        raise NotImplementedError
+
+    def get_transaction(self, *arg, **kwargs):
+        raise NotImplementedError
+
+    def del_transaction(self, *arg, **kwargs) -> bool:
+        raise NotImplementedError

@@ -8,9 +8,9 @@ import dataclasses
 from datetime import date, datetime
 import logging
 
-# from . import cfg
-from bugal import cfg
 
+from bugal import cfg
+from bugal import repo
 
 logger = logging.getLogger(__name__)
 
@@ -104,6 +104,7 @@ class Stack():
         self.nr_transactions = 0
         self.input_type = input_type
         self.src_account = ''
+        # self.trepo = repo.TransactionsRepo()
         logger.info("Stack initialized with input type: %s", input_type)
 
     def init_stack(self):
@@ -277,12 +278,13 @@ class Stack():
         return min_date
 
     # PLANNED METHODS
-    def push_transactions(self):
+    def push_transactions(self, transaction):
         """Push transactions to DB
         """
         # TODO: not implermented
         self.filter.max_date = self._get_max_transaction_date()
         self.filter.min_date = self._get_min_transaction_date()
+        # self.trepo.add_transaction(transaction)
 
     def update_history(self, hist: list):
         """push import history into database

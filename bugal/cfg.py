@@ -141,18 +141,33 @@ class NoValidTransactionData(Exception):
     """
 
 
+class NoValidHistoryData(Exception):
+    """ Raised if not valid history data were provided
+    """
+
+
+class ImportDuplicateTransaction(Exception):
+    """ Raised if duplicate transaction data were provided
+    """
+
+
+class ImportDuplicateHistory(Exception):
+    """ Raised if duplicate history data were provided
+    """
+
+
 class NoValidInputFilesFound(Exception):
-    """ Raised if not valid transaction data were provided
+    """ Raised if not valid transaction data file was found
     """
 
 
 class DbConnectionFaild(Exception):
-    """ Raised if not valid transaction data were provided
+    """ Raised if connection to DB is failing
     """
 
 
-class ImporteFileDuplicate(Exception):
-    """ Raised if not valid transaction data were provided
+class ImportFileDuplicate(Exception):
+    """ Raised if the file was already imported
     """
 
 

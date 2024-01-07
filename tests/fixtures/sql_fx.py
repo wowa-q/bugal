@@ -36,8 +36,9 @@ def fx_new_db_file_name():
         print(f"Error deleting file: {e}") 
 
 @pytest.fixture
-def fx_new_betaTransaction():
-    data = ["01.01.2022", "0.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+def fx_new_betaTransaction():    
+    value = random.randrange(0, 1000)
+    data = ["01.01.2022", "0.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", value, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
     stack = model.Stack(cfg.TransactionListBeta)    
     transaction = stack.create_transaction(data)    
     return transaction
@@ -67,13 +68,16 @@ def fx_new_betaTransactions_banch():
 
 @pytest.fixture
 def fx_history(fx_checksum_repo_exist):
+    value = random.randrange(1, 31)
+    datum = str(value) + '.12.2023'
     stack = model.Stack(cfg.TransactionListClassic)
     meta = cfg.CSV_META.copy()
     meta['file_name'] = 'auszug1'
     meta['file_ext'] = 'csv'
     meta['checksum'] = fx_checksum_repo_exist
     meta['account'] = 'account'
-    meta['start_date'] = datetime.strptime('31.12.2023', "%d.%m.%Y")
+    # meta['start_date'] = datetime.strptime('31.12.2023', "%d.%m.%Y")
+    meta['start_date'] = datetime.strptime(datum, "%d.%m.%Y")
     meta['end_date'] = datetime.strptime('31.12.2023', "%d.%m.%Y")
     h1 = stack.create_history(meta)
 

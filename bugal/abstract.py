@@ -11,6 +11,7 @@ class Command(abc.ABC):
     @abc.abstractmethod
     def execute(self) -> None:
         ''' interface API '''
+        raise NotImplementedError
 
 
 class Artifact(abc.ABC):
@@ -101,87 +102,210 @@ class AbstractRepository(abc.ABC):
 
     """
     @abc.abstractmethod
-    def create_new_db(self, pth: str, name: str, db_type: str) -> bool:
-        """API to create new db
+    def add_transaction(self, transaction):
+        """methode to add transaction to DB
 
         Args:
-            pth (str): path where db shall be stored
-            name (str): name of the db
-            db_type (str): which db type to be created e.g. sqlite
+            transaction (model.Transaction): transaction to be pushed to the DB
 
         Raises:
-            NotImplementedError:
-
-        Returns:
-            bool: returns True if created
-        """
-        # raise NotImplementedError
-        return True
-
-    @abc.abstractmethod
-    def add_stack(self, stack) -> bool:
-        """API to add the stack to repository
-
-        Args:
-            stack (model.Stack): The stack from the model to be imported
-
-        Raises:
-            NotImplementedError:
-
-        Returns:
-            bool: returns True if the import was sucessful
+            NotImplementedError: abstract method
         """
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_stack(self, fil):
-        """API to get the stack out from DB by used Filter
+    def add_history(self, history):
+        """methode to add history to DB
 
         Args:
-            fil (model.Filter): _description_
+            history (model.History): history to be pushed to the DB
 
         Raises:
-            NotImplementedError:
-
-        Returns:
-            model.Stack: The stack as read out from the DB
+            NotImplementedError: abstract method
         """
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_mapping(self):
-        pass
+    def del_history(self, *arg, **args) -> bool:
+        """_summary_
+
+        Raises:
+            NotImplementedError: _description_
+        """
+        raise NotImplementedError
 
     @abc.abstractmethod
-    def set_mapping(self, mapping):
-        pass
+    def del_transaction(self, *arg, **args) -> bool:
+        """_summary_
+
+        Raises:
+            NotImplementedError: _description_
+        """
+        raise NotImplementedError
 
     @abc.abstractmethod
-    def get_history(self):
-        pass
+    def get_transaction_ctr(self) -> int:
+        """_summary_
+
+        Raises:
+            NotImplementedError: _description_
+
+        Returns:
+            int: transaction counter
+        """
+        raise NotImplementedError
 
     @abc.abstractmethod
-    def set_history(self, history):
-        pass
+    def get_history_ctr(self) -> int:
+        """_summary_
+
+        Raises:
+            NotImplementedError: _description_
+
+        Returns:
+            int: history counter
+        """
+        raise NotImplementedError
 
     @abc.abstractmethod
-    def find_csv_checksum(self, checksum):
-        """Methode to find the checksum in the DB, History table
+    def get_transaction(self, *arg, **args):
+        """_summary_
+
+        Raises:
+            NotImplementedError: _description_
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_history(self, *arg, **args):
+        """_summary_
+
+        Raises:
+            NotImplementedError: _description_
+        """
+        raise NotImplementedError
+
+
+class TransactionRepo(abc.ABC):
+    __instance__ = None
+
+    @staticmethod
+    @abc.abstractmethod
+    def get_instance():
+        """
+        Raises:
+            NotImplementedError: _description_
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def add(self, transaction) -> bool:
+        """push transaction to db
 
         Args:
-            checksum (_type_): _description_
+            transaction (model.Transaction): transaction instance
+
+        Raises:
+            NotImplementedError: _description_
+
+        Returns:
+            bool: True, if no error is raised
         """
-        pass
+        raise NotImplementedError
 
     @abc.abstractmethod
-    def find_transaction(self, parameter, value):
-        """Methode to find the transaction with the given parameter value in the DB, 
-        Transactions table
+    def get(self, *args, **kwargs):
+        """get transaction from repo
+        Args:
+            args
+                hash (str): hashstring to be searched in \
+                transaction table. OR
+                id_ (int): ID within the transactions table of the transaction
+        Raises:
+            NotImplementedError: _description_
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def remove(self, *args, **kwargs):
+        """delete transaction from repo
+        Args:
+            args
+                hash (str): hashstring to be searched in \
+                transaction table. OR
+                id_ (int): ID within the transactions table of the transaction
+        Raises:
+            NotImplementedError: _description_
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_ctr(self) -> int:
+        """retrive the counter of transaction lines
+
+        Raises:
+            NotImplementedError: _description_
+
+        Returns:
+            int: counter value
+        """
+        raise NotImplementedError
+
+
+class HistoryRepo(abc.ABC):
+
+    @abc.abstractmethod
+    def add(self, history) -> bool:
+        """push history to db
 
         Args:
-            parameter (_type_): _description_
+            history (model.History): history instance
+
+        Raises:
+            NotImplementedError: _description_
+
+        Returns:
+            bool: True, if no error is raised
         """
-        pass
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get(self, *args, **kwargs):
+        """get history from repo
+        Args:
+            args
+                hash (str): hashstring to be searched in \
+                history table. OR
+                id_ (int): ID within the transactions table of the history
+        Raises:
+            NotImplementedError: _description_
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def remove(self, *args, **kwargs):
+        """delete history from repo
+        Args:
+            args
+                hash (str): hashstring to be searched in \
+                history table. OR
+                id_ (int): ID within the transactions table of the history
+        Raises:
+            NotImplementedError: _description_
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_ctr(self) -> int:
+        """retrive the counter of history lines
+
+        Raises:
+            NotImplementedError: _description_
+
+        Returns:
+            int: counter value
+        """
+        raise NotImplementedError
 
 
 class UI(abc.ABCMeta):
