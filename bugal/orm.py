@@ -39,6 +39,9 @@ class Transactions(Base):
     src_konto = Column(String)
     checksum = Column(String, unique=True)
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__} for {self.__tablename__}"
+
 
 class History(Base):
     """History table
@@ -53,6 +56,9 @@ class History(Base):
     import_date = Column(Date)
     checksum = Column(String, unique=True)
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__} for {self.__tablename__}"
+
 
 # class Property(Base):
 #     """Property table
@@ -66,6 +72,8 @@ class History(Base):
 #     number = Column(Integer)
 #     sum = Column(Integer)
 
+    # def __repr__(self) -> str:
+    #     return f"{self.__class__.__name__} for {self.__tablename__}"
 
 # class Mapping(Base):
 #     """Mapping table
@@ -77,6 +85,9 @@ class History(Base):
 #     type = Column(String)
 #     number = Column(Integer)
 #     value = Column(Integer)
+
+    # def __repr__(self) -> str:
+    #     return f"{self.__class__.__name__} for {self.__tablename__}"
 
 
 class Orm():
@@ -144,6 +155,9 @@ class Orm():
         if self.engine is not None:
             logger.info("Closing DB connection")
             self.engine.dispose()
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__} for {self.__type__} located in {self.__path__}"
 
 
 class SqlTransactionRepo(a.TransactionRepo):
@@ -269,6 +283,9 @@ class SqlTransactionRepo(a.TransactionRepo):
             logger.exception("BugalOrm: DB session connection failed")
             return -1
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__} for {self.__type__} located in {self.__path__}"
+
 
 class SqlHistoryRepo(a.HistoryRepo):
     """Implementation of sqlite History Repo
@@ -390,3 +407,6 @@ class SqlHistoryRepo(a.HistoryRepo):
         except cfg.DbConnectionFaild:
             logger.exception("ORM: DB session connection failed")
             return -1
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__} for {self.__type__} located in {self.__path__}"

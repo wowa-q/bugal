@@ -91,6 +91,9 @@ class FakeRepo(a.AbstractRepository):
         self.tctr -= 1
         return True
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}"
+
 
 class TransactionsRepo(a.AbstractRepository):
     """Repository resource for transactions
@@ -144,6 +147,9 @@ class TransactionsRepo(a.AbstractRepository):
     def get_history(self, *arg, **kwargs):
         raise NotImplementedError
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__} using {self.adapter}"
+
 
 class HistoryRepo(a.AbstractRepository):
     """Repository resource for history
@@ -192,3 +198,6 @@ class HistoryRepo(a.AbstractRepository):
 
     def del_transaction(self, *arg, **kwargs) -> bool:
         raise NotImplementedError
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__} using {self.adapter}"

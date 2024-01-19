@@ -154,6 +154,9 @@ class ExcelWriter(a.HandlerWriteIF):
             self._work_book.close()
         return success
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}to write into Excel located in {self.xls_file}"
+
 
 class CSVImporter(a.HandlerReadIF):
     """Handler class to import data csv file(s)
@@ -298,6 +301,9 @@ class CSVImporter(a.HandlerReadIF):
         archiver = ArtifactHandler(cfg.ARCHIVE)
         archiver.archive_imports(self.pth)
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__} for the type {self.input_type} located in {self.pth}"
+
 
 class ArtifactHandler(a.Artifact):
     """Handles artifacts
@@ -319,3 +325,6 @@ class ArtifactHandler(a.Artifact):
             return True
         else:
             return False
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__} for archiving in {self.archive}"

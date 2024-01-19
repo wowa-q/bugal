@@ -298,3 +298,6 @@ class Stack():
         #                   date.fromisoformat(hist[5]),
         #                   hist[6])
         logger.info("History was updated")
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}: bugal busyness logic"

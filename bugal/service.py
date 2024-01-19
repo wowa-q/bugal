@@ -74,6 +74,9 @@ class CmdImportNewCsv(a.Command):
             logger.warning("CmdImportNewCsv: CSV already imported")
             return -1
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__} Service interface for bugal operations"
+
 
 class CmdFake(a.Command):
     """FAke Command for testing purposes
@@ -88,6 +91,8 @@ class CmdFake(a.Command):
         logger.info("# start execution CmdFake # %s", self.invoker)
         return 1
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__} Testing interface for bugal operations"
 
 ################################################################
 #                        Invoker                                #
@@ -130,3 +135,6 @@ class Invoker():
 
         if isinstance(self._on_finish, a.Command):
             self._on_finish.execute()
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__} Service invoker"

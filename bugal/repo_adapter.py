@@ -107,3 +107,6 @@ class RepoAdapter(a.AbstractRepository):
             return self.hrepo.remove(hash_=kwargs.get('hash_'))
         else:
             return False
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__} for {self.db_type} located in {self.pth}"
