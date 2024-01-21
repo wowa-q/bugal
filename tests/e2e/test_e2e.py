@@ -9,7 +9,6 @@ import pytest
 from context import bugal
 
 from bugal import service
-from bugal import bugal_orm
 from bugal import model
 from bugal import handler
 from bugal import repo
@@ -20,6 +19,58 @@ from fixtures import orm_fx
 from fixtures import e2e_fx
 
 FIXTURE_DIR = pathlib.Path(__file__).parent.resolve()
+
+# @pytest.mark.skip()
+@pytest.mark.parametrize("csv_type, start, end, value, expected", [
+    ('beta', '17.10.2023', '19.10.2023', -40, 5),  # 5 number of transactions
+    ('alpha', '16.01.2023', '24.01.2023', -51, 5),   # 5 number of transactions
+])
+def test_CmdImportCsv_via_repo(csv_type, 
+                               start, 
+                               end, 
+                               value, 
+                               expected, 
+                               fx_test_beta_csv, 
+                               fx_test_classic_csv, 
+                               fx_test_db,):
+    stack=model.Stack(cfg.TransactionListBeta)
+    if csv_type == 'alpha':
+        stack.input_type = cfg.TransactionListClassic
+        single_csv_1, single_csv_2 = fx_test_classic_csv
+        # create data for csv handler 1
+        csv_importer1 = handler.CSVImporter(single_csv_1)
+        csv_importer1.input_type = cfg.TransactionListClassic
+        history_data1 = csv_importer1.get_meta_data()
+        # create data for csv handler 2
+        csv_importer2 = handler.CSVImporter(single_csv_2)
+        csv_importer2.input_type = cfg.TransactionListClassic
+    elif csv_type == 'beta':
+        stack.input_type = cfg.TransactionListBeta
+        single_csv_1, single_csv_2 = fx_test_beta_csv
+        # create data for csv handler 1
+        csv_importer1 = handler.CSVImporter(single_csv_1)
+        csv_importer1.input_type = cfg.TransactionListBeta
+        history_data1 = csv_importer1.get_meta_data()
+        # create data for csv handler 2
+        csv_importer2 = handler.CSVImporter(single_csv_2)
+        csv_importer2.input_type = cfg.TransactionListBeta
+    else:
+        assert False, "Invalid Parameter"
+    assert isinstance(single_csv_1, pathlib.Path), f" fixture is not Path"
+    # create data for import
+    c_tr = []
+    
+    for gtr in csv_importer1.get_transactions():
+        for ltr in gtr:
+            assert isinstance(ltr, list), f"data from csv not a list {ltr}"
+            c_tr.append(stack.create_transaction(ltr))
+    assert len(c_tr) == 5, f"flase number of transactions retrived from csv {c_tr}"
+    # try to push transaction to DB
+    testrepo = repo.TransactionsRepo(fx_test_db)
+    ctrbefore = testrepo.get_transaction_ctr()
+    testrepo.add_transaction(c_tr[0])
+    ctrafter = testrepo.get_transaction_ctr()
+    assert (ctrafter - ctrbefore) == 1
 
 def push_transactions(orm_handler, stack, csv_importer):
     hashes = []
@@ -32,9 +83,9 @@ def push_transactions(orm_handler, stack, csv_importer):
             orm_handler.write_to_transactions(transaction_m)
             hashes.append(transaction_m.__hash__())
     return (ctr_t, hashes)
+    
 
-
-# @pytest.mark.skip()
+@pytest.mark.skip()
 @pytest.mark.parametrize("csv_fixture, start, end, value, expected", [
     ('beta', '17.10.2023', '19.10.2023', -40, 5),  # 5 number of transactions
     ('alpha', '16.01.2023', '24.01.2023', -51, 5),   # 5 number of transactions
@@ -97,7 +148,7 @@ def test_CmdImportCsv(fx_test_beta_csv, fx_test_classic_csv, fx_test_db, csv_fix
 
     orm.close_connection()
 
-# @pytest.mark.skip()
+@pytest.mark.skip()
 @pytest.mark.parametrize("csv_fixture, expected", [
     ('beta', 5),  # 5 number of transactions
     ('alpha', 5),   # 5 number of transactions

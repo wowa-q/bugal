@@ -8,8 +8,6 @@ import dataclasses
 from datetime import date, datetime
 import logging
 
-
-from bugal import cfg
 from bugal import exceptions as err
 # from bugal import repo
 

@@ -23,7 +23,6 @@ from context import bugal
 from bugal import model
 from bugal import cfg
 from bugal import orm
-from bugal import bugal_orm
 
 FIXTURE_DIR = pathlib.Path(__file__).parent.resolve()
 
@@ -44,11 +43,3 @@ def session(in_memory_db):
     orm.start_mappers()
     yield sessionmaker(bind=in_memory_db)()
     clear_mappers()
-
-@pytest.fixture
-def fx_in_memory_db():
-    dugal_db = bugal_orm.BugalOrm('memory')
-    
-    engine = create_engine("sqlite:///:memory:")
-    Session = sessionmaker(bind=engine)
-    session = Session()

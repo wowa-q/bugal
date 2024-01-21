@@ -18,7 +18,6 @@ import pytest
 from context import bugal
 from bugal import model
 from bugal import cfg
-from bugal import bugal_orm
 
 from fixtures.model_fx import fx_transaction_example_classic
 

@@ -211,6 +211,7 @@ def test_invalid_date_handling(datum, expected, caplog):
         # Überprüfen, ob das Ergebnis ein 'date'-Objekt ist und den erwarteten Wert hat
         assert isinstance(result_date, date)
         assert result_date == date(2023, 1, 1)
+        
 data_ = ["01.01.2022", "01.01.2022", "text", "debitor", "verwendung", "konto", "blz", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
 dataset = set(data_)
 # @pytest.mark.skip()
