@@ -18,17 +18,10 @@ from openpyxl import Workbook
 
 from bugal import cfg
 from bugal import abstract as a
+from bugal import exceptions as err
 
 
 logger = logging.getLogger(__name__)
-
-
-class NoCsvFilesFound(Exception):
-    """Exception if in given folder no CSV files could be found"""
-
-
-class DouplicateCsvFile(Exception):
-    """Exception if user try to import the same csv file twice"""
 
 
 class ExcelWriter(a.HandlerWriteIF):
@@ -203,7 +196,7 @@ class CSVImporter(a.HandlerReadIF):
             - 'file_ext': showing the file extension
         """
         if self.input_type is None:
-            raise cfg.NoInputTypeSet
+            raise err.NoInputTypeSet('Meta data collection: Input type not configured')
         meta = cfg.CSV_META.copy()
         meta['checksum'] = self.get_checksum(csv_file)
         meta['file_ext'] = 'csv'
@@ -285,7 +278,7 @@ class CSVImporter(a.HandlerReadIF):
         """
         if self.input_type is None:
             logger.debug("No input type set")
-            raise cfg.NoInputTypeSet
+            raise err.NoInputTypeSet('CSV Import: Input type not configured')
 
         def read_lines(csv_file):
             with open(csv_file, mode='r', encoding='ISO-8859-15', newline='') as csvfile:

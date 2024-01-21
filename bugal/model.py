@@ -10,7 +10,8 @@ import logging
 
 
 from bugal import cfg
-from bugal import repo
+from bugal import exceptions as err
+# from bugal import repo
 
 logger = logging.getLogger(__name__)
 
@@ -203,14 +204,14 @@ class Stack():
         """
         if self.input_type is None:     # cfg.TransactionListBeta or cfg.TransactionListClassic
             logger.debug("NoInputTypeSet is not set")
-            raise cfg.NoInputTypeSet
+            raise err.NoInputTypeSet('Model: input type not configured')
         if not isinstance(data, list):
             logger.debug("#Data provided is not instance of list")
-            raise cfg.NoValidTransactionData
+            raise err.NoValidTransactionData('Model: Transaction data not as list')
         # check that only real data are provided
         if len(data) < 7:
             logger.debug("#Data provided has not correct length: %s", len(data))
-            raise cfg.NoValidTransactionData
+            raise err.NoValidTransactionData(f'Model: Transaction data list to short: {len(data)}')
         # calculate date
         date_obj = None
         atrs = dir(self.input_type)
@@ -236,7 +237,7 @@ class Stack():
             src_konto = self.src_account
         else:
             logger.debug("Source account not initialized: %s", self.src_account)
-            raise cfg.NoValidTransactionData
+            raise err.NoValidTransactionData('Model: Source account not set')
 
         value = self._make_num(str(data[self.input_type.VALUE.value]))
         transaction = Transaction(date_obj,
@@ -285,6 +286,7 @@ class Stack():
         self.filter.max_date = self._get_max_transaction_date()
         self.filter.min_date = self._get_min_transaction_date()
         # self.trepo.add_transaction(transaction)
+        raise NotImplementedError
 
     def update_history(self, hist: list):
         """push import history into database
@@ -298,6 +300,7 @@ class Stack():
         #                   date.fromisoformat(hist[5]),
         #                   hist[6])
         logger.info("History was updated")
+        raise NotImplementedError
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}: bugal busyness logic"

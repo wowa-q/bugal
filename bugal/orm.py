@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from bugal import model
 from bugal import abstract as a
 from bugal import cfg
-
+from bugal import exceptions as err
 
 logger = logging.getLogger(__name__)
 
@@ -111,11 +111,11 @@ class Orm():
             self.engine = create_engine("sqlite://")
         else:
             logger.exception("Orm initialization failed, db type selection wrong %s", Orm.__type__)
-            raise cfg.DbConnectionFaild(f"db type configuration failed '{Orm.__type__}'.")
+            raise err.DbConnectionFaild(f"db type configuration failed '{Orm.__type__}'.")
 
         if self.engine is None:
             logger.exception("Orm: DB engine connection failed, db type selection %s", Orm.__type__)
-            raise cfg.DbConnectionFaild
+            raise err.DbConnectionFaild
         Base.metadata.create_all(self.engine)
         logger.info("Repohandler was initalized with DB: %s", Orm.__path__)
 
@@ -210,13 +210,13 @@ class SqlTransactionRepo(a.TransactionRepo):
             logger.exception("""Transaction provided to push to DB is not
                              model.Transaction instance. Transaction %s""",
                              transaction)
-            raise cfg.NoValidTransactionData
+            raise err.NoValidTransactionData('transaction not of type model.Transaction')
 
         duplicated = self.get(hash_=hash(transaction))
         if duplicated is not None:
             logger.exception("""Transaction provided to push to DB is duplicated. Transaction %s""",
                              transaction)
-            raise cfg.ImportDuplicateTransaction
+            raise err.ImportDuplicateTransaction('Transaction with thaat hash already imported')
 
         logger.debug("""Pushing transaction to DB""")
         # umpacken ist notwendig weil checksum nicht als Attribut in diesm Dataset existiert
@@ -338,7 +338,7 @@ class SqlHistoryRepo(a.HistoryRepo):
             logger.exception("""History provided to push to DB is not
                              model.History instance. History %s""",
                              history)
-            raise cfg.NoValidHistoryData
+            raise err.NoValidHistoryData('history not of type model.History')
 
         duplicated = self.get(hash_=history.checksum)
         if duplicated is not None:
@@ -346,7 +346,7 @@ class SqlHistoryRepo(a.HistoryRepo):
             logger.exception("""history provided to push to DB is duplicated. History %s""",
                              history)
             logger.info("Closing DB connection")
-            raise cfg.ImportFileDuplicate
+            raise err.ImportFileDuplicate('csv file with that hash already imported')
 
         logger.debug("""Pushing history to DB""")
         # umpacken ist notwendig weil checksum nicht als Attribut in diesm Dataset existiert
@@ -404,9 +404,10 @@ class SqlHistoryRepo(a.HistoryRepo):
         try:
             row_count = self.session.query(func.count(History.id)).scalar()
             return row_count
-        except cfg.DbConnectionFaild:
+        # except err.DbConnectionFaild:
+        except Exception as exc:
             logger.exception("ORM: DB session connection failed")
-            return -1
+            raise err.DbConnectionFaild('Row counter could not get retrieved from DB') from exc
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__} for {self.__type__} located in {self.__path__}"

@@ -7,7 +7,7 @@ import logging
 from bugal import model
 from bugal import abstract as a
 from bugal import repo_adapter
-from bugal import cfg
+from bugal import exceptions as err
 # from bugal import bugal_orm
 
 
@@ -31,27 +31,27 @@ class FakeRepo(a.AbstractRepository):
         if isinstance(transaction, model.Transaction):
             crc = hash(transaction)
             if crc in self.hashes:
-                raise cfg.ImportDuplicateTransaction
+                raise err.ImportDuplicateTransaction('Fake: dobule transaction')
             else:
                 self.hashes.append(crc)
                 self.trns.append(transaction)
                 self.tctr += 1
             return True
         else:
-            raise cfg.NoValidTransactionData
+            raise err.NoValidTransactionData('Fake: transaction not type of Transaction')
 
     def add_history(self, history):
         if isinstance(history, model.History):
             crc = history.checksum
             if crc in self.hashes:
-                raise cfg.ImportFileDuplicate
+                raise err.ImportFileDuplicate('Fake: csv already imported')
             else:
                 self.hashes.append(crc)
                 self.hists.append(history)
                 self.hctr += 1
             return True
         else:
-            raise cfg.NoValidHistoryData
+            raise err.NoValidHistoryData('Fake: history not type of History')
 
     def get_transaction_ctr(self):
         return self.tctr

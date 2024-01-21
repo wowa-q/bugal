@@ -13,6 +13,7 @@ import csv
 from context import bugal
 
 from bugal import cfg
+from bugal import exceptions as err
 from bugal import model
 from bugal import handler
 from bugal import csv_handler
@@ -39,10 +40,10 @@ def test_init_csv_handler(csv_fixture, expected, fx_single_csv, fx_single_csv_ne
     assert len(h.csv_files) == 1, "number of csv file is incorect"
     assert h.input_type is not None, "input type"
     h.input_type = None
-    with pytest.raises(cfg.NoInputTypeSet):
+    with pytest.raises(err.NoInputTypeSet):
         for n in h.get_transactions():
             pass
-    with pytest.raises(cfg.NoInputTypeSet):
+    with pytest.raises(err.NoInputTypeSet):
         h.get_meta_data()
 
 #@pytest.mark.skip()

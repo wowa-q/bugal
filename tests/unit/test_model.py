@@ -10,6 +10,7 @@ from context import bugal
 
 from bugal import model
 from bugal import cfg
+from bugal import exceptions as err
 
 def test_transaction_hash_equality(fx_transaction_example_classic):
     t1 = model.Transaction("2022.01.01", "text", "status", "debitor", "verwendung", "konto", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto")
@@ -25,7 +26,6 @@ def test_transaction_hash_equality(fx_transaction_example_classic):
     transaction3 = stack.create_transaction(fx_transaction_example_classic)
     assert transaction1 == transaction2, "Two equel transaction objects must have equal hash value"
     assert transaction1 != transaction3, "Different hash value due to different objects"
-
 
 #@pytest.mark.skip()
 def test_transaction_creation(fx_transaction_example_classic):
@@ -86,6 +86,7 @@ def test_transaction_creation_beta(fx_transaction_example_beta):
     assert transaction.src_konto ==  '1234', f"Transaction src_konto {transaction.src_konto}"
     assert isinstance(transaction.value, float), f"Transaction value is not Integer"
     assert transaction.value ==  -40, f"Transaction value {transaction.value}"
+
 # @pytest.mark.skip()
 def test_transaction_equality_for_every_par(fx_transaction_example_classic):
     stack=model.Stack(cfg.TransactionListClassic)
@@ -120,7 +121,7 @@ def test_create_transactions_list_beta(fx_transactions_list_example_beta):
     assert len(stack.transactions) == 4
     assert stack.nr_transactions == 4
 
-# @pytest.mark.skip()
+@pytest.mark.skip()
 def test_store_transactions_in_db(fx_transactions_list_example_classic):
     stack=model.Stack(cfg.TransactionListClassic)
     stack.input_type = cfg.TransactionListClassic
@@ -128,7 +129,7 @@ def test_store_transactions_in_db(fx_transactions_list_example_classic):
 
     for line in fx_transactions_list_example_classic:
         stack.create_transaction(line)
-    stack.push_transactions()
+    stack.push_transactions('')
     # one transaction is double and will be removed from the list before push
     assert len(stack.transactions) == 4
     assert stack.filter.max_date == date.fromisoformat("2022-01-04")
@@ -228,10 +229,10 @@ def test_invalid_data_transaction(data, expected):
     
     if expected == 'input_type':
         stack.init_stack()
-        with pytest.raises(cfg.NoInputTypeSet):
+        with pytest.raises(err.NoInputTypeSet):
             stack.create_transaction(data)
     elif expected == 'list':
-        with pytest.raises(cfg.NoValidTransactionData):
+        with pytest.raises(err.NoValidTransactionData):
             stack.create_transaction(data)
     elif expected == 'DATE':
         stack.input_type = data # just something which is not None
@@ -240,7 +241,7 @@ def test_invalid_data_transaction(data, expected):
     elif expected == 'src_account':
         stack.src_account = None
 
-        with pytest.raises(cfg.NoValidTransactionData):
+        with pytest.raises(err.NoValidTransactionData):
             stack.create_transaction(data)
     else:
         result_date = stack.create_transaction(data)

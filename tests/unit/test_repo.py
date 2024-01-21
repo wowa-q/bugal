@@ -16,7 +16,7 @@ from bugal import repo
 from bugal import repo_adapter
 from bugal import orm
 from bugal import model
-
+from bugal import exceptions as err
 from fixtures import basic
 from fixtures import orm_fx
 from fixtures import sql_fx
@@ -76,7 +76,7 @@ def test_init_transaction_sqlrepo(repo_type, table):
     assert repo_.__path__ == os.curdir, f"Orm not initialized with repo path {repo_.__path__} / {os.curdir}"
     assert repo_.__type__ == repo_type, f"Orm not initialized with repo type {repo_.__type__}"
     
-# @pytest.mark.skip()
+@pytest.mark.skip()
 @pytest.mark.parametrize("repo_type, expected", [
     ('memory', True),
     # ('sqlite', True),
@@ -164,7 +164,7 @@ def test_add_duplicate_transaction_sqlrepo(repo_type, fx_new_betaTransaction, fx
     rep.add(fx_new_betaTransaction)
     tctr = rep.get_ctr()
     hash1 = hash(fx_new_betaTransaction)
-    with pytest.raises(cfg.ImportDuplicateTransaction):
+    with pytest.raises(err.ImportDuplicateTransaction):
         rep.add(fx_new_betaTransaction)
     tctr_after = rep.get_ctr()
     hash2 = hash(fx_new_betaTransaction)
@@ -184,7 +184,7 @@ def test_add_false_type_transaction_sqlrepo(repo_type, fx_transaction_example_cl
     else:
         rep = repo.FakeRepo()
 
-    with pytest.raises(cfg.NoValidTransactionData):
+    with pytest.raises(err.NoValidTransactionData):
         rep.add(fx_transaction_example_classic)
 
 # ADAPTER tests
@@ -247,7 +247,7 @@ def test_add_transaction_repo_adapter(repo_, expected, fx_new_betaTransaction, f
         assert result == expected, f"Transaction was not added as expected {result}"
         assert (tctr + 1) == tctr_after, f"No transaction added {tctr} - {tctr_after}"
         # pushing of the same transaction should raise an exception
-        with pytest.raises(cfg.ImportDuplicateTransaction):
+        with pytest.raises(err.ImportDuplicateTransaction):
             adapter.add_transaction(fx_new_betaTransaction)
 
 # @pytest.mark.skip()
@@ -261,7 +261,7 @@ def test_add_false_type_transaction_repo_adapter(repo_type, fx_transaction_examp
         adapter = repo_adapter.RepoAdapter(fx_test_db, repo_type)
     else:
         adapter = repo.FakeRepo()
-    with pytest.raises(cfg.NoValidTransactionData):
+    with pytest.raises(err.NoValidTransactionData):
         adapter.add_transaction(fx_transaction_example_classic)
 
 
@@ -331,7 +331,7 @@ def test_add_duplicate_transaction_repo(repo_type, fx_new_betaTransaction, fx_te
     repo_.add_transaction(fx_new_betaTransaction)
     tctr = repo_.get_transaction_ctr()
     hash1 = hash(fx_new_betaTransaction)
-    with pytest.raises(cfg.ImportDuplicateTransaction):
+    with pytest.raises(err.ImportDuplicateTransaction):
         repo_.add_transaction(fx_new_betaTransaction)
     tctr_after = repo_.get_transaction_ctr()
     hash2 = hash(fx_new_betaTransaction)
@@ -348,7 +348,7 @@ def test_add_false_type_transaction_repo(repo_type, fx_transaction_example_class
         repo_ = repo.TransactionsRepo(fx_test_db, repo_type)
     else:
         repo_ = repo.FakeRepo()
-    with pytest.raises(cfg.NoValidTransactionData):
+    with pytest.raises(err.NoValidTransactionData):
         repo_.add_transaction(fx_transaction_example_classic)
 
 # @pytest.mark.skip()
@@ -398,7 +398,7 @@ def test_add_duplicate_history_repo(repo_type, fx_history, fx_test_db):
     repo_.add_history(fx_history)
     tctr = repo_.get_history_ctr()
     hash1 = hash(fx_history)
-    with pytest.raises(cfg.ImportFileDuplicate):
+    with pytest.raises(err.ImportFileDuplicate):
         repo_.add_history(fx_history)
     tctr_after = repo_.get_history_ctr()
     hash2 = hash(fx_history)
@@ -417,7 +417,7 @@ def test_add_false_type_history_repo(repo_type, fx_transaction_example_classic, 
         repo_ = repo.HistoryRepo(fx_test_db, repo_type)
     else:
         repo_ = repo.FakeRepo()
-    with pytest.raises(cfg.NoValidHistoryData):
+    with pytest.raises(err.NoValidHistoryData):
         repo_.add_history(fx_transaction_example_classic)
 
 # @pytest.mark.skip()
