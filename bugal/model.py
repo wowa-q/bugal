@@ -117,22 +117,41 @@ class Stack():
         logger.info("Stack re-initialized with input type: %s", self.input_type)
 
     def _make_date(self, datum: str) -> date:
+        """Create date from String
+
+        Args:
+            datum (str): Datum extracted from Csv file
+
+        Raises:
+            err.InvalidTimeFormat: if unknown format was provided
+
+        Returns:
+            date: Date
+        """
         if isinstance(datum, datetime):
             logger.debug("datum provided not as string, but as datetime: %s", datum)
             return datum
         newdate = None
-        try:
-            if len(datum) == 8:
-                newdate = datetime.strptime(datum, '%d.%m.%y').date()
-            else:
-                newdate = datetime.strptime(datum, '%d.%m.%Y').date()
 
-        except ValueError as error:
+        if len(datum) == 8:
+            newdate = datetime.strptime(datum, '%d.%m.%y').date()
+        elif len(datum) == 10:
+            newdate = datetime.strptime(datum, '%d.%m.%Y').date()
+        else:
             logger.exception("datum provided with false format: %s", datum)
-            raise ValueError(f"datum provided with false format: {datum}") from error
+            raise err.InvalidTimeFormat(f"datum provided with false format: {datum}")
+
         return newdate
 
-    def _make_num(self, value: str) -> int:
+    def _make_num(self, value: str) -> float:
+        """Providing value as float number for calculation
+
+        Args:
+            value (str): Extracted value from Csv file
+
+        Returns:
+            float: converted value
+        """
         cleaned_string = value
         if '€' in value:
             cleaned_string = value[:-2]
@@ -150,10 +169,13 @@ class Stack():
             - 'end_date': str object representing a date in a format '%d.%m.%Y'
             - 'start_date': str object in format '%d.%m.%Y'
             - 'account': string object showing from which account the data were exported
-            - 'checksum': calculated checksum over the csv file to be compared with checksums from History table in DB
+            - 'checksum': calculated checksum over the csv file to be compared with checksums
+              from History table in DB
             - ?
         Args:
             history (dict): data to be used for History creatiion
+        Raises:
+            err.NoValidHistoryData: if data provided not as dict
         Returns:
             History: History instance
         """
@@ -171,7 +193,7 @@ class Stack():
             self.set_src_account(history['account'])
         else:
             logger.debug("History is not instance of dict")
-            return None
+            raise err.NoValidHistoryData(f"datum provided with false format: {history}")
 
         return his
 
@@ -180,7 +202,7 @@ class Stack():
         needs to be retrieved from the csv meta data
 
         Args:
-            account (str): _description_
+            account (str): account from which to report
         """
         logger.info("source account set to: %s", account)
         self.src_account = account
@@ -192,11 +214,9 @@ class Stack():
             data (list): data extracted from csv file as a list
 
         Raises:
-            cfg.NoInputTypeSet: input_type needs to be set before using the Stack
-            cfg.NoValidTransactionData: validation of provided transaction data failed
-            cfg.NoValidTransactionData: validation of provided transaction data failed
-            cfg.NoValidTransactionData: validation of provided transaction data failed
-
+            bugal.exceptions.NoInputTypeSet: input_type needs to be set before using the Stack
+            bugal.exceptions.NoValidTransactionData: validation of provided transaction data failed
+            AttributeError: raised when DATE does't exist in input_type
         Returns:
             Transaction: transaction object, ready for storage in DB and checking hash
         """

@@ -27,7 +27,7 @@ class FakeRepo(a.AbstractRepository):
         self.hists = []
         self.trns = []
 
-    def add_transaction(self, transaction):  # tested
+    def add_transaction(self, transaction: model.Transaction):  # tested
         if isinstance(transaction, model.Transaction):
             crc = hash(transaction)
             if crc in self.hashes:
@@ -40,7 +40,7 @@ class FakeRepo(a.AbstractRepository):
         else:
             raise err.NoValidTransactionData('Fake: transaction not type of Transaction')
 
-    def add_history(self, history):
+    def add_history(self, history: model.History):
         if isinstance(history, model.History):
             crc = history.checksum
             if crc in self.hashes:
@@ -53,13 +53,13 @@ class FakeRepo(a.AbstractRepository):
         else:
             raise err.NoValidHistoryData('Fake: history not type of History')
 
-    def get_transaction_ctr(self):
+    def get_transaction_ctr(self) -> int:
         return self.tctr
 
-    def get_history_ctr(self):
+    def get_history_ctr(self) -> int:
         return self.hctr
 
-    def get_transaction(self, *arg, **args) -> bool:
+    def get_transaction(self, *arg, **args) -> model.Transaction:
         """_summary_
 
         Raises:
@@ -68,7 +68,7 @@ class FakeRepo(a.AbstractRepository):
         if len(self.trns) > 0:
             return self.trns[0]
 
-    def get_history(self, *arg, **args) -> bool:
+    def get_history(self, *arg, **args) -> model.History:
         """_summary_
 
         Raises:
@@ -101,17 +101,17 @@ class TransactionsRepo(a.AbstractRepository):
     def __init__(self, pth='', db_type='sqlite'):  # tested
         self.adapter = repo_adapter.RepoAdapter(pth, db_type)
 
-    def add_transaction(self, transaction):  # tested
+    def add_transaction(self, transaction: model.Transaction):  # tested
         result = False
         result = self.adapter.add_transaction(transaction)
         logger.debug("""Pushing transaction to DB""")
         return result
 
-    def get_transaction_ctr(self):  # tested
+    def get_transaction_ctr(self) -> int:  # tested
         ctr = self.adapter.get_transaction_ctr()
         return ctr
 
-    def get_transaction(self, *arg, **kwargs):  # tested
+    def get_transaction(self, *arg, **kwargs) -> model.Transaction:  # tested
         """retrive transaction from DB by ID or hash value
 
         Returns:
@@ -157,13 +157,13 @@ class HistoryRepo(a.AbstractRepository):
     def __init__(self, pth='', db_type='sqlite'):  # tested
         self.adapter = repo_adapter.RepoAdapter(pth=pth, db_type=db_type)
 
-    def add_history(self, history):  # tested
+    def add_history(self, history: model.History):  # tested
         result = False
         result = self.adapter.add_history(history)
         logger.debug("""Pushing history to DB""")
         return result
 
-    def get_history(self, *arg, **kwargs):  # tested
+    def get_history(self, *arg, **kwargs) -> model.History:  # tested
         if 'id_' in kwargs:  # tested
             return self.adapter.get_history(id_=kwargs.get('id_'))
         elif 'hash_' in kwargs:  # tested
@@ -171,7 +171,7 @@ class HistoryRepo(a.AbstractRepository):
         else:
             return None
 
-    def get_history_ctr(self):  # tested
+    def get_history_ctr(self) -> int:  # tested
         ctr = self.adapter.get_history_ctr()
         return ctr
 

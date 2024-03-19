@@ -3,7 +3,7 @@
 ## BUGAL services
 
 ::: bugal.service
-::: bugal.cli
+::: cli
 
 ## Business Model
 
@@ -15,7 +15,7 @@
 
 ::: bugal.repo
 ::: bugal.orm
-::: bugal.bugal_orm
+::: bugal.repo_adapter
 
 ## BUGAL Handler
 

@@ -1,0 +1,141 @@
+#:kivy 2.3.0
+
+<Button>
+    font_size: 16   # Schriftgroesse
+	background_normal: ''
+	background_color: (68/255,78/255,153/255,1) # color picker online
+	# size_hint: (0.3, 0.2)
+    halign: "center"
+    valign: "middle"
+
+<Label>
+    text_size: self.size
+
+<TextInput>
+	multiline: False
+	height: 50
+	# width: 200
+<BugalRoot>
+
+    BoxLayout:
+        orientation: 'vertical'
+        # oberste Button-Leiste
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 40
+
+            Button:
+                text: "Configure"
+                on_press: root.configure()
+            Button:
+                text: "Clear configuration"
+                on_press: root.clear_input()
+            Button:
+                text: "Start Import"
+                on_press: root.do_import()
+            Button:
+                text: "Button 4"
+            Button:
+                text: "Button 5"
+        # Abstand
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 10
+            Label:
+                text: ""
+
+        # Label Texteingabe Paare
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: None
+            height: 150
+            BoxLayout:
+                orientation: 'horizontal'
+                Label:
+                    text: "CSV file to be imported - full path"
+                    halign: "right"  # Horizontale Ausrichtung: "left", "center" oder "right"
+                    valign: "middle"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
+                TextInput:
+                    id: csv_pth_input
+
+            BoxLayout:
+                orientation: 'horizontal'
+                Label:
+                    text: "DB file to be imported - full path"
+                    halign: "right"  # Horizontale Ausrichtung: "left", "center" oder "right"
+                    valign: "middle"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
+                TextInput:
+                    id: db_pth_input
+
+            BoxLayout:
+                orientation: 'horizontal'
+                Label:
+                    text: "zip file to be used for archiving - full path"
+                    halign: "right"  # Horizontale Ausrichtung: "left", "center" oder "right"
+                    valign: "middle"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
+                TextInput:
+                    id: zip_pth_input
+
+            BoxLayout:
+                orientation: 'horizontal'
+                Label:
+                    text: "Configuration file to be used for configuration - full path"
+                    halign: "right"  # Horizontale Ausrichtung: "left", "center" oder "right"
+                    valign: "middle"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
+                TextInput:
+                    id: toml_pth_input
+
+        # Abstand
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 10
+            Label:
+                text: ""
+
+        # Config Save Button
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 50
+            GridLayout:
+                cols: 2
+                # Button:
+                #     text: 'Save configuration'
+                #     font_size: 16
+                #     color: [0,0,0,1]
+                #     background_normal: ''
+	            #     background_color: (0,1,0,1)
+                #     on_press: root.configure()
+                Label:
+                    text: ''
+            GridLayout:
+                cols: 2
+                Label:
+                    text: 'CLASSIC'
+                    halign: "center"  # Horizontale Ausrichtung: "left", "center" oder "right"
+                    valign: "middle"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
+                Label:
+                    text: 'BETA'
+                    halign: "center"  # Horizontale Ausrichtung: "left", "center" oder "right"
+                    valign: "middle"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
+                CheckBox:
+                    id: rb_classic
+                    group: 'radio button'
+                    active: True
+                    on_active: root.get_input_type()
+                    color: [1,0,1,1]
+                CheckBox:
+                    id: rb_beta
+                    group: 'radio button'
+                    active: False
+                    on_active: root.get_input_type()
+                    color: [1,0,1,1]
+
+        # Testausgabe aktueller Stand des Programms
+        Label:
+            id: gui_log
+            height: 100
+            text: 'Not configured'

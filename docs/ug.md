@@ -1,6 +1,6 @@
 # Users Guide
 
-## Overview
+## Overview 
 
 This chapter provides an overview what is needed to use the **bugal** Tool. The bugal stays for bugalteria and its purpose is to track own financial activities, by using the extract from the bancking.
 

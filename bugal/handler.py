@@ -262,7 +262,7 @@ class CSVImporter(a.HandlerReadIF):
         if csv_file is None:
             csv_file = self.pth
 
-        with open(csv_file, encoding='ISO-8859-1') as csvfile:
+        with open(csv_file, encoding='ISO-8859-1', mode='r') as csvfile:
             checksum = hashlib.md5(csvfile.read().encode('ISO-8859-1')).hexdigest().upper()
             logger.info("csv hash calculated: %s", checksum)
             return checksum

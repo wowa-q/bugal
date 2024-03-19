@@ -10,27 +10,11 @@ import click
 
 from bugal import service
 from bugal import model
-from bugal import bugal_orm as repo     # TODO: needs to be replaced by the repo after refactoring
+from bugal import repo
 from bugal import handler
 from bugal import cfg
 
 logger = logging.getLogger(__name__)
-
-
-def _get_receivers(csv_pth):
-
-    repo_instance = repo.BugalOrm(cfg.DBFILE)
-    # if cfg.TEST is True:
-    #     repo_instance = repo.BugalOrm(cfg.FIXTURE_DIR, cfg.DB_NAME)
-    # else:
-    #     repo_instance = repo.BugalOrm(cfg.DBFILE)
-    if cfg.TYPE == 'BETA':
-        input_type = cfg.TransactionListBeta
-    else:
-        input_type = cfg.TransactionListClassic
-    stack_instance = model.Stack(input_type)
-    handler_instance = handler.CSVImporter(csv_pth)
-    return repo_instance, stack_instance, handler_instance
 
 
 def create_fake_invoker(dut: str):
@@ -56,10 +40,15 @@ def create_import_csv_invoker(csv_pth: Path):
     Returns:
         service.Invoker: Invoker instance which can run the configured commands
     """
-
-    rep, stack, handl = _get_receivers(csv_pth)
+    # get receivers
+    stack = model.Stack(cfg.TYPECLASS)
+    handl = handler.CSVImporter(csv_pth)
+    trepo = repo.TransactionsRepo(pth=cfg.DBFILE)
+    hrepo = repo.HistoryRepo(pth=cfg.DBFILE)
+    # create invoker
     import_invoker = service.Invoker()
-    import_invoker.set_main_command(service.CmdImportNewCsv(rep, stack, handl))
+    # set invoker command
+    import_invoker.set_main_command(service.CmdImportNewCsv(trepo, hrepo, stack, handl))
 
     return import_invoker
 

@@ -2,9 +2,9 @@
 
 import logging
 
-from bugal import cfg
 from bugal import model
 from bugal import abstract as a
+from bugal import exceptions as err
 
 
 logger = logging.getLogger(__name__)
@@ -13,12 +13,15 @@ logger = logging.getLogger(__name__)
 class CmdImportNewCsv(a.Command):
     ''' specifying command to import new csv file into db '''
 
-    def __init__(self, rep: a.AbstractRepository,
+    def __init__(self,
+                 trepo: a.AbstractRepository,
+                 hrepo: a.AbstractRepository,
                  stack: model.Stack,
-                 handler_r: a.HandlerReadIF):
-        self.repo = rep
-        self.stack = stack
-        self.handler_r = handler_r
+                 handler: a.HandlerReadIF):
+        self.hrepo = hrepo          # History repository where to import
+        self.trepo = trepo          # Transation repository where to import
+        self.stack = stack          # stack model with business logic
+        self.handler = handler      # handler to read csv file
         logger.info("Command initialized: CmdImportNewCsv")
         # self.csv_path = csv_path
 
@@ -39,34 +42,36 @@ class CmdImportNewCsv(a.Command):
         logger.info("# start execution CmdImportNewCsv #")
         # leave the function if checksum exists in DB history
         # search the checksum in the meta table
-        csv_checksum = self.handler_r.get_checksum()
+        csv_checksum = self.handler.get_checksum()
         # check if checksum already exists
-        lresults = self.repo.find_csv_checksum(csv_checksum)
-        if not lresults:
-            meta = self.handler_r.get_meta_data()
+        found = self.hrepo.get_history(hash_=csv_checksum)
+        if found is None:
+            meta = self.handler.get_meta_data()
             # first build history and init some data
             history_entry = self.stack.create_history(meta[0])
             if history_entry is None:
                 logger.debug("History could not be created")
-                raise cfg.ModelStackError
+                raise err.ModelStackError
 
             ctr_t = 0
             # get transaction row
-            for _, transrow in enumerate(self.handler_r.get_transactions()):
+            for _, transrow in enumerate(self.handler.get_transactions()):
                 for _, transaction_c in enumerate(transrow, 1):
+                    self.stack.set_src_account(meta[0]['account']) # TODO: the list needs to fit to the csv file
                     transaction_m = self.stack.create_transaction(transaction_c)
-                    lresults = self.repo.find_transaction_checksum(hash(transaction_m))
-                    if lresults:
+                    found = self.trepo.del_transaction(hash_=hash(transaction_m))
+                    # only if no transaction with the same hash already exists
+                    if found is not None:
                         # an entry was found with the same hash -> transaction exists already
                         logger.warning("CmdImportNewCsv: transaction already imported: %s", transaction_m)
                         # exit the execution
                         continue
                     else:
-                        self.repo.write_to_transactions(transaction_m)
+                        self.trepo.add_transaction(transaction_m)
                         ctr_t += 1
             if ctr_t > 0:
-                self.repo.write_to_history(history_entry)
-                self.handler_r.archive()
+                self.hrepo.add_history(history_entry)
+                self.handler.archive()
                 logger.info("number of transaction imported: %s", ctr_t)
             # return number of imported transactions
             return ctr_t

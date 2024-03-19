@@ -22,7 +22,7 @@ TEST = "True"
 # genral source path
 srcpath = "d:/projects/910_prProjects/bugal/bugal_p"
 # csv file to be imported
-csv_file = "d:/projects/910_prProjects/bugal/tests/fixtures/single.csv"
+csv_file = "d:/projects/910_prProjects/bugal/tests/20-10-2023_Umsatzliste_Girokonto_DE90120300001001670080.csv"
 # db file to be used
 db_file = "d:/projects/910_prProjects/bugal/tests/fixtures/import_2.db"
 # zip file to be used

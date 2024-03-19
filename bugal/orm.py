@@ -162,8 +162,6 @@ class Orm():
 
 class SqlTransactionRepo(a.TransactionRepo):
     """Implementation of sqlite Transaction Repo
-
-    Args:
         a (TransactionRepo): Implements TransactionRepo interface
     """
     __instance__ = None
@@ -173,8 +171,6 @@ class SqlTransactionRepo(a.TransactionRepo):
     def __init__(self):  # tested
         """Initialization of Sql Transaction repo - Fully tested
 
-        Args:
-            pth (str, optional): Path to DB. Defaults to 'cfg.DBFILE'.
         """
         if SqlTransactionRepo.__path__ == '':
             SqlTransactionRepo.__path__ = cfg.DBFILE
@@ -192,7 +188,7 @@ class SqlTransactionRepo(a.TransactionRepo):
         """provides instance of the SqlHistoryRepo
 
         Returns:
-            SqlHistoryRepo: singleton instance
+            SqlHistoryRepo (bool): singleton instance
         """
         if SqlTransactionRepo.__instance__ is None:
             SqlTransactionRepo.__instance__ = SqlTransactionRepo()

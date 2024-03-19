@@ -47,7 +47,7 @@ class DbConnectionFaild(Exception):
     """
 
 
-class ImportFileDuplicate(Exception):
+class ImportFileDuplicate(BaseBugalModelError):
     """ Raised if the file was already imported
     """
 
@@ -57,9 +57,13 @@ class ModelStackError(BaseBugalModelError):
     """
 
 
-class NoCsvFilesFound(Exception):
+class NoCsvFilesFound(FileNotFoundError):
     """Exception if in given folder no CSV files could be found"""
 
 
-class DouplicateCsvFile(Exception):
+class DouplicateCsvFile(BaseBugalModelError):
+    """Exception if user try to import the same csv file twice"""
+
+
+class InvalidTimeFormat(BaseBugalModelError):
     """Exception if user try to import the same csv file twice"""
