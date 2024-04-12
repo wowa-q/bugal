@@ -1,7 +1,7 @@
 # pylint: skip-file
 # flake8: noqa
 
-import os 
+import os
 import pathlib
 from subprocess import Popen, PIPE
 import pytest
@@ -23,16 +23,16 @@ def mock_subprocess():
     with patch('subprocess.Popen') as mock_popen:
         yield mock_popen
 
+# @sdoc[CLI-2]
 # positiv test
 @pytest.mark.parametrize(
     "options",
     [
         ("--cmd", "import", "-csv", "test_csv.csv", "-v", "classic"),
         ("--cmd", "import", "-csv", "test_csv.csv","--variant", "beta"),
-        ("-cmd", "import", "-csv", "test_csv.csv","-v", "beta"),        
+        ("-cmd", "import", "-csv", "test_csv.csv","-v", "beta"),
     ],
 )
-
 def test_cli_with_system_exit_code_0(options):
     cli.TEST = True
     runner = CliRunner()
@@ -41,6 +41,8 @@ def test_cli_with_system_exit_code_0(options):
 
     assert result.exit_code == 0, f"{options} exited with"
 
+# @sdoc[/CLI-2]
+
 # negativ test - exit code 1: Allgemeiner Fehler
 # Dieser Code wird verwendet, um anzuzeigen, dass ein nicht spezifizierter Fehler aufgetreten ist.
 @pytest.mark.parametrize(
@@ -48,7 +50,7 @@ def test_cli_with_system_exit_code_0(options):
     [
         ("--cm", "import", "-v", 'True'),
         ("--cd", "import", "-v", 'test.csv'),
-        ("--cmd", "import", "-csv", "test_csv.csv", "-v", "alt"),    
+        ("--cmd", "import", "-csv", "test_csv.csv", "-v", "alt"),
     ],
 )
 #@pytest.mark.skip()
@@ -67,7 +69,7 @@ def test_cli_with_system_exit_code_2(options):
     [
         ("--cm", "import", "-v", True),
         ("--cd", "import", "-v", False),
-        ("--v", "import",), 
+        ("--v", "import",),
     ],
 )
 def test_cli_with_system_exit_code_2(options):

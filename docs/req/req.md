@@ -1,3 +1,4 @@
+
 # Bugal Requirements
 
 ## Funktionale Anforderungen
