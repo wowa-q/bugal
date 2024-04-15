@@ -1,0 +1,219 @@
+[DOCUMENT]
+TITLE: Bugalteria Level 1 Requireents
+VERSION: 1.0.0
+REQ_PREFIX: USER-
+OPTIONS:
+  REQUIREMENT_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: grammar.sgra
+
+[SECTION]
+TITLE: Level 1 system requirements
+REQ_PREFIX: SYSTEM-
+
+[REQUIREMENT]
+UID: SYSTEM-1
+STATUS: Draft
+VERIFICATION: -
+TITLE: CLI shall be provided
+STATEMENT: The system shall provide a CLI "bgl".
+RATIONALE: short command for user friendly use
+LAYER: system
+
+[REQUIREMENT]
+UID: SYSTEM-7
+STATUS: Draft
+VERIFICATION: -
+TITLE: GUI shall be provided
+STATEMENT: The system shall provide a GUI.
+RATIONALE: More intuitive usage of the tool
+LAYER: system
+
+[REQUIREMENT]
+UID: SYSTEM-8
+STATUS: Draft
+VERIFICATION: -
+TITLE: Input data
+STATEMENT: The system shall support csv format
+RATIONALE: csv export is provided by banking
+LAYER: system
+
+[REQUIREMENT]
+UID: SYSTEM-2
+STATUS: Draft
+VERIFICATION: -
+TITLE: Storage
+STATEMENT: The system shall store the data in a data base
+RATIONALE: The data shall be stored for next import and work
+LAYER: system
+
+[REQUIREMENT]
+UID: SYSTEM-3
+STATUS: Draft
+VERIFICATION: -
+TITLE: Reports generation
+STATEMENT: The system shall support creation of excel reports
+RATIONALE: User friendly tool for further work with data
+LAYER: system
+
+[REQUIREMENT]
+UID: SYSTEM-5
+STATUS: Draft
+VERIFICATION: -
+TITLE: Report generation
+STATEMENT: The system shall provide possibility for users to define own report filters for exports.
+RATIONALE: Data filtering is needed for further analysis
+LAYER: system
+
+[REQUIREMENT]
+UID: SYSTEM-9
+STATUS: Draft
+VERIFICATION: -
+TITLE: Tagging
+STATEMENT: The system shall provide possibility for users to reimport a report.
+RATIONALE: The user can provide additional data from the modified report
+COMMENT: Better to move it to design decisions?
+LAYER: system
+
+[REQUIREMENT]
+UID: SYSTEM-10
+STATUS: Draft
+VERIFICATION: -
+TITLE: Report import "Dry-Run"
+STATEMENT: The system should provide report import "Dry-Run".
+RATIONALE: The report may be changed in way which breaks the data base.
+LAYER: system
+
+[REQUIREMENT]
+UID: SYSTEM-11
+STATUS: Draft
+VERIFICATION: -
+TITLE: Standard Report
+STATEMENT: The system should export a default report if nothing is configured.
+RATIONALE: The frequently used report shall be generated without configuration need.
+LAYER: system
+
+[REQUIREMENT]
+UID: SYSTEM-12
+STATUS: Draft
+VERIFICATION: -
+TITLE: Report - Month forcast
+STATEMENT: The system should provide month forecast report generation.
+RATIONALE: One use case could be have a month forecast based on the history.
+LAYER: system
+
+[REQUIREMENT]
+UID: SYSTEM-13
+STATUS: Draft
+VERIFICATION: -
+TITLE: Transaction uniqueness
+STATEMENT: The system must avoid maintening duplicate transactions.
+RATIONALE: If any transaction can be imported double, it will make invalid reporting.
+LAYER: system
+
+[REQUIREMENT]
+UID: SYSTEM-4
+STATUS: Draft
+VERIFICATION: -
+TITLE: Tagging
+STATEMENT: The system shall support automatic tagging of the transactions
+RATIONALE: Some work shall be automated
+LAYER: system
+
+[REQUIREMENT]
+UID: SYSTEM-6
+STATUS: Draft
+VERIFICATION: -
+TITLE: Tagging
+STATEMENT: The system shall provide possibility for users to define own mapping rules
+RATIONALE: The tool shall be more flexible in usage
+LAYER: system
+
+[/SECTION]
+
+[SECTION]
+TITLE: User Interface
+REQ_PREFIX: UI-
+
+[REQUIREMENT]
+UID: UI-1
+STATUS: Draft
+VERIFICATION: -
+TITLE: Configuration
+STATEMENT: Some basic settings shall be provided via static configuration.
+RATIONALE: lesser options are required for the CLI and more stable for the GUI usage.
+LAYER: system
+
+[REQUIREMENT]
+UID: UI-2
+STATUS: Draft
+VERIFICATION: -
+TITLE: Configuration file
+STATEMENT: The configuration shall be stored in human readable format.
+RATIONALE: User can modify the configuration file in any editor.
+LAYER: system
+
+[SECTION]
+TITLE: Command Line interface
+REQ_PREFIX: CLI-
+
+[FREETEXT]
+Requirements for Command Line Interface
+[/FREETEXT]
+
+[REQUIREMENT]
+UID: CLI-2
+STATUS: Draft
+VERIFICATION: -
+TITLE: CLI help
+STATEMENT: CLI shall provide help option
+RATIONALE: User can read the commands, which are supported by typing bgl -h
+LAYER: system
+
+[REQUIREMENT]
+UID: CLI-3
+STATUS: Draft
+VERIFICATION: -
+TITLE: CLI csv Import
+STATEMENT: The CLI shall offer option to import csv file
+RATIONALE: csv needs to be imported
+LAYER: system
+RELATIONS:
+- TYPE: Parent
+  VALUE: SYSTEM-8
+
+[/SECTION]
+
+[SECTION]
+TITLE: Grafical user interface
+REQ_PREFIX: GUI-
+
+[FREETEXT]
+Requirements for Grafical User Interface
+[/FREETEXT]
+
+[REQUIREMENT]
+UID: GUI-1
+STATUS: Draft
+VERIFICATION: -
+TITLE: GUI csv Import
+STATEMENT: The GUI shall offer option to import csv file.
+RATIONALE: csv needs to be imported
+LAYER: system
+RELATIONS:
+- TYPE: Parent
+  VALUE: SYSTEM-8
+
+[REQUIREMENT]
+UID: GUI-2
+STATUS: Draft
+VERIFICATION: -
+TITLE: Help
+STATEMENT: Help should be provided via the GUI.
+RATIONALE: Some preprequisides need to be described for the tool usage.
+LAYER: system
+
+[/SECTION]
+
+[/SECTION]

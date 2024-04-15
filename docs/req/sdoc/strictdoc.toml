@@ -1,5 +1,5 @@
 [project]
-title = "StrictDoc Documentation"
+title = "Bugal Requirements Documentation"
 html_assets_strictdoc_dir = "assets"
 
 features = [
@@ -17,7 +17,7 @@ features = [
   "REQUIREMENT_TO_SOURCE_TRACEABILITY",
   # "HTML2PDF",
 ]
-source_root_path = "../tests/unit"
+# source_root_path = "../tests/unit"
 
 # include_doc_paths = [
 #   "examples/**",
