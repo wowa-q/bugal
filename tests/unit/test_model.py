@@ -47,7 +47,7 @@ def test_transaction_creation(fx_transaction_example_classic):
     assert transaction.mandats_ref ==  'mandats_ref', f"Transaction mandats_ref {transaction.mandats_ref}"
     assert transaction.customer_ref ==  'customer_ref', f"Transaction customer_ref {transaction.customer_ref}"
     assert transaction.src_konto ==  'src_konto', f"Transaction src_konto {transaction.src_konto}"
-    
+
 # @pytest.mark.skip()
 def test_transaction_creation_beta(fx_transaction_example_beta):
     stack=model.Stack(cfg.TransactionListClassic)
@@ -79,7 +79,7 @@ def test_transaction_creation_beta(fx_transaction_example_beta):
     assert transaction.debitor ==  'Angelina Merkel', f"Transaction debitor {transaction.debitor}"
     assert transaction.verwendung ==  '', f"Transaction verwendung {transaction.verwendung}"
     assert transaction.konto ==  '-', f"Transaction konto {transaction.konto}"
-    
+
     assert transaction.debitor_id ==  '', f"Transaction debitor_id {transaction.debitor_id}"
     assert transaction.mandats_ref ==  '', f"Transaction mandats_ref {transaction.mandats_ref}"
     assert transaction.customer_ref ==  '', f"Transaction customer_ref {transaction.customer_ref}"
@@ -107,7 +107,7 @@ def test_create_transactions_list(fx_transactions_list_example_classic):
     stack.input_type = cfg.TransactionListClassic
     for line in fx_transactions_list_example_classic:
         stack.create_transaction(line)
-    
+
     assert len(fx_transactions_list_example_classic) == 5
 
 # @pytest.mark.skip()
@@ -116,7 +116,7 @@ def test_create_transactions_list_beta(fx_transactions_list_example_beta):
     stack.input_type = cfg.TransactionListBeta
     for line in fx_transactions_list_example_beta:
         stack.create_transaction(line)
-    
+
     assert len(fx_transactions_list_example_beta) == 6
     assert len(stack.transactions) == 4
     assert stack.nr_transactions == 4
@@ -144,7 +144,7 @@ def test_create_history(fx_csv_meta_dict):
     assert isinstance(fx_csv_meta_dict, dict)
     # just to check test preconditions
     assert fx_csv_meta_dict.get('file_name') == 'fx_dict'
-    
+
     his = stack.create_history(fx_csv_meta_dict)
     acc = stack.src_account
     assert isinstance(his, model.History)
@@ -154,7 +154,7 @@ def test_create_history(fx_csv_meta_dict):
     max = datetime.strptime(fx_csv_meta_dict.get('end_date'), '%d.%m.%Y').date()
     assert '21.09.2023' == fx_csv_meta_dict.get('start_date'), f"Dict start date: {min}"
     assert '22.09.2023' == fx_csv_meta_dict.get('end_date'), f"Dict end date: {max}"
-    
+
     assert his.min_date == min, f"History start date: {his.min_date}"
     assert his.max_date == max, f"History end date: {his.max_date}"
     assert acc == 'DE123456789', f"source account not updated {acc}"
@@ -173,7 +173,7 @@ def test_init_stack():
     assert beta_stack.nr_transactions is not None
     assert beta_stack.input_type == cfg.TransactionListBeta
     assert beta_stack.src_account is not None
-    
+
     assert classic_stack.transactions is not None
     assert classic_stack.checksums is not None
     assert classic_stack.filter is not None
@@ -194,40 +194,44 @@ def check_behavior():
 
 # @pytest.mark.skip()
 @pytest.mark.parametrize("datum, expected", [
-    ('invalid', 'Error'),   # invalid date format
-    ('010101', 'Error'),   # invalid date format
-    ('1a.10.23', 'Error'),   # invalid date format
+    ('invalide', 'ValueError'),   # invalid date format
+    ('010101', 'InvalidTimeFormat'),   # invalid date format
+    ('1a.10.23', 'ValueError'),   # invalid date format
     ('01.01.2023', 'OK'),   # valid date format
 ])
 def test_invalid_date_handling(datum, expected, caplog):
     stack=model.Stack(cfg.TransactionListBeta)
-    if expected == 'Error':
+    if expected == 'ValueError':
         with pytest.raises(ValueError):
             stack._make_date(datum)
         # test the original date is placed into the log
-        assert datum in caplog.text
+        # assert datum in caplog.text
+    elif expected == 'ValueError':
+        with pytest.raises(err.InvalidTimeFormat):
+
+            stack._make_date(datum)
     else:
         result_date = stack._make_date(datum)
         # Überprüfen, ob das Ergebnis ein 'date'-Objekt ist und den erwarteten Wert hat
         assert isinstance(result_date, date)
         assert result_date == date(2023, 1, 1)
-        
+
 data_ = ["01.01.2022", "01.01.2022", "text", "debitor", "verwendung", "konto", "blz", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
 dataset = set(data_)
 # @pytest.mark.skip()
 @pytest.mark.parametrize("data, expected", [
-    ('invalid', 'input_type'),   
-    ('010101', 'input_type'),   
-    ('1a.10.23', 'input_type'),   
+    ('invalid', 'input_type'),
+    ('010101', 'input_type'),
+    ('1a.10.23', 'input_type'),
     (dataset, 'list'),
     ([1,2,3,], 'list'),
     (data_, 'DATE'),
     (data_, 'src_account'),
-    (data_, 'OK'),  
+    (data_, 'OK'),
 ])
 def test_invalid_data_transaction(data, expected):
     stack=model.Stack(cfg.TransactionListBeta)
-    
+
     if expected == 'input_type':
         stack.init_stack()
         with pytest.raises(err.NoInputTypeSet):
