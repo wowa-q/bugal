@@ -1,7 +1,7 @@
 # pylint: skip-file
 # flake8: noqa
 
-import os 
+import os
 import pathlib
 from subprocess import Popen, PIPE
 import pytest
@@ -13,7 +13,7 @@ from fixtures import basic
 from fixtures import orm_fx
 from fixtures import sql_fx
 # DUT import
-from bugal import cli
+import cli
 
 
 
@@ -29,7 +29,7 @@ def mock_subprocess():
     [
         ("--cmd", "import", "-csv", "test_csv.csv", "-v", "classic"),
         ("--cmd", "import", "-csv", "test_csv.csv","--variant", "beta"),
-        ("-cmd", "import", "-csv", "test_csv.csv","-v", "beta"),        
+        ("-cmd", "import", "-csv", "test_csv.csv","-v", "beta"),
     ],
 )
 
@@ -48,7 +48,7 @@ def test_cli_with_system_exit_code_0(options):
     [
         ("--cm", "import", "-v", 'True'),
         ("--cd", "import", "-v", 'test.csv'),
-        ("--cmd", "import", "-csv", "test_csv.csv", "-v", "alt"),    
+        ("--cmd", "import", "-csv", "test_csv.csv", "-v", "alt"),
     ],
 )
 #@pytest.mark.skip()
@@ -67,7 +67,7 @@ def test_cli_with_system_exit_code_2(options):
     [
         ("--cm", "import", "-v", True),
         ("--cd", "import", "-v", False),
-        ("--v", "import",), 
+        ("--v", "import",),
     ],
 )
 def test_cli_with_system_exit_code_2(options):

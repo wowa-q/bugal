@@ -20,16 +20,20 @@ TEST = "True"
 
 [[bugal.test]]
 # genral source path
-srcpath = "d:/projects/910_prProjects/bugal/bugal_p"
+# srcpath = "d:/projects/910_prProjects/bugal/bugal_p"
+srcpath = "d:/005-pj/bgl/bugal_p"
 # csv file to be imported
-csv_file = "d:/projects/910_prProjects/bugal/tests/20-10-2023_Umsatzliste_Girokonto_DE90120300001001670080.csv"
+# csv_file = "d:/projects/910_prProjects/bugal/tests/20-10-2023_Umsatzliste_Girokonto_DE90120300001001670080.csv"
+csv_file = "d:/005-pj/bgl/tests/20-10-2023_Umsatzliste_Girokonto_DE90120300001001670080.csv"
 # db file to be used
-db_file = "d:/projects/910_prProjects/bugal/tests/fixtures/import_2.db"
+# db_file = "d:/projects/910_prProjects/bugal/tests/fixtures/import_2.db"
+db_file = "d:/005-pj/bgl/tests/fixtures/import_2.db"
 # zip file to be used
-zip_file = "d:/projects/910_prProjects/bugal/tests/fixtures/archive_1.zip"
+# zip_file = "d:/projects/910_prProjects/bugal/tests/fixtures/archive_1.zip"
+zip_file = "d:/005-pj/bgl/tests/fixtures/archive_1.zip"
 # excel file to be used
-xls_file = "d:/projects/910_prProjects/bugal/tests/fixtures/bugal_view_1.xlsx"
-
+# xls_file = "d:/projects/910_prProjects/bugal/tests/fixtures/bugal_view_1.xlsx"
+xls_file = "d:/005-pj/bgl/tests/fixtures/bugal_view_1.xlsx"
 
 # configuration of the source file type [BETA, CLASSIC]
 [[bugal.type]]
