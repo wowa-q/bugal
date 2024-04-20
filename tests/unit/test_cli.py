@@ -23,6 +23,7 @@ def mock_subprocess():
     with patch('subprocess.Popen') as mock_popen:
         yield mock_popen
 
+# @sdoc[CLI-2]
 # positiv test
 @pytest.mark.parametrize(
     "options",
@@ -32,7 +33,6 @@ def mock_subprocess():
         ("-cmd", "import", "-csv", "test_csv.csv","-v", "beta"),
     ],
 )
-
 def test_cli_with_system_exit_code_0(options):
     cli.TEST = True
     runner = CliRunner()
@@ -40,6 +40,8 @@ def test_cli_with_system_exit_code_0(options):
     result = runner.invoke(cli.execute, options)
 
     assert result.exit_code == 0, f"{options} exited with"
+
+# @sdoc[/CLI-2]
 
 # negativ test - exit code 1: Allgemeiner Fehler
 # Dieser Code wird verwendet, um anzuzeigen, dass ein nicht spezifizierter Fehler aufgetreten ist.

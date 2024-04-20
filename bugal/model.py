@@ -50,6 +50,8 @@ class Property:
 class Transaction:
     """Transaction is a Dataclass fot creation of the transactions
     """
+
+    # TODO: fix the warning
     date: date = field(metadata={'printed': True})
     text: str = field(metadata={'printed': True})  # changed
     status: str
@@ -92,6 +94,7 @@ class Filter():
     min_date: date
 
 
+# TODO: provide public APIs to be used by the service layer
 class Stack():
     """Stack of transactions
     """
@@ -300,7 +303,7 @@ class Stack():
     def push_transactions(self, transaction):
         """Push transactions to DB
         """
-        # TODO: not implermented
+        # TODO: push_transactions not implermented
         self.filter.max_date = self._get_max_transaction_date()
         self.filter.min_date = self._get_min_transaction_date()
         # self.trepo.add_transaction(transaction)
@@ -309,7 +312,7 @@ class Stack():
     def update_history(self, hist: list):
         """push import history into database
         """
-        # TODO: not implermented
+        # TODO: update_history not implermented
         # history = History(hist[0],
         #                   hist[1],
         #                   hist[2],

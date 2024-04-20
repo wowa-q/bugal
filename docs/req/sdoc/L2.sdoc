@@ -1,0 +1,244 @@
+[DOCUMENT]
+TITLE: Bugalteria Level 2 Requirements
+VERSION: 1.0.0
+OPTIONS:
+  REQUIREMENT_STYLE: Table
+
+[GRAMMAR]
+IMPORT_FROM_FILE: grammar.sgra
+
+[SECTION]
+TITLE: Level 2 requirements: design decisions
+REQ_PREFIX: DESIGN-
+
+[REQUIREMENT]
+UID: DESIGN-1
+STATUS: Draft
+VERIFICATION: -
+TITLE: import click
+STATEMENT: The system shall shall use "click" package to realize CLI.
+RATIONALE: Easier to use for CLI implementation
+LAYER: UI
+RELATIONS:
+- TYPE: Parent
+  VALUE: SYSTEM-1
+
+[REQUIREMENT]
+UID: DESIGN-2
+STATUS: Draft
+VERIFICATION: -
+TITLE: Configuration
+STATEMENT: Das Tool shall use config.toml for static configuration.
+RATIONALE: tomli package is provided for python and the format fits well for python.
+COMMENT: any comment
+LAYER: config
+RELATIONS:
+- TYPE: Parent
+  VALUE: UI-2
+
+[REQUIREMENT]
+UID: DESIGN-3
+STATUS: Draft
+VERIFICATION: -
+TITLE: Data Base sqlite
+STATEMENT: The Tool shall maintain data in sqlite.
+RATIONALE: Data Base can be used in different frameworks.
+COMMENT: useable in Django?
+LAYER: DB
+RELATIONS:
+- TYPE: Parent
+  VALUE: SYSTEM-2
+
+[/SECTION]
+
+[SECTION]
+TITLE: Level 2 requirements: Data Base
+REQ_PREFIX: DB-
+
+[REQUIREMENT]
+UID: DB-1
+STATUS: Draft
+VERIFICATION: -
+TITLE: Data Base Tables
+STATEMENT: >>>
+The Data base shal have following tables:
+ - Transactions
+ - History
+ - Properties
+ - Mapping
+ - Rules
+<<<
+RATIONALE: Data Base can be used in different frameworks.
+COMMENT: useable in Django?
+LAYER: DB
+RELATIONS:
+- TYPE: Parent
+  VALUE: SYSTEM-2
+
+[SECTION]
+TITLE: Level 2 requirements: DB Transaction table
+REQ_PREFIX: DB-TABLE-TRAN-
+
+[/SECTION]
+
+[SECTION]
+TITLE: Level 2 requirements: History table
+REQ_PREFIX: DB-TABLE-HIS-
+
+[/SECTION]
+
+[SECTION]
+TITLE: Level 2 requirements: Properties table
+REQ_PREFIX: DB-TABLE-PROP-
+
+[REQUIREMENT]
+UID: DB-TABLE-PROP-1
+STATUS: Draft
+VERIFICATION: -
+TITLE: New Property
+STATEMENT: Die Liste der Properties wird auf neue Properties durchsucht und legt neue in DB an.
+RATIONALE: TBD
+COMMENT: Part of the report import?
+LAYER: DB
+
+[/SECTION]
+
+[SECTION]
+TITLE: Level 2 requirements: Rules table
+REQ_PREFIX: DB-TABLE-RULE-
+
+[/SECTION]
+
+[SECTION]
+TITLE: Level 2 requirements: Mapping table
+REQ_PREFIX: DB-TABLE-MAPP-
+
+[REQUIREMENT]
+UID: DB-TABLE-MAPP-1
+STATUS: Draft
+VERIFICATION: -
+TITLE: Data Base Tables
+STATEMENT: >>>
+Die Transaktionen sollen anhand der Regeln für Automapping geprüft werden und
+Mapping soll für Treffer aktuallisiert werden.
+<<<
+RATIONALE: Data Base can be used in different frameworks.
+COMMENT: useable in Django?
+LAYER: DB
+
+[REQUIREMENT]
+UID: DB-TABLE-MAPP-2
+STATUS: Draft
+VERIFICATION: -
+TITLE: Mapping creation
+STATEMENT: Die Mappingliste wird durchsucht und neue Mappings werden angelegt.
+RATIONALE: Part of the report import?
+COMMENT: TBD
+LAYER: DB
+
+[/SECTION]
+
+[/SECTION]
+
+[SECTION]
+TITLE: Level 2 requirements: Busyness logic
+REQ_PREFIX: MODEL-
+
+[FREETEXT]
+Requirements for busyness logic, which is implemented mainly in the model.
+[/FREETEXT]
+
+[REQUIREMENT]
+UID: MODEL-1
+STATUS: Draft
+VERIFICATION: -
+TITLE: Transaction creation from input
+STATEMENT: Kann aus csv Liste der Transaktionen erstellen.
+RATIONALE: TBD
+COMMENT: TBD
+LAYER: model
+
+[REQUIREMENT]
+UID: MODEL-2
+STATUS: Draft
+VERIFICATION: -
+TITLE: TBD
+STATEMENT: Transaktionen sollen von csv Dateien importiert werden.
+RATIONALE: TBD
+COMMENT: TBD
+LAYER: model
+
+[REQUIREMENT]
+UID: MODEL-3
+STATUS: Draft
+VERIFICATION: -
+TITLE: TBD
+STATEMENT: Das System soll mehrere csv Dateien importieren können.
+RATIONALE: TBD
+COMMENT: TBD
+LAYER: model
+
+[REQUIREMENT]
+UID: MODEL-4
+STATUS: Draft
+VERIFICATION: -
+TITLE: TBD
+STATEMENT: Jede Transaktion soll nur einmal vorkommen.
+RATIONALE: TBD
+COMMENT: TBD
+LAYER: model
+
+[REQUIREMENT]
+UID: MODEL-5
+STATUS: Draft
+VERIFICATION: -
+TITLE: TBD
+STATEMENT: Importierte csv soll nicht noch einmal importiert werden.
+RATIONALE: TBD
+COMMENT: TBD
+LAYER: model
+
+[REQUIREMENT]
+UID: MODEL-6
+STATUS: Draft
+VERIFICATION: -
+TITLE: TBD
+STATEMENT: Es soll eine csv Import-Historie persistent gespeichert werden.
+RATIONALE: TBD
+COMMENT: TBD
+LAYER: model
+
+[REQUIREMENT]
+UID: MODEL-7
+STATUS: Draft
+VERIFICATION: -
+TITLE: TBD
+STATEMENT: Importierte csv Dateien sollen archiviert werden.
+RATIONALE: TBD
+COMMENT: TBD
+LAYER: model
+
+[REQUIREMENT]
+UID: MODEL-8
+STATUS: Draft
+VERIFICATION: -
+TITLE: TBD
+STATEMENT: Das System verarbeitet nur gültige csv Dateien.
+RATIONALE: TBD
+COMMENT: TBD
+LAYER: model
+
+[REQUIREMENT]
+UID: MODEL-9
+STATUS: Draft
+VERIFICATION: -
+TITLE: TBD
+STATEMENT: >>>
+Das System extrahiert max und min Datum und gibt Filter für DB um die Liste der Hashes
+aus DB einzuschränken.
+<<<
+RATIONALE: TBD
+COMMENT: TBD
+LAYER: model
+
+[/SECTION]

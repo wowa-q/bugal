@@ -1,0 +1,135 @@
+[DOCUMENT]
+TITLE: Project requirements template
+VERSION: 1.0.0
+REQ_PREFIX: USER-
+OPTIONS:
+  REQUIREMENT_STYLE: Table
+
+[GRAMMAR]
+ELEMENTS:
+- TAG: REQUIREMENT
+  FIELDS:
+  - TITLE: UID
+    TYPE: String
+    REQUIRED: False
+  - TITLE: STATUS
+    TYPE: String
+    REQUIRED: True
+  - TITLE: VERIFICATION
+    TYPE: String
+    REQUIRED: True
+  - TITLE: TITLE
+    TYPE: String
+    REQUIRED: False
+  - TITLE: STATEMENT
+    TYPE: String
+    REQUIRED: True
+  - TITLE: RATIONALE
+    TYPE: String
+    REQUIRED: True
+  - TITLE: COMMENT
+    TYPE: String
+    REQUIRED: False
+  - TITLE: LAYER
+    TYPE: MultipleChoice(config, handler, UI, DB)
+    REQUIRED: True
+  - TITLE: UNIT
+    TYPE: String
+    REQUIRED: False
+  RELATIONS:
+  - TYPE: Parent
+  - TYPE: File
+
+[FREETEXT]
+Introduction:
+The template shall be a starting point of every specification in the project.
+https://strictdoc.readthedocs.io/en/stable/strictdoc_01_user_guide.html
+
+In following is the example for a User Interface requirement specification
+
+it can be built with folowing command:
+strictdoc export template.sdoc
+
+it can be exported as follow:
+strictdoc export --formats=excel template.sdoc
+
+the U I D can be generated as follow Note - U I D tag must not exist:
+strictdoc manage auto-uid template.sdoc
+
+[/FREETEXT]
+
+[SECTION]
+TITLE: User interface
+
+[SECTION]
+TITLE: Command line interface
+REQ_PREFIX: CLI-
+
+[REQUIREMENT]
+UID: CLI-1
+STATUS: Draft
+VERIFICATION: -
+TITLE: Command line interface
+STATEMENT: Es soll ein Kommando zum Import csv geben mit Pfadangabe.
+RATIONALE: csv needs to be imported
+COMMENT: any comment
+LAYER: UI
+UNIT: cli.py
+
+[REQUIREMENT]
+UID: CLI-2
+STATUS: Draft
+VERIFICATION: -
+TITLE: Command line interface
+STATEMENT: Es soll ein Kommando zum Import csv geben mit Pfadangabe.
+RATIONALE: csv needs to be imported
+COMMENT: This is a multiline comment.
+LAYER: UI
+UNIT: cli.py
+RELATIONS:
+- TYPE: Parent
+  VALUE: CLI-1
+- TYPE: File
+  VALUE: /tests/unit/test_cli.py
+
+[SECTION]
+TITLE: Command Line user interface - Tests
+REQ_PREFIX: TST-CLI-
+
+[REQUIREMENT]
+UID: TST-CLI-1
+STATUS: Draft
+VERIFICATION: automated
+TITLE: Command line interface positive test
+STATEMENT: Es soll geprüft werden, dass CLI funktioniert.
+RATIONALE: csv needs to be imported
+COMMENT: This is a multiline comment.
+LAYER: UI
+UNIT: test_cli.py
+RELATIONS:
+- TYPE: Parent
+  VALUE: CLI-1
+- TYPE: File
+  VALUE: /tests/unit/test_cli.py
+
+[/SECTION]
+
+[/SECTION]
+
+[SECTION]
+TITLE: Grafical user interface
+REQ_PREFIX: GUI-
+
+[REQUIREMENT]
+UID: GUI-1
+STATUS: Draft
+VERIFICATION: -
+TITLE: GUI shall be provided
+STATEMENT: Es soll eine GUI geben zum Import csv geben mit Pfadangabe.
+RATIONALE: csv needs to be imported
+LAYER: UI
+UNIT: cli.py
+
+[/SECTION]
+
+[/SECTION]
