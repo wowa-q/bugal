@@ -3,6 +3,7 @@
 import logging
 
 from bugal import model
+from bugal.libs import handler as hand
 from bugal import abstract as a
 from bugal import exceptions as err
 
@@ -143,3 +144,16 @@ class Invoker():
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__} Service invoker"
+
+
+#       *** PUBLIC APIs ***
+
+def import_data(cfg_type):
+    # hand.validate_path(cfg_type.path_)
+    pth_check = hand.PathHandler().handle(cfg_type.path_)
+    # invoker = Invoker()
+    # invoker.set_main_command(CmdImportNewCsv())
+    # invoker.set_on_start()
+    # invoker.set_on_finish()
+    # invoker.run_commands()
+    return pth_check
