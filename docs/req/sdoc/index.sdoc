@@ -1,0 +1,9 @@
+[DOCUMENT]
+TITLE: Bugalteria Software Requirements
+REQ_PREFIX: BUGAL-
+
+[DOCUMENT_FROM_FILE]
+FILE: L1.sdoc
+
+[DOCUMENT_FROM_FILE]
+FILE: L2.sdoc

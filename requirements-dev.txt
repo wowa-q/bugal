@@ -1,9 +1,17 @@
 # Linting/Tooling
-pylint
+# pylint
 flake8
 mypy
 pre-commit
 autopep8
 pytest
 mkdocs
+strictdoc
+
+# packages
 click
+kivy[base]
+openpyxl
+tomli
+sqlalchemy
+setuptools

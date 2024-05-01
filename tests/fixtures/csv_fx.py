@@ -17,8 +17,8 @@ import pytest
 
 # user packages
 from context import bugal
-from bugal import model
-from bugal import cfg as tom
+from bugal.app import model
+from bugal.cfg import cfg as tom
 
 FIXTURE_DIR = pathlib.Path(__file__).parent.resolve()
 

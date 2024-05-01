@@ -12,12 +12,12 @@ import csv
 
 from context import bugal
 
-from bugal import cfg
-from bugal import exceptions as err
-from bugal import model
-from bugal import handler
-from bugal import csv_handler
-from bugal.handler import ArtifactHandler
+from bugal.cfg import cfg
+from bugal.libs import exceptions as err
+from bugal.app import model
+from bugal.app import handler
+from bugal.app import csv_handler
+from bugal.app.handler import ArtifactHandler
 from fixtures import basic
 from fixtures import csv_fx
 from fixtures.csv_fx import fx_zip_archive

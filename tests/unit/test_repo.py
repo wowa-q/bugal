@@ -11,12 +11,12 @@ import pytest
 
 from context import bugal
 
-from bugal import cfg
-from bugal import repo
-from bugal import repo_adapter
+from bugal.cfg import cfg
+from bugal.db import repo
+from bugal.db import repo_adapter
 from bugal import orm
-from bugal import model
-from bugal import exceptions as err
+from bugal.app import model
+from bugal.libs import exceptions as err
 from fixtures import basic
 from fixtures import orm_fx
 from fixtures import sql_fx

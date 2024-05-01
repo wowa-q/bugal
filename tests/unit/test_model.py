@@ -8,9 +8,9 @@ import pytest
 
 from context import bugal
 
-from bugal import model
-from bugal import cfg
-from bugal import exceptions as err
+from bugal.app import model
+from bugal.cfg import cfg
+from bugal.libs import exceptions as err
 
 def test_transaction_hash_equality(fx_transaction_example_classic):
     t1 = model.Transaction("2022.01.01", "text", "status", "debitor", "verwendung", "konto", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto")
