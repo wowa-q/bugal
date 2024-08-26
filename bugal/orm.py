@@ -2,7 +2,7 @@
 https://docs.sqlalchemy.org/en/20/orm/mapping_styles.html#classical-mappings
 """
 import logging
-from sqlalchemy import Column, Integer, String, Date, create_engine, func
+from sqlalchemy import Column, Integer, String, Date, create_engine, func, between
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 
@@ -139,6 +139,12 @@ class Orm():
         self.session = Session(self.engine)
         return self.session
 
+    def close_session(self):
+        """disconnect the DB
+        """
+        if self.session is not None:
+            self.session.close()
+
     def delete_tables(self):
         """delete ALL tables from DB
         """
@@ -178,10 +184,15 @@ class SqlTransactionRepo(a.TransactionRepo):
         if SqlTransactionRepo.__type__ is None:
             SqlTransactionRepo.__type__ = 'sqlite'
             Orm.__type__ = 'sqlite'
-
+        print(f'DEBUG ORM - path: {SqlTransactionRepo.__path__} and type: {SqlTransactionRepo.__type__} ')
         self.orm = Orm.get_instance()
         self.session = self.orm.get_session()
         self.engine = self.orm.engine
+
+    def deinit(self):
+        """disconnect the session
+        """
+        self.orm.close_session()
 
     @staticmethod
     def get_instance():  # tested
@@ -192,6 +203,9 @@ class SqlTransactionRepo(a.TransactionRepo):
         """
         if SqlTransactionRepo.__instance__ is None:
             SqlTransactionRepo.__instance__ = SqlTransactionRepo()
+        logger.debug("""ORM instatiated with path: %s and type: %s""",
+                     SqlTransactionRepo.__path__,
+                     SqlTransactionRepo.__type__)
         return SqlTransactionRepo.__instance__
 
     def add(self, transaction) -> bool:  # tested
@@ -235,18 +249,34 @@ class SqlTransactionRepo(a.TransactionRepo):
             logger.debug("""Pushing transaction to DB completed""")
             return True
 
-    def get(self, *args, **kwargs):  # tested
-        if 'id_' in kwargs:
-            with Session(self.engine) as session:
-                result = session.query(Transactions).filter(Transactions.id ==
-                                                            kwargs.get('id_')).first()
+    def get(self, *args, **kwargs):  # tested with memory type
+        try:
+            # connection test
+            test = self.session.execute('SELECT * FROM transactions LIMIT 2').fetchall()
+            if test is None:
+                raise err.DbConnectionFaild
+            if 'id_' in kwargs:
+                result = self.session.query(Transactions).filter(Transactions.id == kwargs.get('id_')).first()
+            elif 'hash_' in kwargs:
+                result = self.session.query(Transactions).filter(Transactions.checksum == kwargs.get('hash_')).first()
+            elif 'start_date' in kwargs:  # start_date - end_date
+                start_date = kwargs.get('start_date')
+                end_date = kwargs.get('end_date')
+                print(f'# ORM: lese Bereich von {start_date} - {end_date}')
+                query = self.session.query(Transactions).filter(
+                    between(Transactions.datum,
+                            start_date.strftime('%Y-%m-%d'),
+                            end_date.strftime('%Y-%m-%d')))
+                # print(f"SQL query: {str(query)}")
+                result = query.all()
+                print(f'# ORM DEBUG PARMETER: pth={SqlTransactionRepo.__path__} und type={SqlTransactionRepo.__type__}')
+            else:
+                print(f'kein passender Filer gesetzt um Transactions aus SQL auszulesen: {kwargs}')
+                return None
+        except err.DbConnectionFaild:
+            logger.exception("BugalOrm: DB session connection failed")
+            return -1
 
-        elif 'hash_' in kwargs:
-            with Session(self.engine) as session:
-                result = session.query(Transactions).filter(Transactions.checksum ==
-                                                            kwargs.get('hash_')).first()
-        else:
-            return None
         logger.debug("""Transaction found in DB: %s""", result)
         return result
 
@@ -275,7 +305,7 @@ class SqlTransactionRepo(a.TransactionRepo):
         try:
             row_count = self.session.query(func.count(Transactions.id)).scalar()
             return row_count
-        except cfg.DbConnectionFaild:
+        except err.DbConnectionFaild:
             logger.exception("BugalOrm: DB session connection failed")
             return -1
 

@@ -15,6 +15,7 @@ to package with the pyinstaller:
 """
 
 from pathlib import Path
+from datetime import datetime, date
 import logging
 # import sys
 
@@ -57,14 +58,24 @@ class BugalRoot(FloatLayout):
         self.db_pth = None          # path to the file
         self.zip_pth = None         # path to the file
         self.toml_pth = None        # path to the file
-        self.srvc_invoker = None    # Service invoker
-    #     # call Widget layout constructor
+        self.xlsx_pth = None        # path to the file
+        self.import_invoker = None    # Service invoker
+        self.export_invoker = None    # Service invoker
+    #   # call Widget layout constructor
         super(BugalRoot, self).__init__(**kwargs)
     # parameters from the gui
     csv_pth_input = ObjectProperty(None)
     db_pth_input = ObjectProperty(None)
     zip_pth_input = ObjectProperty(None)
     toml_pth_input = ObjectProperty(None)
+    xlsx_pth_input = ObjectProperty(None)
+
+    start_year = ObjectProperty(None)
+    start_month = ObjectProperty(None)
+    start_day = ObjectProperty(None)
+    end_year = ObjectProperty(None)
+    end_month = ObjectProperty(None)
+    end_day = ObjectProperty(None)
 
     def _print_log(self, message):
         # addressing the IDs from the gui
@@ -89,6 +100,58 @@ class BugalRoot(FloatLayout):
 
         return import_invoker
 
+    def _create_export_invoker(self):
+        """creates the export invoker by initialising receiver instances for
+        commands
+
+        Returns:
+            service.Invoker: Invoker instance which can run the configured commands
+        """
+        trepo = repo.TransactionsRepo(pth=self.db_pth, db_type='sqlite')
+        handl = handler.ExcelWriter(self.xlsx_pth)
+        # calculate input data
+        year1 = self.ids.start_year.text
+        month1 = self.ids.start_month.text
+        day1 = self.ids.start_day.text
+
+        year2 = self.ids.end_year.text
+        month2 = self.ids.end_month.text
+        day2 = self.ids.end_day.text
+
+        # startdate = datetime.strptime(str(datum), '%d.%m.%Y').date()
+        startdate = date(int(year1), int(month1), int(day1))
+        # enddate = datetime.strptime(str(datum), '%d.%m.%Y').date()
+        enddate = date(int(year2), int(month2), int(day2))
+        print(f'filter create: {startdate} - {enddate}')
+        # create command
+        cmd = service.CmdExportExcel(trepo, handl)
+        cmd.set_filter(startdate, enddate, datum_range=True)
+        # create invoker
+        export_invoker = service.Invoker()
+        # set invoker command
+        export_invoker.set_main_command(cmd)
+
+        return export_invoker
+
+    # def _create_transaction_read_invoker(self) -> service.Invoker:
+    #     year1 = self.ids.start_year.text
+    #     month1 = self.ids.start_month.text
+    #     day1 = self.ids.start_day.text
+
+    #     year2 = self.ids.end_year.text
+    #     month2 = self.ids.end_month.text
+    #     day2 = self.ids.end_day.text
+
+    #     datum = day1 + '.' + month1 + '.' + year1
+    #     print(datum)
+    #     startdate = datetime.strptime(datum, '%d.%m.%y').date()
+    #     datum = day2 + '.' + month2 + '.' + year2
+    #     print(datum)
+    #     enddate = datetime.strptime(datum, '%d.%m.%y').date()
+    #     read_invoker = service.CmdReadTransactions()
+    #     read_invoker.set_filter([startdate, enddate], datum_range=True)
+    #     return read_invoker
+
     def clear_input(self):
         """clearing the entered configuration from gui
         """
@@ -96,7 +159,8 @@ class BugalRoot(FloatLayout):
         self.ids.db_pth_input.text = ''
         self.ids.zip_pth_input.text = ''
         self.ids.toml_pth_input.text = ''
-        self.srvc_invoker = None
+        self.ids.xlsx_pth_input.text = ''
+
         message = 'title: the configuration is cleared'
         logger.info(message)
         Logger.info(message)        # prints message to console
@@ -104,6 +168,9 @@ class BugalRoot(FloatLayout):
 
     def _validate_path(self, _path):
         message = ''
+        if _path is None:
+            message = "Path not configured"
+            return (message, Path(_path))
         if len(_path) > 0:
             if Path(_path).is_dir():
                 message = message + ' - Path configured ok \n'
@@ -135,6 +202,8 @@ class BugalRoot(FloatLayout):
         message = message + 'DB' + validation
         (validation, self.zip_pth) = self._validate_path(self.ids.zip_pth_input.text)
         message = message + 'ZIP' + validation
+        (validation, self.xlsx_pth) = self._validate_path(self.ids.xlsx_pth_input.text)
+        message = message + 'Excel' + validation
         (validation, self.toml_pth) = self._validate_path(self.ids.toml_pth_input.text)
         message = message + 'TOML' + validation
         if self.toml_pth.is_file():
@@ -144,9 +213,9 @@ class BugalRoot(FloatLayout):
             cfg.CSVFILE = self.csv_pth          # overwriting configuration from toml
             cfg.DBFILE = self.db_pth            # overwriting configuration from toml
             cfg.ARCHIVE = self.zip_pth          # overwriting configuration from toml
-
-        self.srvc_invoker = self._create_import_csv_invoker()
-        message = message + f'Invoker result: {self.srvc_invoker}'
+            cfg.EXCEL = self.xlsx_pth           # overwriting configuration from toml
+        self.import_invoker = self._create_import_csv_invoker()
+        message = message + f'Invoker result: {self.import_invoker}'
 
         print(message)
         logger.info("message")
@@ -165,11 +234,38 @@ class BugalRoot(FloatLayout):
     def do_import(self):
         """Invokes the import command on pressed button
         """
-        if isinstance(self.srvc_invoker, service.Invoker):
+        if isinstance(self.import_invoker, service.Invoker):
             message = "start IMPORT"
-            self.srvc_invoker.run_commands()
+            self.import_invoker.run_commands()
         else:
             message = "IMPORT service not configured properly"
+        self._print_log(message)
+
+    def do_export_cfg(self):
+        """taking over configuration on pressed button
+        """
+        message = ''
+        (validation, self.db_pth) = self._validate_path(self.ids.db_pth_input.text)
+        message = message + 'DB' + validation
+        (validation, self.xlsx_pth) = self._validate_path(self.ids.xlsx_pth_input.text)
+        message = message + 'Excel' + validation
+        # read_invoker = self._create_transaction_read_invoker()
+        self.export_invoker = self._create_export_invoker()
+        # self.export_invoker.set_on_start(read_invoker)
+        message = message + f'Invoker result: {self.export_invoker}'
+
+        print(message)
+        logger.info("message")
+        self._print_log(message)
+
+    def do_export(self):
+        """Invokes the export command on pressed button
+        """
+        if isinstance(self.export_invoker, service.Invoker):
+            message = "start EXPORT"
+            self.export_invoker.run_commands()
+        else:
+            message = "EXPORT service not configured properly"
         self._print_log(message)
 
 

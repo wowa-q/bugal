@@ -65,15 +65,15 @@ def fx_test_db():
 
     yield file_path
     time.sleep(0.1)
-    try:
-        file_path.unlink()
-    except FileNotFoundError:
-        pass
-    
+    # try:
+    #     file_path.unlink()
+    # except FileNotFoundError:
+    #     pass
+
 @pytest.fixture
 def fx_test_classic_csv():
     csv_file1, csv_file2 = get_csv_from_templates('classic')
-    
+
     yield csv_file1, csv_file2
     time.sleep(0.1)
     try:

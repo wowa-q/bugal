@@ -1,8 +1,10 @@
 """Seervice layer of the bugal"""
 
 import logging
+from datetime import date
 
 from bugal import model
+from bugal import repo
 from bugal import abstract as a
 from bugal import exceptions as err
 
@@ -81,6 +83,103 @@ class CmdImportNewCsv(a.Command):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__} Service interface for bugal operations"
+
+
+class CmdExportExcel(a.Command):
+    """Specifying command to export excel file
+
+    Args:
+        a (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    def __init__(self,
+                 trepo: a.AbstractRepository,
+                 handler: a.HandlerWriteIF) -> None:
+        self.trepo = trepo          # Transation repository where to to get data
+        self.handler = handler      # handler to write excel file
+        self.date = None
+        self.start_date = None
+        self.end_date = None
+        # self.db_pth = db_pth
+
+    def set_filter(self, *args, **kwargs):
+        """sets filter for retriving transactions
+
+        Returns:
+            _type_: _description_
+        """
+        if 'datum' == kwargs and len(args) == 2:
+            self.date = args[0]
+            self.end_date = args[1]
+            # isinstance(args[0], datetime.Date)
+        elif 'datum_range' in kwargs and len(args) == 2:
+            self.start_date = args[0]
+            self.end_date = args[1]
+            print(f'Datum Range: {self.start_date} - {self.end_date}')
+            if not isinstance(args[0], date):
+                print(f'Transaction filter ist nicht datetime.date: {args} und {kwargs}')
+                return
+        else:
+
+            print(f'Transaction filter wurden nicht gegesetzt: {args} und {kwargs}')
+            return
+
+    def execute(self) -> None:
+        ''' execution of the specified command
+        1. read data from DB
+        2. ..
+        '''
+        # tctr = self.trepo.get_transaction_ctr()
+        # print(f'# connection test, read transactions couters: {tctr}')
+        # test = self.trepo.get_transaction(id_=1)
+        # print(f'test conncetion with ID=1: {test}')
+        self.handler.transactions = self.trepo.get_transaction(start_date=self.start_date,
+                                                               end_date=self.end_date)
+        # # print(f'# Anzahl der gefunden TRANSACTIONS: {self.handler.transactions}')
+
+        if self.handler.transactions is None:
+            print(f'Transactions wurden nicht gelesen zwischen: {self.start_date} und {self.end_date}')
+            return
+        self.trepo.deinit()
+        self.handler.print()
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__} Service interface for bugal operations"
+
+
+class CmdReadTransactions(a.Command):
+    """Command to read transactions from DB
+    """
+    def __init__(self, db_pth) -> None:
+        self.date = None
+        self.start_date = None
+        self.end_date = None
+        self.db_pth = db_pth
+
+    def set_filter(self, *args, **kwargs):
+        """sets filter for retriving transactions
+
+        Returns:
+            _type_: _description_
+        """
+        if 'datum' in kwargs:
+            self.date = args[0]
+            self.end_date = args[1]
+            # isinstance(args[0], datetime.Date)
+        elif 'datum_range' in kwargs:
+            self.start_date = args[0]
+            self.end_date = args[1]
+            # isinstance(args[0], datetime.Date)
+        else:
+            return None
+
+    def execute(self) -> None:
+        ''' interface API '''
+        trepo = repo.TransactionsRepo(self.db_pth)
+        trepo.get_transaction([self.start_date, self.end_date])
+        print('READ TRANSACTIONS')
 
 
 class CmdFake(a.Command):

@@ -2,7 +2,7 @@
 
 """
 import logging
-
+from datetime import datetime
 
 from bugal import model
 from bugal import abstract as a
@@ -101,6 +101,11 @@ class TransactionsRepo(a.AbstractRepository):
     def __init__(self, pth='', db_type='sqlite'):  # tested
         self.adapter = repo_adapter.RepoAdapter(pth, db_type)
 
+    def deinit(self):
+        """to close the connection
+        """
+        self.adapter.deinit()
+
     def add_transaction(self, transaction: model.Transaction):  # tested
         result = False
         result = self.adapter.add_transaction(transaction)
@@ -121,7 +126,16 @@ class TransactionsRepo(a.AbstractRepository):
             return self.adapter.get_transaction(id_=kwargs.get('id_'))
         elif 'hash_' in kwargs:  #
             return self.adapter.get_transaction(hash_=kwargs.get('hash_'))
+        elif 'start_date' in kwargs:  # start_date - end_date
+            if not isinstance(kwargs.get('start_date'), datetime):
+                print(f'Transaction filter ist nicht datetime.datetime: {kwargs}')
+            start_date = kwargs.get('start_date')
+            end_date = kwargs.get('end_date')
+            print(f'lese Bereich von {start_date} bis {end_date}')
+            return self.adapter.get_transaction(start_date=start_date,
+                                                end_date=end_date)
         else:
+            print(f'kein passender Argument gefunden: {kwargs}')
             return None
 
     def del_transaction(self, *arg, **kwargs) -> bool:  # tested

@@ -19,12 +19,22 @@ class RepoAdapter(a.AbstractRepository):
         self.trepo = None
         self.hrepo = None
         if self.db_type in ['sqlite', 'memory']:
+
             orm.SqlTransactionRepo.__path__ = pth
             orm.SqlTransactionRepo.__type__ = db_type
             orm.SqlHistoryRepo.__path__ = pth
             orm.SqlHistoryRepo.__type__ = db_type
+            logger.debug("""ADAPTER initialization: path: %s and type: %s""",
+                         orm.SqlTransactionRepo.__path__,
+                         orm.SqlTransactionRepo.__type__)
         else:
             logger.debug("""No adapter found for transaction to DB: %s""", self.db_type)
+
+    def deinit(self):
+        """closing connection to DB
+        """
+        if self.trepo is not None:
+            self.trepo.deinit()
 
     def add_transaction(self, transaction):  # tested
         result = False
@@ -52,6 +62,9 @@ class RepoAdapter(a.AbstractRepository):
             return self.trepo.get(id_=kwargs.get('id_'))
         elif 'hash_' in kwargs:  # tested
             return self.trepo.get(hash_=kwargs.get('hash_'))
+        elif 'start_date' in kwargs:  # start_date - end_date
+            return self.trepo.get(start_date=kwargs.get('start_date'),
+                                  end_date=kwargs.get('end_date'))
         else:
             return None
 
@@ -63,6 +76,7 @@ class RepoAdapter(a.AbstractRepository):
             return self.hrepo.get(id_=kwargs.get('id_'))
         elif 'hash_' in kwargs:  # tested
             return self.hrepo.get(hash_=kwargs.get('hash_'))
+
         else:
             return None
 

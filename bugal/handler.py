@@ -54,9 +54,15 @@ class ExcelWriter(a.HandlerWriteIF):
         sheet.cell(row=cfg.MIN_ROW - 1, column=cfg.COLUMNS['Betrag'], value='Betrag')
         sheet.cell(row=cfg.MIN_ROW - 1, column=cfg.COLUMNS['Checksum'], value='Checksum')
         sheet.cell(row=cfg.MIN_ROW - 1, column=cfg.COLUMNS['vom Konto'], value='vom Konto')
+        # check if transaction is an iterable
+        try:
+            iter(self.transactions)
+        except TypeError:
+            raise err.NoValidTransactionData
+
         # print data
         for t_ctr, transaction in enumerate(self.transactions, start=cfg.MIN_ROW):
-            sheet.cell(row=t_ctr, column=cfg.COLUMNS['Datum'], value=transaction.date)
+            sheet.cell(row=t_ctr, column=cfg.COLUMNS['Datum'], value=transaction.datum)
             sheet.cell(row=t_ctr, column=cfg.COLUMNS['Buchungstext'], value=transaction.text)
             # pylint: disable=C0301
             sheet.cell(row=t_ctr, column=cfg.COLUMNS['Verwendungszweck'], value=transaction.verwendung)
@@ -129,10 +135,10 @@ class ExcelWriter(a.HandlerWriteIF):
                                 'print_year']:
                 method = getattr(self, method_name)
                 method()
-            try:
-                self._work_book.remove('Sheet')
-            except ValueError:
-                logger.exception("Could not delete sheet with the name: %s", 'Sheet')
+            # try:
+            #     self._work_book.remove('Sheet')
+            # except ValueError:
+            #     logger.exception("Could not delete sheet with the name: %s", 'Sheet')
             self._work_book.save(self.xls_file)
             self._work_book.close()
             success = True

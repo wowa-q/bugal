@@ -15,10 +15,11 @@
 	multiline: False
 	height: 50
 	# width: 200
-<BugalRoot>
 
-    BoxLayout:
+<BugalRoot>
+    BoxLayout: # 1
         orientation: 'vertical'
+
         # oberste Button-Leiste
         BoxLayout:
             orientation: 'horizontal'
@@ -26,7 +27,7 @@
             height: 40
 
             Button:
-                text: "Configure"
+                text: "Configure Import"
                 on_press: root.configure()
             Button:
                 text: "Clear configuration"
@@ -35,9 +36,12 @@
                 text: "Start Import"
                 on_press: root.do_import()
             Button:
-                text: "Button 4"
+                text: "Configure Export"
+                on_press: root.do_export_cfg()
             Button:
-                text: "Button 5"
+                text: "Start Export"
+                on_press: root.do_export()
+
         # Abstand
         BoxLayout:
             orientation: 'horizontal'
@@ -46,21 +50,21 @@
             Label:
                 text: ""
 
-        # Label Texteingabe Paare
-        BoxLayout:
+        BoxLayout:  # 3 Label Texteingabe Paare
             orientation: 'vertical'
             size_hint_y: None
             height: 150
-            BoxLayout:
+            BoxLayout: # CSV file config text-input
                 orientation: 'horizontal'
-                Label:
+                Label:  # CSV file config text-input
                     text: "CSV file to be imported - full path"
                     halign: "right"  # Horizontale Ausrichtung: "left", "center" oder "right"
                     valign: "middle"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
                 TextInput:
                     id: csv_pth_input
+                    text: "d:/projects/910_prProjects/bugal/bugal_p/"
 
-            BoxLayout:
+            BoxLayout: # DB file config text-input
                 orientation: 'horizontal'
                 Label:
                     text: "DB file to be imported - full path"
@@ -68,8 +72,9 @@
                     valign: "middle"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
                 TextInput:
                     id: db_pth_input
+                    text: "d:/projects/910_prProjects/bugal/bugal_p/import_2.db"
 
-            BoxLayout:
+            BoxLayout: # zip file config text-input
                 orientation: 'horizontal'
                 Label:
                     text: "zip file to be used for archiving - full path"
@@ -77,8 +82,19 @@
                     valign: "middle"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
                 TextInput:
                     id: zip_pth_input
+                    text: "d:/projects/910_prProjects/bugal/bugal_p/"
 
-            BoxLayout:
+            BoxLayout: # xlsx file config text-input
+                orientation: 'horizontal'
+                Label:
+                    text: "xlsx file to be used for export - full path"
+                    halign: "right"  # Horizontale Ausrichtung: "left", "center" oder "right"
+                    valign: "middle"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
+                TextInput:
+                    id: xlsx_pth_input
+                    text: "d:/projects/910_prProjects/bugal/bugal_p/import_2.xlsx"
+
+            BoxLayout: # toml file config text-input
                 orientation: 'horizontal'
                 Label:
                     text: "Configuration file to be used for configuration - full path"
@@ -86,32 +102,27 @@
                     valign: "middle"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
                 TextInput:
                     id: toml_pth_input
+                    text: "d:/projects/910_prProjects/bugal/bugal_p/config.toml"
 
         # Abstand
-        BoxLayout:
+        BoxLayout: # 4
             orientation: 'horizontal'
             size_hint_y: None
             height: 10
             Label:
                 text: ""
 
-        # Config Save Button
-        BoxLayout:
+        BoxLayout: # 5
             orientation: 'horizontal'
             size_hint_y: None
             height: 50
-            GridLayout:
+
+            GridLayout: # leer
                 cols: 2
-                # Button:
-                #     text: 'Save configuration'
-                #     font_size: 16
-                #     color: [0,0,0,1]
-                #     background_normal: ''
-	            #     background_color: (0,1,0,1)
-                #     on_press: root.configure()
                 Label:
                     text: ''
-            GridLayout:
+
+            GridLayout: # Radio
                 cols: 2
                 Label:
                     text: 'CLASSIC'
@@ -133,9 +144,86 @@
                     active: False
                     on_active: root.get_input_type()
                     color: [1,0,1,1]
+        # Abstand
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 10
+            Label:
+                text: ""
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 100
+            GridLayout: # leer
+                cols: 3
+                Label:
+                    text: "year"
+                    halign: "center"  # Horizontale Ausrichtung: "left", "center" oder "right"
+                    valign: "middle"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
+                TextInput:
+                    id: start_year
+                    text: "2024"
+                Label:
+                    text: ""
+
+                Label:
+                    text: "month"
+                    halign: "center"  # Horizontale Ausrichtung: "left", "center" oder "right"
+                    valign: "middle"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
+                TextInput:
+                    id: start_month
+                    text: "01"
+                Label:
+                    text: ""
+
+                Label:
+                    text: "day"
+                    halign: "center"  # Horizontale Ausrichtung: "left", "center" oder "right"
+                    valign: "middle"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
+                TextInput:
+                    id: start_day
+                    text: "01"
+
+                Label:
+                    text: ""
+
+            GridLayout:
+                cols: 3
+                Label:
+                    text: "year"
+                    halign: "center"  # Horizontale Ausrichtung: "left", "center" oder "right"
+                    valign: "top"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
+                TextInput:
+                    id: end_year
+                    text: "2024"
+                Label:
+                    text: ""
+
+                Label:
+                    text: "month"
+                    halign: "center"  # Horizontale Ausrichtung: "left", "center" oder "right"
+                    valign: "bottom"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
+                TextInput:
+                    id: end_month
+                    text: "04"
+                Label:
+                    text: ""
+
+                Label:
+                    text: "day"
+                    halign: "center"  # Horizontale Ausrichtung: "left", "center" oder "right"
+                    valign: "middle"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
+                TextInput:
+                    id: end_day
+                    text: "30"
+                Label:
+                    text: ""
 
         # Testausgabe aktueller Stand des Programms
         Label:
             id: gui_log
             height: 100
             text: 'Not configured'
+            halign: "center"
