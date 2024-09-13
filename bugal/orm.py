@@ -5,7 +5,7 @@ import logging
 from sqlalchemy import Column, Integer, String, Date, create_engine, func, between
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
-
+from sqlalchemy import text
 
 from bugal import model
 from bugal import abstract as a
@@ -252,7 +252,7 @@ class SqlTransactionRepo(a.TransactionRepo):
     def get(self, *args, **kwargs):  # tested with memory type
         try:
             # connection test
-            test = self.session.execute('SELECT * FROM transactions LIMIT 2').fetchall()
+            test = self.session.execute(text('SELECT * FROM transactions LIMIT 2')).fetchall()
             if test is None:
                 raise err.DbConnectionFaild
             if 'id_' in kwargs:
