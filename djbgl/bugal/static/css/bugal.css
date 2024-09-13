@@ -1,0 +1,43 @@
+
+#testDiv {
+    background-color: rgb(197, 34, 34);
+    height: 200px;
+    width: 200px;
+}
+.bugal-base {
+    position: relative;   /* relativ zu eigener position */
+}
+.bugal-nav {
+    color: rgb(6, 238, 95);
+    font-style: italic;
+    font-weight: bold;
+
+}
+.nav-link {
+    color: rgb(135, 151, 238);
+
+}
+.afterNav {
+    position: absolute; /* innerhalb von bugal-base */
+    top: 100px;
+}
+.col-small {
+    width: 5%;
+}
+.col-medium {
+    width: 20%;
+}
+.col-large {
+    width: 50%;
+}
+.side-menu-list {
+    list-style: none;
+    position: sticky;
+    margin-top: 10px;
+    /* style the links here */
+}
+.detail-button-bar {
+    position:absolute;
+    bottom: 10px;
+    right: 50px;
+ }

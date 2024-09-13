@@ -9,3 +9,6 @@ mkdocs
 click
 strictdoc
 django
+kivy
+sqlalchemy
+openpyxl

@@ -232,6 +232,7 @@ class Stack():
         # check that only real data are provided
         if len(data) < 7:
             logger.debug("#Data provided has not correct length: %s", len(data))
+            print('### {data} has not correct length: ###')
             raise err.NoValidTransactionData(f'Model: Transaction data list to short: {len(data)}')
         # calculate date
         date_obj = None

@@ -1,80 +1,60 @@
 <!DOCTYPE html>
-{% load static %}
-<html>
-    <!-- head contains meta data -->
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Bugalteria</title>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
 
-        <!-- Bootstrap CSS can be also be downloaded locally -->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Bootstrap CSS can be also be downloaded locally -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
-        {% block styles%} {%endblock%}
-    </head>
-    <!-- here is the page content -->
-    <body>
-        <!-- NAV-BAR-->
-        <div class="container">
-            <nav class="navbar navbar-expand-lg navbar-light bg-dark fixed-top">
-                <a class="navbar-brand" href="#">
-                    <img src="{% static 'home/img/euro1.jpg' %}" width="50" height="50" class="d-inline-block align-top"alt="">
-                </a>
-                <a class="navbar-brand" href="#" style="color: green;">Finance Manager</a>
-
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <div class="collapse navbar-collapse" id="navbarSupportedContent" >
-                    <div class="container">
-                        <ul class="navbar-nav mr-auto">
+    <link rel="stylesheet" href="../static/css/bugal.css"> <!-- -->
+    {% block styles%} {%endblock%}
+</head>
+<body>
+    <div class="bugal-base">
+        <!-- NAV-BAR         -->
+        <div bugal-nav>
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="#">
+                        <img src="../static/img/euro1.jpg" width="50" height="50" class="d-inline-block align-top"alt="">
+                    </a>
+                    <a class="navbar-brand ms-auto bugal-nav" href="#">Finance Manager</a>
+                    <!-- Beim Minimieren des Fensters ist das der "Burger-Button" -->
+                    <button
+                        class="navbar-toggler ms-auto bugal-nav"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#navbarSupportedContent">
+                        <span class="navbar-toggler-icon bugal-nav"></span>
+                    </button>
+                    <div class="collapse navbar-collapse " id="navbarSupportedContent" >
+                        <ul class="navbar-nav ms-auto">
                             <li class="nav-item active">
-                                <a class="nav-link" style="color: green" id="menuHome" href="#" >Home<span class="sr-only">(current)</span></a>
+                                <a class="nav-link" id="menuHome" href="#" >Home<span class="sr-only">(current)</span></a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" style="color: green" id="menuStatistics" href="#" >Statistics</a>
+                                <a class="nav-link" id="menuStatistics" href="#" >Statistics</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" style="color: green" id="menuBudgets" href="#">Budgets</a>
+                                <a class="nav-link" id="menuBudgets" href="#">Budgets</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" style="color: green" id="menuSettings" href="#">Settings</a>
+                                <a class="nav-link" id="menuSettings" href="#">Settings</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" style="color: green" id="menuProfile" href="#">Profile</a>
+                                <a class="nav-link" id="menuProfile" href="#">Profile</a>
                             </li>
                         </ul>
                     </div>
                 </div>
             </nav>
-        </div>
-        <!-- Content Block-->
-        <div class="container-fluid">
-            <h1>{% block main_heading %} Dumy Header {% endblock %}</h1>
-            <main>
-                {% block main_body %}
-                <p> Site not created yet </p>
-                {% endblock %}
-            </main>
-
-            <div class="container">
-                {% block upper_block %}
-
-                {% endblock upper_block%}
             </div>
-            <div class="container">
-                {% block mid_block %}
 
-                {% endblock mid_block%}
-            </div>
-            <div class="container">
-                {% block lower_block %}
 
-                {% endblock lower_block%}
-            </div>
-        </div>
-        <!-- Bootstrap JS -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    </body>
+
+    </div>
+
+</body>
 </html>

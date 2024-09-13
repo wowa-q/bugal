@@ -10,7 +10,7 @@ class Property(models.Model):
     cycle = models.CharField(max_length=250)
 
     def __str__(self) -> str:
-        return self.name
+        return str(self.name)
 
 
 class History(models.Model):
@@ -25,7 +25,7 @@ class History(models.Model):
     checksum = models.CharField(max_length=250)
 
     def __str__(self) -> str:
-        return self.file_name
+        return str(self.file_name)
 
 
 
@@ -57,5 +57,4 @@ class Transaction(models.Model):
         # do_something_else()
 
     def __str__(self):
-        return (f'{self.date} - {self.value} - {self.text}')
-
+        return f'{self.date} - {self.value} - {self.text}'
