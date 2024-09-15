@@ -151,7 +151,7 @@ class ExcelWriter(a.HandlerWriteIF):
         return f"{self.__class__.__name__}to write into Excel located in {self.xls_file}"
 
 
-class CSVImporter(a.HandlerReadIF):
+class CSVImporter():
     """Handler class to import data csv file(s)
     """
     csv_hashes = []

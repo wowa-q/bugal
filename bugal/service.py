@@ -84,6 +84,64 @@ class CmdImportNewCsv(a.Command):
         return f"{self.__class__.__name__} Service interface for bugal operations"
 
 
+class CmdImportClassic(a.Command):
+    def __init__(self,
+                 trepo: a.AbstractRepository,
+                 hrepo: a.AbstractRepository,
+                 handler: a.AbstractInputHandler):
+        self.hrepo = hrepo          # History repository where to import
+        self.trepo = trepo          # Transation repository where to import
+
+        self.handler = handler      # handler to read csv file
+        logger.info("Command initialized: CmdImportNewCsv")
+
+    def execute(self) -> None:
+        '''
+        1. get meta data with calculated csv hash
+        2. search csv hash in DB: read history from db
+        3. 
+        4. 
+        5. pull transaction hashes
+        6. read csv line transaction
+        7. create transactions
+        8. check checksum not available
+        9. write transactions
+        10. archive csv
+        11. write history
+         interface API '''
+        # raise NotImplementedError
+        ctr_t = 0
+        # 1. calculate csv hash
+        meta = self.handler.get_meta_from_classic()
+        
+        # 2. search csv hash in DB: read history from db
+        db_hash = self.hrepo.get_history(hash_=meta['checksum'])
+        if db_hash is not None:
+            if isinstance(db_hash, list):
+                if len(db_hash) > 0:
+                    raise err.ImportDuplicateHistory('csv file with hash found in History Table - LIST')
+            else:
+                raise err.ImportDuplicateHistory('csv file with hash found in History Table')
+        
+        # 3. pull transaction from csv
+        for tr in self.handler.get_transaction_from_classic():
+            # 4. check if transaction is already in DB
+            checksum = hash(tr)
+            db_tr = self.trepo.get_transaction(hash_=checksum)
+            if db_tr is not None:
+                # skip this transaction - it is already in DB
+                continue
+            # 5. push transaction to DB TODO: optimize - DB shall be saved only once and not at every transaction push
+            self.trepo.add_transaction(tr)
+            ctr_t += 1
+        
+        # 6. create History entry in DB
+        if ctr_t > 0:
+            history_entry = self.handler.get_history_from_classic(meta)
+            self.hrepo.add_history(history_entry)
+            # 7. archive the input file
+
+    
 class CmdFake(a.Command):
     """FAke Command for testing purposes
 
