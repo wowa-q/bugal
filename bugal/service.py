@@ -1,10 +1,9 @@
 """Seervice layer of the bugal"""
 
 import logging
-from datetime import date
 
 from bugal import model
-from bugal import repo
+from bugal.libs import handler as hand
 from bugal import abstract as a
 from bugal import exceptions as err
 
@@ -85,103 +84,64 @@ class CmdImportNewCsv(a.Command):
         return f"{self.__class__.__name__} Service interface for bugal operations"
 
 
-class CmdExportExcel(a.Command):
-    """Specifying command to export excel file
-
-    Args:
-        a (_type_): _description_
-
-    Returns:
-        _type_: _description_
-    """
+class CmdImportClassic(a.Command):
     def __init__(self,
                  trepo: a.AbstractRepository,
-                 handler: a.HandlerWriteIF) -> None:
-        self.trepo = trepo          # Transation repository where to to get data
-        self.handler = handler      # handler to write excel file
-        self.date = None
-        self.start_date = None
-        self.end_date = None
-        # self.db_pth = db_pth
+                 hrepo: a.AbstractRepository,
+                 handler: a.AbstractInputHandler):
+        self.hrepo = hrepo          # History repository where to import
+        self.trepo = trepo          # Transation repository where to import
 
-    def set_filter(self, *args, **kwargs):
-        """sets filter for retriving transactions
-
-        Returns:
-            _type_: _description_
-        """
-        if 'datum' == kwargs and len(args) == 2:
-            self.date = args[0]
-            self.end_date = args[1]
-            # isinstance(args[0], datetime.Date)
-        elif 'datum_range' in kwargs and len(args) == 2:
-            self.start_date = args[0]
-            self.end_date = args[1]
-            print(f'Datum Range: {self.start_date} - {self.end_date}')
-            if not isinstance(args[0], date):
-                print(f'Transaction filter ist nicht datetime.date: {args} und {kwargs}')
-                return
-        else:
-
-            print(f'Transaction filter wurden nicht gegesetzt: {args} und {kwargs}')
-            return
+        self.handler = handler      # handler to read csv file
+        logger.info("Command initialized: CmdImportNewCsv")
 
     def execute(self) -> None:
-        ''' execution of the specified command
-        1. read data from DB
-        2. ..
         '''
-        # tctr = self.trepo.get_transaction_ctr()
-        # print(f'# connection test, read transactions couters: {tctr}')
-        # test = self.trepo.get_transaction(id_=1)
-        # print(f'test conncetion with ID=1: {test}')
-        self.handler.transactions = self.trepo.get_transaction(start_date=self.start_date,
-                                                               end_date=self.end_date)
-        # # print(f'# Anzahl der gefunden TRANSACTIONS: {self.handler.transactions}')
+        1. get meta data with calculated csv hash
+        2. search csv hash in DB: read history from db
+        3. 
+        4. 
+        5. pull transaction hashes
+        6. read csv line transaction
+        7. create transactions
+        8. check checksum not available
+        9. write transactions
+        10. archive csv
+        11. write history
+         interface API '''
+        # raise NotImplementedError
+        ctr_t = 0
+        # 1. calculate csv hash
+        meta = self.handler.get_meta_from_classic()
+        
+        # 2. search csv hash in DB: read history from db
+        db_hash = self.hrepo.get_history(hash_=meta['checksum'])
+        if db_hash is not None:
+            if isinstance(db_hash, list):
+                if len(db_hash) > 0:
+                    raise err.ImportDuplicateHistory('csv file with hash found in History Table - LIST')
+            else:
+                raise err.ImportDuplicateHistory('csv file with hash found in History Table')
+        
+        # 3. pull transaction from csv
+        for tr in self.handler.get_transaction_from_classic():
+            # 4. check if transaction is already in DB
+            checksum = hash(tr)
+            db_tr = self.trepo.get_transaction(hash_=checksum)
+            if db_tr is not None:
+                # skip this transaction - it is already in DB
+                continue
+            # 5. push transaction to DB TODO: optimize - DB shall be saved only once and not at every transaction push
+            self.trepo.add_transaction(tr)
+            ctr_t += 1
+        
+        # 6. create History entry in DB
+        if ctr_t > 0:
+            history_entry = self.handler.get_history_from_classic(meta)
+            self.hrepo.add_history(history_entry)
+            # 7. archive the input file
 
-        if self.handler.transactions is None:
-            print(f'Transactions wurden nicht gelesen zwischen: {self.start_date} und {self.end_date}')
-            return
-        self.trepo.deinit()
-        self.handler.print()
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__} Service interface for bugal operations"
-
-
-class CmdReadTransactions(a.Command):
-    """Command to read transactions from DB
-    """
-    def __init__(self, db_pth) -> None:
-        self.date = None
-        self.start_date = None
-        self.end_date = None
-        self.db_pth = db_pth
-
-    def set_filter(self, *args, **kwargs):
-        """sets filter for retriving transactions
-
-        Returns:
-            _type_: _description_
-        """
-        if 'datum' in kwargs:
-            self.date = args[0]
-            self.end_date = args[1]
-            # isinstance(args[0], datetime.Date)
-        elif 'datum_range' in kwargs:
-            self.start_date = args[0]
-            self.end_date = args[1]
-            # isinstance(args[0], datetime.Date)
-        else:
-            return None
-
-    def execute(self) -> None:
-        ''' interface API '''
-        trepo = repo.TransactionsRepo(self.db_pth)
-        trepo.get_transaction([self.start_date, self.end_date])
-        print('READ TRANSACTIONS')
-
-
+    
 class CmdFake(a.Command):
     """FAke Command for testing purposes
 
@@ -242,3 +202,29 @@ class Invoker():
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__} Service invoker"
+
+
+#       *** PUBLIC APIs ***
+
+def import_data(cfg_type):
+    # hand.validate_path(cfg_type.path_)
+    pth_check = hand.PathHandler().handle(cfg_type.path_)
+    # invoker = Invoker()
+    # invoker.set_main_command(CmdImportNewCsv())
+    # invoker.set_on_start()
+    # invoker.set_on_finish()
+    # invoker.run_commands()
+    return pth_check
+
+
+#       *** PUBLIC APIs ***
+
+def import_data(cfg_type):
+    # hand.validate_path(cfg_type.path_)
+    pth_check = hand.PathHandler().handle(cfg_type.path_)
+    # invoker = Invoker()
+    # invoker.set_main_command(CmdImportNewCsv())
+    # invoker.set_on_start()
+    # invoker.set_on_finish()
+    # invoker.run_commands()
+    return pth_check

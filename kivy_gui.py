@@ -31,6 +31,7 @@ from kivy.properties import ObjectProperty
 from bugal import service
 from bugal import model
 from bugal import repo
+from bugal import csv_adapter
 from bugal import handler
 from bugal import cfg
 
@@ -93,11 +94,12 @@ class BugalRoot(FloatLayout):
         handl = handler.CSVImporter(self.csv_pth)
         trepo = repo.TransactionsRepo(pth=self.db_pth)
         hrepo = repo.HistoryRepo(pth=self.db_pth)
+        adapter = csv_adapter.ImporterAdapter(self.csv_pth)
         # create invoker
         import_invoker = service.Invoker()
         # set invoker command
-        import_invoker.set_main_command(service.CmdImportNewCsv(trepo, hrepo, stack, handl))
-
+        # import_invoker.set_main_command(service.CmdImportNewCsv(trepo, hrepo, stack, handl))
+        import_invoker.set_main_command(service.CmdImportClassic(trepo, hrepo, adapter))
         return import_invoker
 
     def _create_export_invoker(self):

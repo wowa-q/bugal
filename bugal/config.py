@@ -133,3 +133,12 @@ class CFGToml(CFG):
         config_path = app_dir / "config.toml"
 
         return config_path
+
+
+#       *** PUBLIC APIs ***
+from types import SimpleNamespace
+
+
+def get_config():
+    cfg_ = SimpleNamespace(path_='', import_type='')
+    return cfg_

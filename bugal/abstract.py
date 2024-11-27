@@ -3,6 +3,7 @@
 import abc
 
 
+
 class Command(abc.ABC):
     ''' abstract class to alighn different commands '''
     __metaclass__ = abc.ABCMeta
@@ -34,34 +35,178 @@ class Artifact(abc.ABC):
         raise NotImplementedError
 
 
+class AbstractInputHandler(abc.ABC):
+    """Input Handler abstraction
+
+    APIs:
+        get_meta_from_classic (None): -> dict provide input file meta data as dict
+        get_meta_from_modern (None): -> dict provide input file meta data as dict
+        get_meta_from_dcard (None): -> dict provide input file meta data as dict
+
+    Raises:
+        NotImplementedError: _description_
+    """
+    @abc.abstractmethod
+    def get_meta_from_classic(self) -> dict:
+        """API to retrieve input file meta data
+
+        Raises:
+            NotImplementedError: must be implemented by the user
+
+        Returns:
+            dict: meta data of the input file
+        """
+        raise NotImplementedError
+    
+    @abc.abstractmethod
+    def get_meta_from_modern(self) -> dict:
+        """API to retrieve input file meta data
+
+        Raises:
+            NotImplementedError: must be implemented by the user
+
+        Returns:
+            dict: meta data of the input file
+        """
+        raise NotImplementedError
+        
+    @abc.abstractmethod
+    def get_meta_from_dcard(self) -> dict:
+        """API to retrieve input file meta data
+
+        Raises:
+            NotImplementedError: must be implemented by the user
+
+        Returns:
+            dict: meta data of the input file
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_transaction_from_classic(self):
+        """API to create Transaction data class diefined by the model
+
+        Raises:
+            NotImplementedError: must be implemented by the user
+
+        Returns:
+            Generator(Transaction): transaction data class, ready to be pushed into DB
+        """
+        raise NotImplementedError
+    
+    @abc.abstractmethod
+    def get_transaction_from_modern(self):
+        """API to create Transaction data class diefined by the model
+
+        Raises:
+            NotImplementedError: must be implemented by the user
+
+        Returns:
+            Generator(Transaction): transaction data class, ready to be pushed into DB
+        """
+        raise NotImplementedError
+    
+    @abc.abstractmethod
+    def get_transaction_from_dcard(self):
+        """API to create Transaction data class diefined by the model
+
+        Raises:
+            NotImplementedError: must be implemented by the user
+
+        Returns:
+            Generator(Transaction): transaction data class, ready to be pushed into DB
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_history_from_classic(self, meta: dict):
+        """API to History data class for input file
+
+        Raises:
+            NotImplementedError: must be implemented by the user
+
+        Returns:
+            History: data class of the input file
+        """
+        raise NotImplementedError
+    
+    @abc.abstractmethod
+    def get_history_from_modern(self, meta: dict):
+        """API to History data class for input file
+
+        Raises:
+            NotImplementedError: must be implemented by the user
+
+        Returns:
+            History: data class of the input file
+        """
+        raise NotImplementedError
+    
+    @abc.abstractmethod
+    def get_history_from_dcard(self, meta: dict):
+        """API to History data class for input file
+
+        Raises:
+            NotImplementedError: must be implemented by the user
+
+        Returns:
+            History: data class of the input file
+        """
+        raise NotImplementedError
+    
+
 class HandlerReadIF(abc.ABC):
     """HandlerRead Interface
 
     APIs:
         get_transactions
         get_meta_data
+        get_history
     """
+    __instance__ = None
+
+    @staticmethod
     @abc.abstractmethod
-    def get_transactions(self) -> str:
+    def get_instance():
+        """
+        Raises:
+            NotImplementedError: _description_
+        """
+        raise NotImplementedError
+    
+    @abc.abstractmethod
+    def get_transaction(self):
         """Methode to read out the transactions from an imported file
 
         Raises:
             NotImplementedError:
 
         Returns:
-            str: single transaction
+            Transaction: single transaction
         """
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_meta_data(self) -> str:
+    def get_meta_data(self) -> dict:
         """Methode to read out the meta data
 
         Raises:
             NotImplementedError:
 
         Returns:
-            str: meta data of the import
+            dict: meta data from input file
+        """
+        raise NotImplementedError
+    
+    @abc.abstractmethod
+    def get_history(self, meta: dict):
+        """Methode to read out the meta data
+
+        Raises:
+            NotImplementedError:
+
+        Returns:
+            History: data for the import
         """
         raise NotImplementedError
 
