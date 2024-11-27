@@ -1,0 +1,20 @@
+[project]
+name = "bugal"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "autopep8>=2.3.1",
+    "click>=8.1.7",
+    "flake8>=7.1.1",
+    "kivy>=2.3.0",
+    "mkdocs>=1.6.1",
+    "mypy>=1.13.0",
+    "openpyxl>=3.1.5",
+    "pre-commit>=4.0.1",
+    "pylint>=3.3.1",
+    "pytest>=8.3.3",
+    "sqlalchemy>=2.0.36",
+    "strictdoc>=0.3.0",
+]
