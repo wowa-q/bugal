@@ -219,7 +219,7 @@ def import_data(cfg_type):
 
 #       *** PUBLIC APIs ***
 
-def import_data(cfg_type):
+def import_data_2(cfg_type):
     # hand.validate_path(cfg_type.path_)
     pth_check = hand.PathHandler().handle(cfg_type.path_)
     # invoker = Invoker()

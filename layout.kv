@@ -123,13 +123,17 @@
                     text: ''
 
             GridLayout: # Radio
-                cols: 2
+                cols: 3
                 Label:
                     text: 'CLASSIC'
                     halign: "center"  # Horizontale Ausrichtung: "left", "center" oder "right"
                     valign: "middle"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
                 Label:
                     text: 'BETA'
+                    halign: "center"  # Horizontale Ausrichtung: "left", "center" oder "right"
+                    valign: "middle"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
+                Label:
+                    text: '2024'
                     halign: "center"  # Horizontale Ausrichtung: "left", "center" oder "right"
                     valign: "middle"  # Vertikale Ausrichtung: "top", "middle" oder "bottom"
                 CheckBox:
@@ -140,6 +144,12 @@
                     color: [1,0,1,1]
                 CheckBox:
                     id: rb_beta
+                    group: 'radio button'
+                    active: False
+                    on_active: root.get_input_type()
+                    color: [1,0,1,1]
+                CheckBox:
+                    id: rb_2024
                     group: 'radio button'
                     active: False
                     on_active: root.get_input_type()

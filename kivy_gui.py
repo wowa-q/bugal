@@ -90,8 +90,8 @@ class BugalRoot(FloatLayout):
             service.Invoker: Invoker instance which can run the configured commands
         """
         # get receivers with the parameters from the gui
-        stack = model.Stack(self.input_type)
-        handl = handler.CSVImporter(self.csv_pth)
+        # stack = model.Stack(self.input_type)
+        # handl = handler.CSVImporter(self.csv_pth)
         trepo = repo.TransactionsRepo(pth=self.db_pth)
         hrepo = repo.HistoryRepo(pth=self.db_pth)
         adapter = csv_adapter.ImporterAdapter(self.csv_pth)
@@ -100,6 +100,7 @@ class BugalRoot(FloatLayout):
         # set invoker command
         # import_invoker.set_main_command(service.CmdImportNewCsv(trepo, hrepo, stack, handl))
         import_invoker.set_main_command(service.CmdImportClassic(trepo, hrepo, adapter))
+
         return import_invoker
 
     def _create_export_invoker(self):
@@ -190,10 +191,13 @@ class BugalRoot(FloatLayout):
         """taking over configuration on pressed button
         """
         message = ''
-        (classic, beta) = self.get_input_type()
+        (classic, beta, rb2024) = self.get_input_type()
+        #TODO: check if directly the righ command can be configured here
         if classic:
             self.input_type = cfg.TransactionListClassic
         elif beta:
+            self.input_type = cfg.TransactionListBeta
+        elif rb2024:
             self.input_type = cfg.TransactionListBeta
         else:
             message = message + 'ERROR: Input Type configuration failed'
@@ -231,7 +235,8 @@ class BugalRoot(FloatLayout):
         """
         rb_classic = self.ids.rb_classic.active
         rb_beta = self.ids.rb_beta.active
-        return (rb_classic, rb_beta)
+        rb_2024 = self.ids.rb_2024.active
+        return (rb_classic, rb_beta, rb_2024)
 
     def do_import(self):
         """Invokes the import command on pressed button

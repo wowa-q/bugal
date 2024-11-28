@@ -5,20 +5,6 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 
-def validate_path(_path):
-    message = ''
-    if len(_path) > 0:
-        if Path(_path).is_dir():
-            message = message + ' - Path configured ok \n'
-        elif Path(_path).is_file():
-            str(Path(_path).suffix)
-            message = message + ' - File configured ok \n'
-        else:
-            message = message + ' - Path is incorrect \n'
-            return (message, '')
-    else:
-        message = message + ' - Path will use working directory \n'
-    return (message, Path(_path))
 
 #       *** Handlers Chain APIs ***
 class Handler(ABC):
@@ -55,7 +41,6 @@ class AbstractHandler(Handler):
     def handle(self, request: Any) -> str:
         if self._next_handler:
             return self._next_handler.handle(request)
-
         return None
 
 
@@ -67,6 +52,14 @@ class PathHandler(AbstractHandler):
             return super().handle(request)
 
     def validate_path(self, _path):
+        """Function for path validation, provided by user configuration
+
+        Args:
+            _path (str): path received for validation
+
+        Returns:
+            tuple(message, Path): returns message and Path type after successful validation
+        """
         message = ''
         if len(_path) > 0:
             if Path(_path).is_dir():
@@ -80,3 +73,20 @@ class PathHandler(AbstractHandler):
         else:
             message = message + ' - Path will use working directory \n'
         return (message, Path(_path))
+
+#       *** PUBLIC APIs ***
+
+def validate_path(_path):
+    message = ''
+    if len(_path) > 0:
+        if Path(_path).is_dir():
+            message = message + ' - Path configured ok \n'
+        elif Path(_path).is_file():
+            str(Path(_path).suffix)
+            message = message + ' - File configured ok \n'
+        else:
+            message = message + ' - Path is incorrect \n'
+            return (message, '')
+    else:
+        message = message + ' - Path will use working directory \n'
+    return (message, Path(_path))

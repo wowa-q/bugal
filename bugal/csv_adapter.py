@@ -41,9 +41,20 @@ class InputMaster():
             logger.info("reader initialized with encoding: %s", 'ISO-8859-1')
             for row in reader:
                 yield row
-
+    
     def _get_date_object(self, date_str: str) -> datetime:
-        raise NotImplementedError('Unspecified date format requested')
+        try:
+            # Versuche das erste Format
+            date_obj = datetime.strptime(date_str, "%d.%m.%Y")
+        except ValueError:
+            try:
+                # Falls das erste Format fehlschlägt, versuche das zweite Format
+                date_obj = datetime.strptime(date_str, "%d.%m.%y")
+            except ValueError:
+                # Wenn beide fehlschlagen, wirf eine benutzerdefinierte Ausnahme
+                raise err.InvalidTimeFormat(f'Classic format provided with incompatible date format: {date_str}')
+        return date_obj
+
 
     def _make_num(self, value: str) -> float:
         """Providing value as float number for calculation
@@ -290,13 +301,13 @@ class ClassicInput(InputMaster, a.HandlerReadIF):
             ClassicInput.__instance__ = ClassicInput(pth)
         return ClassicInput.__instance__
     
-    def _get_date_object(self, date_str: str) -> datetime:
-        date_obj = None
-        try:
-            date_obj = datetime.strptime(date_str, "%d.%m.%Y")
-        except ValueError:
-            raise err.InvalidTimeFormat('Classic format provided with incompatible date format')        
-        return date_obj
+    # def _get_date_object(self, date_str: str) -> datetime:
+    #     date_obj = None
+    #     try:
+    #         date_obj = datetime.strptime(date_str, "%d.%m.%Y")
+    #     except ValueError:
+    #         raise err.InvalidTimeFormat('Classic format provided with incompatible date format')        
+    #     return date_obj
     
     def _get_tr_date(self, line: list) -> datetime:
         date_string = line[self.DATE]
@@ -384,13 +395,13 @@ class ModernInput(InputMaster, a.HandlerReadIF):
             ModernInput.__instance__ = ModernInput(pth)
         return ModernInput.__instance__
     
-    def _get_date_object(self, date_str: str) -> datetime:
-        date_obj = None
-        try:
-            date_obj = datetime.strptime(date_str, "%d.%m.%y")
-        except ValueError:
-            raise err.InvalidTimeFormat('Modern format provided with incompatible date format')        
-        return date_obj
+    # def _get_date_object(self, date_str: str) -> datetime:
+    #     date_obj = None
+    #     try:
+    #         date_obj = datetime.strptime(date_str, "%d.%m.%y")
+    #     except ValueError:
+    #         raise err.InvalidTimeFormat('Modern format provided with incompatible date format')        
+    #     return date_obj
     
     def _get_tr_date(self, line: list) -> datetime:
         date_string = line[self.DATE]
@@ -441,6 +452,96 @@ class ModernInput(InputMaster, a.HandlerReadIF):
     
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}  located in {self.input}"
+
+class ModernInput_2024(InputMaster, a.HandlerReadIF):
+    DATE = 0
+    STATUS = 2
+    SENDER = 3
+    RECEIVER = 4
+    VERWENDUNG = 5
+    VALUE = 8
+    DEBITOR_ID = 9
+    MANDATS_REF = 10
+    CUSTOMER_REF = 11
+    CSV_START_ROW = 5
+    __instance__ = None
+
+    def __init__(self, pth: pathlib.Path):
+        """
+        Process the classic csv input
+        """
+        self.input = pth
+        self.src_account = None
+
+    @staticmethod
+    def get_instance(pth: pathlib.Path): 
+        """provides instance of the ModernInput_2024
+
+        Returns:
+            ModernInput_2024 (HandlerReadIF): singleton instance
+        """
+        if ModernInput_2024.__instance__ is None:
+            ModernInput_2024.__instance__ = ModernInput_2024(pth)
+        return ModernInput_2024.__instance__
+    
+    # def _get_date_object(self, date_str: str) -> datetime:
+    #     date_obj = None
+    #     try:
+    #         date_obj = datetime.strptime(date_str, "%d.%m.%y")
+    #     except ValueError:
+    #         raise err.InvalidTimeFormat('Modern format provided with incompatible date format')        
+    #     return date_obj
+    
+    def _get_tr_date(self, line: list) -> datetime:
+        date_string = line[self.DATE]
+        date_obj = self._get_date_object(date_string)
+        return date_obj
+    
+    def _make_transaction(self, line: list) -> Transaction:
+        if self.src_account is not None:
+            src_konto = self.src_account
+        else:
+            raise err.NoValidTransactionData('source account not provided')
+        transaction = Transaction(self._get_tr_date(line),
+                                  'not provided',                       # text,
+                                  line[self.STATUS],
+                                  line[self.RECEIVER],
+                                  line[self.VERWENDUNG],
+                                  'not provided',                       # line[self.KONTO] - Kein Konto in Beta?
+                                  self.get_tr_value(line, self.VALUE),
+                                  line[self.DEBITOR_ID],
+                                  line[self.MANDATS_REF],
+                                  line[self.CUSTOMER_REF],
+                                  src_konto)
+        return transaction
+    
+    def get_transaction(self):
+        for _, transrow in enumerate(self.get_transactions_as_list(self.input, self.CSV_START_ROW)):
+            return self._make_transaction(transrow)
+
+    def get_meta_data(self) -> dict:
+        """returns some meta data necessary for creation a history Dataclass instance
+
+        Returns:
+            list: list of dictionpories. Every dict should have:
+            - 'end_date': datetime object in format '%d.%m.%Y'
+            - 'start_date': datetime object in format '%d.%m.%Y'
+            - 'account': string object showing from which account the data were exported
+            - 'checksum': calculated checksum over the csv file to be compared with checksums from History table in DB
+            - 'file_name': (str) showing the file name
+            - 'file_ext': showing the file extension
+        """
+        meta = super().get_meta_data(self.input, self.CSV_START_ROW, self._get_date_object)
+        self.src_account=meta['account']
+        return meta
+    
+    def get_history(self, meta: dict) -> History:
+        his = super().create_history(meta)
+        return his
+    
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}  located in {self.input}"
+    
 
 class DailyCard(InputMaster, a.HandlerReadIF):
     DATE = 2

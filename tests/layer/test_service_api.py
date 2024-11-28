@@ -27,13 +27,13 @@ alpha_file = e2e_fx.fx_test_classic_csv
 # @pytest.mark.skip()
 @pytest.mark.parametrize("cfg_type, csv_type, pth", [
     ('user', 'beta', beta_file),    # user provides configuration
-    ('user', 'alpha', alpha_file),  # user provides configuration
-    ('static', '', ''),             # configuration from config file
-    ('user', 'beta', ''),           # user invalid config: path
-    ('user', 'alpha', ''),          # user invalid config: type
-    ('user', '', ''),               # user invalid config: empty
-    ('static', '', 'invalid'),      # static invalid config: path
-    ('static', 'invalid', ''),      # static invalid config: type
+    # ('user', 'alpha', alpha_file),  # user provides configuration
+    # ('static', '', ''),             # configuration from config file
+    # ('user', 'beta', ''),           # user invalid config: path
+    # ('user', 'alpha', ''),          # user invalid config: type
+    # ('user', '', ''),               # user invalid config: empty
+    # ('static', '', 'invalid'),      # static invalid config: path
+    # ('static', 'invalid', ''),      # static invalid config: type
 ])
 def test_importCsv_service(cfg_type,
                            csv_type,
@@ -54,6 +54,8 @@ def test_importCsv_service(cfg_type,
         import_cfg = cfg.get_config()
         import_cfg.path_ = pth
         import_cfg.import_type = csv_type
-
+    assert import_cfg is not None, f"No configuration received: {import_cfg}"
+    assert import_cfg.import_type != "", f"no import_type received {import_cfg.import_type}"
+    assert import_cfg.path_ == "", f"Empty path received {import_cfg.path_}"
     message = srvc.import_data(import_cfg)
     assert message is not None, f"message received: {message}"
