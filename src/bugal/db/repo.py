@@ -2,18 +2,19 @@
 
 """
 import logging
-
+from datetime import datetime
 
 from bugal.app import model
-from bugal.libs import abstract as a
 from bugal.db import repo_adapter
-from bugal.libs import exceptions as err
+from libs import exceptions as err
 # from bugal import bugal_orm
+# from libs import abstract as a
+from bugal.db import db_if as a
 
 
 logger = logging.getLogger(__name__)
 
-
+'''
 class FakeRepo(a.AbstractRepository):
     """Fake Repo for testing purpose
 
@@ -28,6 +29,18 @@ class FakeRepo(a.AbstractRepository):
         self.trns = []
 
     def add_transaction(self, transaction):  # tested
+        """_summary_
+
+        Args:
+            transaction (model.Transaction): _description_
+
+        Raises:
+            err.ImportDuplicateTransaction: _description_
+            err.NoValidTransactionData: _description_
+
+        Returns:
+            _type_: _description_
+        """
         if isinstance(transaction, model.Transaction):
             crc = hash(transaction)
             if crc in self.hashes:
@@ -41,6 +54,18 @@ class FakeRepo(a.AbstractRepository):
             raise err.NoValidTransactionData('Fake: transaction not type of Transaction')
 
     def add_history(self, history):
+        """_summary_
+
+        Args:
+            history (model.History): _description_
+
+        Raises:
+            err.ImportFileDuplicate: _description_
+            err.NoValidHistoryData: _description_
+
+        Returns:
+            _type_: _description_
+        """
         if isinstance(history, model.History):
             crc = history.checksum
             if crc in self.hashes:
@@ -53,26 +78,25 @@ class FakeRepo(a.AbstractRepository):
         else:
             raise err.NoValidHistoryData('Fake: history not type of History')
 
-    def get_transaction_ctr(self):
+    def get_transaction_ctr(self) -> int:
         return self.tctr
 
-    def get_history_ctr(self):
+    def get_history_ctr(self) -> int:
         return self.hctr
 
-    def get_transaction(self, *arg, **args) -> bool:
+    def get_transaction(self, *arg, **args):
         """_summary_
 
-        Raises:
-            NotImplementedError: _description_
+        Returns:
+            model.Transaction: _description_
         """
         if len(self.trns) > 0:
             return self.trns[0]
 
-    def get_history(self, *arg, **args) -> bool:
+    def get_history(self, *arg, **args) -> model.History:
         """_summary_
-
-        Raises:
-            NotImplementedError: _description_
+        Returns:
+            model.History: _description_
         """
         if len(self.hists) > 0:
             return self.hists[0]
@@ -93,7 +117,7 @@ class FakeRepo(a.AbstractRepository):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}"
-
+'''
 
 class TransactionsRepo(a.AbstractRepository):
     """Repository resource for transactions
@@ -101,13 +125,22 @@ class TransactionsRepo(a.AbstractRepository):
     def __init__(self, pth='', db_type='sqlite'):  # tested
         self.adapter = repo_adapter.RepoAdapter(pth, db_type)
 
+    def deinit(self):
+        """to close the connection
+        """
+        self.adapter.deinit()
+
     def add_transaction(self, transaction):  # tested
+        """_summary_
+        Returns:
+            model.Transaction: _description_
+        """
         result = False
         result = self.adapter.add_transaction(transaction)
         logger.debug("""Pushing transaction to DB""")
         return result
 
-    def get_transaction_ctr(self):  # tested
+    def get_transaction_ctr(self) -> int:  # tested
         ctr = self.adapter.get_transaction_ctr()
         return ctr
 
@@ -115,13 +148,22 @@ class TransactionsRepo(a.AbstractRepository):
         """retrive transaction from DB by ID or hash value
 
         Returns:
-            orm.Transaction: transaction row from table
+            model.Transaction: transaction row from table
         """
         if 'id_' in kwargs:  #
             return self.adapter.get_transaction(id_=kwargs.get('id_'))
         elif 'hash_' in kwargs:  #
             return self.adapter.get_transaction(hash_=kwargs.get('hash_'))
+        elif 'start_date' in kwargs:  # start_date - end_date
+            if not isinstance(kwargs.get('start_date'), datetime):
+                print(f'Transaction filter ist nicht datetime.datetime: {kwargs}')
+            start_date = kwargs.get('start_date')
+            end_date = kwargs.get('end_date')
+            print(f'lese Bereich von {start_date} bis {end_date}')
+            return self.adapter.get_transaction(start_date=start_date,
+                                                end_date=end_date)
         else:
+            print(f'kein passender Argument gefunden: {kwargs}')
             return None
 
     def del_transaction(self, *arg, **kwargs) -> bool:  # tested
@@ -157,13 +199,23 @@ class HistoryRepo(a.AbstractRepository):
     def __init__(self, pth='', db_type='sqlite'):  # tested
         self.adapter = repo_adapter.RepoAdapter(pth=pth, db_type=db_type)
 
-    def add_history(self, history):  # tested
+    def add_history(self, history):
+        """
+
+        Args:
+            model.History: _description_
+        """
         result = False
         result = self.adapter.add_history(history)
         logger.debug("""Pushing history to DB""")
         return result
 
     def get_history(self, *arg, **kwargs):  # tested
+        """
+
+        Returns:
+            model.History: _description_
+        """
         if 'id_' in kwargs:  # tested
             return self.adapter.get_history(id_=kwargs.get('id_'))
         elif 'hash_' in kwargs:  # tested
@@ -171,7 +223,7 @@ class HistoryRepo(a.AbstractRepository):
         else:
             return None
 
-    def get_history_ctr(self):  # tested
+    def get_history_ctr(self) -> int:  # tested
         ctr = self.adapter.get_history_ctr()
         return ctr
 

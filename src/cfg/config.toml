@@ -1,36 +1,41 @@
 [bugal]
 label = "bugal"
 
+# Configure a test run with "True" or real run with "False"
+[[bugal.run]]
+TEST = "False"
+
 # Configure the file locations absolute path
-[bugal.src]
+[[bugal.test]]
 # genral source path
 srcpath = "d:/projects/910_prProjects/bugal/bugal_p"
 # csv file to be imported
 csv_file = "d:/projects/910_prProjects/bugal/bugal_p/1001670080-2021.csv"
 # db file to be used
 db_file = "d:/projects/910_prProjects/bugal/bugal_p/import_2.db"
+# repo type
+repo_type = 'memory'
 # zip file to be used
 zip_file = "d:/projects/910_prProjects/bugal/bugal_p/archive_1.zip"
 # excel file to be used
 xls_file = "d:/projects/910_prProjects/bugal/bugal_p/bugal_view_1.xlsx"
 
-# Configure a test run with "True" or real run with "False"
-[bugal.run]
-TEST = "True"
 
-[bugal.test]
-# genral source path
-srcpath = "d:/projects/910_prProjects/bugal/bugal_p"
+[[bugal.src]]
+# genral source path d:\orange\private_FP\
+srcpath = "d:/orange/private_FP"
 # csv file to be imported
-csv_file = "d:/projects/910_prProjects/bugal/tests/fixtures/single.csv"
+csv_file = "d:/orange/private_FP/18-11-2024_Umsatzliste_Visa Kreditkarte_0720.csv"
 # db file to be used
-db_file = "d:/projects/910_prProjects/bugal/tests/fixtures/import_2.db"
+db_file = "d:/orange/private_FP/productive-2024-10.db"
+# repo type
+repo_type = 'sqlite'
 # zip file to be used
-zip_file = "d:/projects/910_prProjects/bugal/tests/fixtures/archive_1.zip"
+zip_file = "d:/orange/private_FP/archive.zip"
 # excel file to be used
-xls_file = "d:/projects/910_prProjects/bugal/tests/fixtures/bugal_view_1.xlsx"
+xls_file = "d:/orange/private_FP/bugal_view_1.xlsx"
 
 
-# configuration of the source file type [BETA, CLASSIC]
-[bugal.type]
-type = "BETA"
+# configuration of the source file type [Modern_2024, DailyCard, Modern, CLASSIC]
+[[bugal.type]]
+type = "DailyCard"

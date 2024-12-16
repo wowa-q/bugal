@@ -2,15 +2,15 @@
 https://docs.sqlalchemy.org/en/20/orm/mapping_styles.html#classical-mappings
 """
 import logging
-from sqlalchemy import Column, Integer, String, Date, create_engine, func
+from sqlalchemy import Column, Integer, String, Date, create_engine, func, between
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
-
+from sqlalchemy import text
 
 from bugal.app import model
-from bugal.libs import abstract as a
-from bugal.cfg import cfg
-from bugal.libs import exceptions as err
+from bugal.db import db_if as a
+from cfg import config as cfg
+from libs import exceptions as err
 
 logger = logging.getLogger(__name__)
 
@@ -100,10 +100,12 @@ class Orm():
     def __init__(self):
         self.engine = None
         self.session = None
+        config = cfg.get_config()
         if Orm.__path__ == '':
-            Orm.__path__ = cfg.DBFILE
+            Orm.__path__ = config.dbpath    #cfg.DBFILE
         if Orm.__type__ is None:
-            Orm.__type__ = 'sqlite'
+            # Orm.__type__ = 'sqlite'
+            Orm.__type__ = config.dbtype
 
         if Orm.__type__ == 'sqlite':
             self.engine = create_engine(f'sqlite:///{Orm.__path__}?create_db=true')
@@ -138,6 +140,12 @@ class Orm():
         """
         self.session = Session(self.engine)
         return self.session
+
+    def close_session(self):
+        """disconnect the DB
+        """
+        if self.session is not None:
+            self.session.close()
 
     def delete_tables(self):
         """delete ALL tables from DB
@@ -176,26 +184,36 @@ class SqlTransactionRepo(a.TransactionRepo):
         Args:
             pth (str, optional): Path to DB. Defaults to 'cfg.DBFILE'.
         """
+        config = cfg.get_config()
         if SqlTransactionRepo.__path__ == '':
-            SqlTransactionRepo.__path__ = cfg.DBFILE
-            Orm.__path__ = cfg.DBFILE
+            SqlTransactionRepo.__path__ = config.dbpath    #cfg.DBFILE
+            Orm.__path__ = config.dbpath
         if SqlTransactionRepo.__type__ is None:
-            SqlTransactionRepo.__type__ = 'sqlite'
-            Orm.__type__ = 'sqlite'
+            SqlTransactionRepo.__type__ = config.dbtype
+            Orm.__type__ = config.dbtype
 
+        print(f'DEBUG ORM - path: {SqlTransactionRepo.__path__} and type: {SqlTransactionRepo.__type__} ')
         self.orm = Orm.get_instance()
         self.session = self.orm.get_session()
         self.engine = self.orm.engine
+
+    def deinit(self):
+        """disconnect the session
+        """
+        self.orm.close_session()
 
     @staticmethod
     def get_instance():  # tested
         """provides instance of the SqlHistoryRepo
 
         Returns:
-            SqlHistoryRepo: singleton instance
+            SqlHistoryRepo (bool): singleton instance
         """
         if SqlTransactionRepo.__instance__ is None:
             SqlTransactionRepo.__instance__ = SqlTransactionRepo()
+        logger.debug("""ORM instatiated with path: %s and type: %s""",
+                     SqlTransactionRepo.__path__,
+                     SqlTransactionRepo.__type__)
         return SqlTransactionRepo.__instance__
 
     def add(self, transaction) -> bool:  # tested
@@ -239,18 +257,34 @@ class SqlTransactionRepo(a.TransactionRepo):
             logger.debug("""Pushing transaction to DB completed""")
             return True
 
-    def get(self, *args, **kwargs):  # tested
-        if 'id_' in kwargs:
-            with Session(self.engine) as session:
-                result = session.query(Transactions).filter(Transactions.id ==
-                                                            kwargs.get('id_')).first()
+    def get(self, *args, **kwargs):  # tested with memory type
+        try:
+            # connection test
+            test = self.session.execute(text('SELECT * FROM transactions LIMIT 2')).fetchall()
+            if test is None:
+                raise err.DbConnectionFaild
+            if 'id_' in kwargs:
+                result = self.session.query(Transactions).filter(Transactions.id == kwargs.get('id_')).first()
+            elif 'hash_' in kwargs:
+                result = self.session.query(Transactions).filter(Transactions.checksum == kwargs.get('hash_')).first()
+            elif 'start_date' in kwargs:  # start_date - end_date
+                start_date = kwargs.get('start_date')
+                end_date = kwargs.get('end_date')
+                print(f'# ORM: lese Bereich von {start_date} - {end_date}')
+                query = self.session.query(Transactions).filter(
+                    between(Transactions.datum,
+                            start_date.strftime('%Y-%m-%d'),
+                            end_date.strftime('%Y-%m-%d')))
+                # print(f"SQL query: {str(query)}")
+                result = query.all()
+                print(f'# ORM DEBUG PARMETER: pth={SqlTransactionRepo.__path__} und type={SqlTransactionRepo.__type__}')
+            else:
+                print(f'kein passender Filer gesetzt um Transactions aus SQL auszulesen: {kwargs}')
+                return None
+        except err.DbConnectionFaild:
+            logger.exception("BugalOrm: DB session connection failed")
+            return -1
 
-        elif 'hash_' in kwargs:
-            with Session(self.engine) as session:
-                result = session.query(Transactions).filter(Transactions.checksum ==
-                                                            kwargs.get('hash_')).first()
-        else:
-            return None
         logger.debug("""Transaction found in DB: %s""", result)
         return result
 
@@ -279,7 +313,7 @@ class SqlTransactionRepo(a.TransactionRepo):
         try:
             row_count = self.session.query(func.count(Transactions.id)).scalar()
             return row_count
-        except cfg.DbConnectionFaild:
+        except err.DbConnectionFaild:
             logger.exception("BugalOrm: DB session connection failed")
             return -1
 
@@ -303,12 +337,13 @@ class SqlHistoryRepo(a.HistoryRepo):
         Args:
             pth (str, optional): Path to DB. Defaults to 'cfg.DBFILE'.
         """
+        config = cfg.get_config()
         if SqlHistoryRepo.__path__ == '':
-            SqlHistoryRepo.__path__ = cfg.DBFILE
-            Orm.__path__ = cfg.DBFILE
+            SqlHistoryRepo.__path__ = config.dbpath    #cfg.DBFILE
+            Orm.__path__ = config.dbpath
         if SqlHistoryRepo.__type__ is None:
-            SqlHistoryRepo.__type__ = 'sqlite'
-            Orm.__type__ = 'sqlite'
+            SqlHistoryRepo.__type__ = config.dbtype
+            Orm.__type__ = config.dbtype
 
         self.orm = Orm.get_instance()
         self.session = self.orm.get_session()

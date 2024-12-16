@@ -14,7 +14,7 @@ import pytest
 # from openpyxl import Workbook
 
 # user packages
-from context import bugal
+# from context import bugal
 
 
 FIXTURE_DIR = pathlib.Path(__file__).parent.resolve()

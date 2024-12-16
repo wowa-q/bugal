@@ -1,16 +1,30 @@
 """Helpers ib, to provide some useful, but not mandatory functionality
 """
-import time
-
+# import time
+from pathlib import Path
 # SPDX-FileCopyrightText: 2022 spdx contributors
 #
 # SPDX-License-Identifier: Apache-2.0
 # https://github.com/spdx/tools-python/blob/main/pyproject.toml
-from dataclasses import dataclass
-
-from bugal.cfg import cfg
 
 
+
+def validate_path(_path):
+    message = ''
+    if len(_path) > 0:
+        if Path(_path).is_dir():
+            message = message + ' - Path configured ok \n'
+        elif Path(_path).is_file():
+            str(Path(_path).suffix)
+            message = message + ' - File configured ok \n'
+        else:
+            message = message + ' - Path is incorrect \n'
+            return (message, '')
+    else:
+        message = message + ' - Path will use working directory \n'
+    return (message, Path(_path))
+
+'''
 def dataclass_with_properties(cls):
     """Decorator to generate a dataclass with properties out of the class' value:type list.
     Their getters and setters will be subjected to the @typechecked decorator to ensure type conformity."""
@@ -82,7 +96,7 @@ class ExecutionTimer:
         return timer
 
 
-'''
+
 Beispiel für multi exceptions. match wird nicht unterstützt python version?
 try:
     first = float(input("What is your first number? "))

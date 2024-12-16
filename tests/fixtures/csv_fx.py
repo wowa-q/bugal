@@ -10,17 +10,20 @@ import random
 import time
 import zipfile
 from datetime import datetime
+from types import SimpleNamespace
 
 # 3rd party
 import pytest
 # from openpyxl import Workbook
 
-# user packages
-from context import bugal
-from bugal.app import model
-from bugal.cfg import cfg as tom
+# # user packages
+# from context import bugal
+# from bugal.app import model
+
 
 FIXTURE_DIR = pathlib.Path(__file__).parent.resolve()
+
+
 
 @pytest.fixture
 def fx_single_csv():
@@ -162,6 +165,25 @@ def fx_csv_broken_date_beta():
         pass
 
 @pytest.fixture
+def fx_classic_csv_config(fx_single_csv):
+    dbpth = FIXTURE_DIR / 'single.db'
+    zippth = FIXTURE_DIR / 'single.zip'
+    xlspth = FIXTURE_DIR / 'single.xlsx'
+    cfg_ = SimpleNamespace(import_type='CLASSIC',
+                           import_path=fx_single_csv,
+                           dbpath=dbpth,
+                           archive=zippth,
+                           export_path=xlspth)
+    yield cfg_
+    
+    try:
+        dbpth.unlink()
+    except PermissionError:
+        pass
+    except FileNotFoundError:
+        pass
+    
+@pytest.fixture
 def fx_banch_of_csv(fx_single_csv):
     if fx_single_csv.exists():
         pth = FIXTURE_DIR / 'csv'
@@ -221,35 +243,3 @@ def fx_banch_of_invalid_csv(fx_single_csv):
         pathlib.Path(pth).rmdir()
     except PermissionError:
         pass
-
-@pytest.fixture
-def fx_zip_archive():
-    archive = FIXTURE_DIR.resolve() / 'archive.zip'
-    with zipfile.ZipFile(FIXTURE_DIR.resolve() / 'archive.zip', 'w') as myzip:
-        pass
-
-    yield archive
-        
-    try:
-        archive.unlink()
-    except PermissionError:
-        pass
-
-@pytest.fixture
-def fx_zip_archive_configured():
-    config = tom.load_config()
-    src_config = config['bugal']['src']
-    for cfg in src_config:
-        if pathlib.Path(cfg.get('zip_file')).is_file():
-            archive = tom.ARCHIVE
-        else:
-            archive = pathlib.Path(cfg.get('zip_file'))
-            with zipfile.ZipFile(archive, 'w') as myzip:
-                pass
-
-    yield archive
-        
-    # try:
-    #     archive.unlink()
-    # except PermissionError:
-    #     pass

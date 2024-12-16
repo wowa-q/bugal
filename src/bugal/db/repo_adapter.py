@@ -1,8 +1,8 @@
 
 import logging
 
-from bugal import orm
-from bugal.libs import abstract as a
+from bugal.db import orm
+from bugal.db import db_if as a
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +23,17 @@ class RepoAdapter(a.AbstractRepository):
             orm.SqlTransactionRepo.__type__ = db_type
             orm.SqlHistoryRepo.__path__ = pth
             orm.SqlHistoryRepo.__type__ = db_type
+            logger.debug("""ADAPTER initialization: path: %s and type: %s""",
+                         orm.SqlTransactionRepo.__path__,
+                         orm.SqlTransactionRepo.__type__)
         else:
             logger.debug("""No adapter found for transaction to DB: %s""", self.db_type)
+
+    def deinit(self):
+        """closing connection to DB
+        """
+        if self.trepo is not None:
+            self.trepo.deinit()
 
     def add_transaction(self, transaction):  # tested
         result = False
@@ -52,6 +61,9 @@ class RepoAdapter(a.AbstractRepository):
             return self.trepo.get(id_=kwargs.get('id_'))
         elif 'hash_' in kwargs:  # tested
             return self.trepo.get(hash_=kwargs.get('hash_'))
+        elif 'start_date' in kwargs:  # start_date - end_date
+            return self.trepo.get(start_date=kwargs.get('start_date'),
+                                  end_date=kwargs.get('end_date'))
         else:
             return None
 
@@ -96,11 +108,11 @@ class RepoAdapter(a.AbstractRepository):
             return False
 
     def del_transaction(self, *arg, **kwargs) -> bool:  # tested
-        """ deleting history from table
+        """ deleting transaction from table
         """
         if self.hrepo is None:
             self.hrepo = orm.SqlTransactionRepo.get_instance()
-        logger.debug("""Deleting history from DB: %s""", kwargs)
+        logger.debug("""Deleting transaction from DB: %s""", kwargs)
         if 'id_' in kwargs:  # tested
             return self.hrepo.remove(id_=kwargs.get('id_'))
         elif 'hash_' in kwargs:  # tested

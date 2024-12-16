@@ -14,9 +14,9 @@ import pytest
 # from openpyxl import Workbook
 
 # user packages
-from context import bugal
+
 from bugal.app import model
-from bugal.cfg import cfg
+from cfg import config as cfg
 
 FIXTURE_DIR = pathlib.Path(__file__).parent.resolve()
 

@@ -1,89 +1,25 @@
-"""Abstraction layer
+"""Repository Interface
+
+    Raises:
+        NotImplementedError: _description_
+        NotImplementedError: _description_
+        NotImplementedError: _description_
+        NotImplementedError: _description_
+        NotImplementedError: _description_
+        NotImplementedError: _description_
+        NotImplementedError: _description_
+        NotImplementedError: _description_
+        NotImplementedError: _description_
+        NotImplementedError: _description_
+        NotImplementedError: _description_
+        NotImplementedError: _description_
+        NotImplementedError: _description_
+        NotImplementedError: _description_
+        NotImplementedError: _description_
+        NotImplementedError: _description_
+        NotImplementedError: _description_
 """
 import abc
-from typing import Any
-
-class Command(abc.ABC):
-    ''' abstract class to alighn different commands '''
-    __metaclass__ = abc.ABCMeta
-
-    # to run standard commands
-    @abc.abstractmethod
-    def execute(self) -> None:
-        ''' interface API '''
-        raise NotImplementedError
-
-
-class Artifact(abc.ABC):
-    """HandlerRead Interface
-
-    APIs:
-        archive
-        remove_from_archive
-    """
-    @abc.abstractmethod
-    def archive_imports(self, artifact:Any) -> str:
-        """Methode to archive the given artifact
-
-        Raises:
-            NotImplementedError:
-
-        Returns:
-            str: single transaction
-        """
-        raise NotImplementedError
-
-
-class HandlerReadIF(abc.ABC):
-    """HandlerRead Interface
-
-    APIs:
-        get_transactions
-        get_meta_data
-    """
-    @abc.abstractmethod
-    def get_transactions(self) -> str:
-        """Methode to read out the transactions from an imported file
-
-        Raises:
-            NotImplementedError:
-
-        Returns:
-            str: single transaction
-        """
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def get_meta_data(self) -> str:
-        """Methode to read out the meta data
-
-        Raises:
-            NotImplementedError:
-
-        Returns:
-            str: meta data of the import
-        """
-        raise NotImplementedError
-
-
-class HandlerWriteIF(abc.ABC):
-    """HandlerWrite Interface
-
-    APIs:
-        print() -> bool: API to print all data into the medium e.g. Excel
-
-    """
-    @abc.abstractmethod
-    def print(self) -> bool:
-        """Methode to execute the print
-
-        Raises:
-            NotImplementedError:
-
-        Returns:
-            bool: True if sucessful
-        """
-        raise NotImplementedError
 
 
 class AbstractRepository(abc.ABC):
@@ -126,7 +62,7 @@ class AbstractRepository(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def del_history(self, *arg: Any, **args: Any) -> bool:
+    def del_history(self, *arg, **args) -> bool:
         """_summary_
 
         Raises:
@@ -135,7 +71,7 @@ class AbstractRepository(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def del_transaction(self, *arg: Any, **args: Any) -> bool:
+    def del_transaction(self, *arg, **args) -> bool:
         """_summary_
 
         Raises:
@@ -199,7 +135,7 @@ class TransactionRepo(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def add(self, transaction:Any) -> bool:
+    def add(self, transaction) -> bool:
         """push transaction to db
 
         Args:
@@ -255,7 +191,7 @@ class TransactionRepo(abc.ABC):
 class HistoryRepo(abc.ABC):
 
     @abc.abstractmethod
-    def add(self, history:Any) -> bool:
+    def add(self, history) -> bool:
         """push history to db
 
         Args:
@@ -307,9 +243,3 @@ class HistoryRepo(abc.ABC):
         """
         raise NotImplementedError
 
-
-class UI(abc.ABCMeta):
-
-    @abc.abstractmethod
-    def execute(self, **parameters:Any) -> bool:
-        pass
