@@ -20,8 +20,8 @@ from sqlalchemy.orm import sessionmaker, clear_mappers
 
 # user packages
 from context import bugal
-from bugal import model
-from bugal import cfg
+from bugal.app import model
+from bugal.cfg import cfg
 from bugal import orm
 
 FIXTURE_DIR = pathlib.Path(__file__).parent.resolve()

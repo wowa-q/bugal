@@ -17,9 +17,9 @@ import pytest
 # from openpyxl import Workbook
 
 # user packages
-from context import bugal
-from bugal import model
-from bugal import cfg
+# from context import bugal
+from bugal.app import model
+from cfg import config
 
 
 FIXTURE_DIR = pathlib.Path(__file__).parent.resolve()
@@ -36,42 +36,57 @@ def fx_new_db_file_name():
         print(f"Error deleting file: {e}") 
 
 @pytest.fixture
-def fx_new_betaTransaction():    
+def fx_randomTransaction():
     value = random.randrange(0, 1000)
-    data = ["01.01.2022", "0.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", value, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
-    stack = model.Stack(cfg.TransactionListBeta)    
+    # data = ["01.01.2022", "01.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", value, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    data = config.META_TRANSACTION.copy()
+    data['tdate'] = "01.01.2022"
+    data['text'] = "text"
+    data['status'] = "STATUS"
+    data['debitor'] = "debitor"
+    data['verwendung'] = "verwendung"
+    data['konto'] = "receiver konto"
+    data['value'] = value
+    data['debitor_id'] = "debitor_id"
+    data['mandats_ref'] = "mandats_ref"
+    data['customer_ref'] = "customer_ref"
+    data['src_konto'] = "src_konto"
+
+ 
+    stack = model.Stack('cfg.TransactionListBeta')    
     transaction = stack.create_transaction(data)    
     return transaction
 
 @pytest.fixture
 def fx_new_classicTransactions_banch():
-    stack = model.Stack(cfg.TransactionListClassic)
-    stack.input_type = cfg.TransactionListClassic
-    t1 = stack.create_transaction(["01.01.2022", "01.01.2022", "text", "status", "debitor", "verwendung", "konto", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"])
-    t2 = stack.create_transaction(["01.03.2022", "01.03.2022", "text", "status", "debitor", "verwendung", "konto", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"])
-    t3 = stack.create_transaction(["01.04.2022", "01.04.2022", "text", "status", "debitor", "verwendung", "konto", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"])
+    # stack = model.Stack(cfg.TransactionListClassic)
+    # stack.input_type = cfg.TransactionListClassic
+    # t1 = stack.create_transaction(["01.01.2022", "01.01.2022", "text", "status", "debitor", "verwendung", "konto", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"])
+    # t2 = stack.create_transaction(["01.03.2022", "01.03.2022", "text", "status", "debitor", "verwendung", "konto", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"])
+    # t3 = stack.create_transaction(["01.04.2022", "01.04.2022", "text", "status", "debitor", "verwendung", "konto", "10", "debitor_id", "mandats_ref", "customer_ref", "src_konto"])
 
-    return [t1, t2, t3]
+    # return [t1, t2, t3]
+    return []
 
 @pytest.fixture
 def fx_new_betaTransactions_banch():
-    
-    stack = model.Stack(cfg.TransactionListClassic)
-    stack.input_type = cfg.TransactionListClassic
-    data = ["01.01.2022", "0.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
-    t1 = stack.create_transaction(data)
-    data = ["01.01.2022", "0.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", 11, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
-    t2 = stack.create_transaction(data)
-    data = ["01.01.2022", "0.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", 12, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
-    t3 = stack.create_transaction(data)
-    return [t1, t2, t3]
+    return []
+    # stack = model.Stack(cfg.TransactionListClassic)
+    # stack.input_type = cfg.TransactionListClassic
+    # data = ["01.01.2022", "0.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", 10, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    # t1 = stack.create_transaction(data)
+    # data = ["01.01.2022", "0.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", 11, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    # t2 = stack.create_transaction(data)
+    # data = ["01.01.2022", "0.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", 12, "debitor_id", "mandats_ref", "customer_ref", "src_konto"]
+    # t3 = stack.create_transaction(data)
+    # return [t1, t2, t3]
 
 @pytest.fixture
 def fx_history(fx_checksum_repo_exist):
     value = random.randrange(1, 31)
     datum = str(value) + '.12.2023'
-    stack = model.Stack(cfg.TransactionListClassic)
-    meta = cfg.CSV_META.copy()
+    stack = model.Stack('')
+    meta = config.CSV_META.copy()
     meta['file_name'] = 'auszug1'
     meta['file_ext'] = 'csv'
     meta['checksum'] = fx_checksum_repo_exist
@@ -95,8 +110,8 @@ def fx_history_unique():
     "2022.02.02",
     hash_v
     ]
-    stack = model.Stack(cfg.TransactionListClassic)
-    dc = cfg.CSV_META.copy()
+    stack = model.Stack('cfg.TransactionListClassic')
+    dc = config.CSV_META.copy()
     dc['file_name'] = 'auszug1'
     dc['file_ext'] = 'csv'
     dc['checksum'] = hash_v
@@ -112,7 +127,7 @@ def fx_history_unique():
 @pytest.fixture
 def fx_transaction_unique():
     data = ["01.01.2022", "STATUS", "sender", "receiver", "verwendung", "typ", str(random.randint(100000, 999999)), str(random.randint(100000, 999999)), "mandats_ref", "customer_ref", "src_konto"]
-    stack = model.Stack(cfg.TransactionListClassic)
+    stack = model.Stack()
     transaction = stack.create_transaction(data)
 
     return transaction

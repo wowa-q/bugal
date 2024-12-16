@@ -9,10 +9,10 @@ import pytest
 from context import bugal
 
 from bugal import service
-from bugal import model
-from bugal import handler
-from bugal import repo
-from bugal import cfg
+from bugal.app import model
+from bugal.app import handler
+from bugal.db import repo
+from bugal.cfg import cfg
 
 from fixtures import basic
 from fixtures import orm_fx

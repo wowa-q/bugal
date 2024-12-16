@@ -10,8 +10,8 @@ import openpyxl
 
 from context import bugal
 
-from bugal import cfg
-from bugal import handler
+from bugal.cfg import cfg
+from bugal.app import handler
 
 
 FIXTURE_DIR = pathlib.Path(__file__).parent.parent.resolve() / "fixtures"

@@ -37,6 +37,18 @@ RELATIONS:
   VALUE: UI-2
 
 [REQUIREMENT]
+STATUS: Draft
+VERIFICATION: -
+TITLE: Configuration style
+STATEMENT: The config.toml shall hold only dictionries for parameters.
+RATIONALE: Consistancy and more generic application possible.
+COMMENT: any comment
+LAYER: config
+RELATIONS:
+- TYPE: Parent
+  VALUE: UI-2
+
+[REQUIREMENT]
 UID: DESIGN-3
 STATUS: Draft
 VERIFICATION: -

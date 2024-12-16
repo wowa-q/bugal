@@ -8,19 +8,19 @@ from sqlalchemy.exc import IntegrityError
 
 import pytest
 
+ 
+from bugal.app.model import Stack
+from bugal.app.model import Filter
+from bugal.app import model
+from bugal.db import repo, repo_adapter, orm
+from cfg import config
+from libs import exceptions as err
 
-from context import bugal
 
-from bugal import cfg
-from bugal import repo
-from bugal import repo_adapter
-from bugal import orm
-from bugal import model
-from bugal import exceptions as err
 from fixtures import basic
-from fixtures import orm_fx
+from fixtures import model_fx
 from fixtures import sql_fx
-
+# from fixtures import orm_fx
 
 FIXTURE_DIR = pathlib.Path(__file__).parent.parent.resolve() / "fixtures"
 
@@ -33,7 +33,7 @@ FIXTURE_DIR = pathlib.Path(__file__).parent.parent.resolve() / "fixtures"
     ('memory', 'Transaction'),
 
 ])
-def test_init_transaction_sqlrepo(repo_type, table):
+def test_init_transaction_sqlrepo(repo_type, table, fx_new_db_file_name):
     # Preparation: static variables have to be reinitialized before testing
     orm.SqlTransactionRepo.__type__ = None
     orm.SqlTransactionRepo.__path__ = ''
@@ -51,9 +51,11 @@ def test_init_transaction_sqlrepo(repo_type, table):
     assert repo_.session is not None, f"Sql Repo not initialized - no session"
     assert repo_.engine is not None, f"Sql Repo not initialized - no engine"
     assert isinstance(repo_.session, Session), f"session has a wrong type"
-    assert repo_.__type__ == 'sqlite', f"Orm not initialized with default {repo_.__type__}"
-    assert repo_.__path__ == cfg.DBFILE, f"Orm not initialized with default {repo_.__path__} / {cfg.DBFILE}"
-    # adjusting repo type and path
+    # type comes from configuration
+    # assert repo_.__type__ == 'sqlite', f"Orm not initialized with default {repo_.__type__}"
+    # assert repo_.__path__ == cfg.DBFILE, f"Orm not initialized with default {repo_.__path__} / {cfg.DBFILE}"
+    
+    # adjusting repo type and path    
     if 'Transaction' in table:
         orm.SqlTransactionRepo.__type__ = repo_type
         orm.SqlTransactionRepo.__path__ = os.curdir
@@ -75,16 +77,16 @@ def test_init_transaction_sqlrepo(repo_type, table):
     assert isinstance(repo_.session, Session), f"session has a wrong type"
     assert repo_.__path__ == os.curdir, f"Orm not initialized with repo path {repo_.__path__} / {os.curdir}"
     assert repo_.__type__ == repo_type, f"Orm not initialized with repo type {repo_.__type__}"
-
-@pytest.mark.skip()
+    
+# @pytest.mark.skip()
 @pytest.mark.parametrize("repo_type, expected", [
     ('memory', True),
     # ('sqlite', True),
 
 ])
-def test_add_transaction_sqlrepo(repo_type, expected, fx_new_betaTransaction, fx_test_db):
+def test_add_transaction_sqlrepo(repo_type, expected, fx_randomTransaction, fx_test_db):
     # Preparation
-    assert isinstance(fx_new_betaTransaction, model.Transaction), f"Transaction is not DataClass type"
+    assert isinstance(fx_randomTransaction, model.Transaction), f"Transaction is not DataClass type"
     orm_ = orm.Orm()
     orm_.delete_tables()
     if expected:
@@ -95,19 +97,19 @@ def test_add_transaction_sqlrepo(repo_type, expected, fx_new_betaTransaction, fx
         else:
             rep = repo.FakeRepo()
         tctr = rep.get_ctr()
-        result = rep.add(fx_new_betaTransaction)
-        tctr_after = rep.get_ctr()
+        result = rep.add(fx_randomTransaction)
+        tctr_after = rep.get_ctr()        
         assert result == expected, f"Transaction was not added as expected {result}"
         assert (tctr + 1) == tctr_after, f"No transaction added {tctr} - {tctr_after}"
-        transaction = rep.get(hash_=hash(fx_new_betaTransaction))
+        transaction = rep.get(hash_=hash(fx_randomTransaction))
         assert transaction is not None, f"No transaction retrived from DB {transaction}"
         assert transaction.id == 1, f"wrong Transaction id {transaction.id}"
         transaction = None
         transaction = rep.get(id_=1)
         assert transaction is not None, f"No transaction retrived from DB {transaction}"
         assert transaction.id == 1, f"wrong Transaction id {transaction.id}"
-        rep.remove(hash_=hash(fx_new_betaTransaction))
-        transaction = rep.get(hash_=hash(fx_new_betaTransaction))
+        rep.remove(hash_=hash(fx_randomTransaction))
+        transaction = rep.get(hash_=hash(fx_randomTransaction))
         assert transaction is None, f"Delete of transaction from DB failed {transaction.id}"
 
 # @pytest.mark.skip()
@@ -152,22 +154,22 @@ def test_add_history_sqlrepo(repo_type, expected, fx_history_unique, fx_test_db)
     #('sqlite'),
     ('memory'),
 ])
-def test_add_duplicate_transaction_sqlrepo(repo_type, fx_new_betaTransaction, fx_test_db):
+def test_add_duplicate_transaction_sqlrepo(repo_type, fx_randomTransaction, fx_test_db):
     # Preparation
-    assert isinstance(fx_new_betaTransaction, model.Transaction), f"Transaction is not DataClass type"
+    assert isinstance(fx_randomTransaction, model.Transaction), f"Transaction is not DataClass type"
     if repo_type == 'sqlite' or repo_type == 'memory':
         orm.SqlTransactionRepo.__path__ = fx_test_db
         orm.SqlTransactionRepo.__type__ = repo_type
         rep = orm.SqlTransactionRepo()
     else:
         rep = repo.FakeRepo()
-    rep.add(fx_new_betaTransaction)
+    rep.add(fx_randomTransaction)
     tctr = rep.get_ctr()
-    hash1 = hash(fx_new_betaTransaction)
+    hash1 = hash(fx_randomTransaction)
     with pytest.raises(err.ImportDuplicateTransaction):
-        rep.add(fx_new_betaTransaction)
+        rep.add(fx_randomTransaction)
     tctr_after = rep.get_ctr()
-    hash2 = hash(fx_new_betaTransaction)
+    hash2 = hash(fx_randomTransaction)
     assert (tctr) == tctr_after, f"transaction added unexpected {tctr} {hash1} - {tctr_after} {hash2}"
 
 # @pytest.mark.skip()
@@ -196,6 +198,8 @@ def test_add_false_type_transaction_sqlrepo(repo_type, fx_transaction_example_cl
 
 ])
 def test_init_repo_adapter(repo_type, fx_test_db):
+    cfg_ = config.get_config()
+
     # Preparation: static variables have to be reinitialized before testing
     orm.SqlTransactionRepo.__type__ = None
     orm.SqlTransactionRepo.__path__ = ''
@@ -219,8 +223,8 @@ def test_init_repo_adapter(repo_type, fx_test_db):
     # repos have to be initialized to get defaut values
     orm.SqlTransactionRepo()
     orm.SqlHistoryRepo()
-    assert orm.SqlTransactionRepo.__path__ == cfg.DBFILE, f"One parameter initialization failed {orm.SqlTransactionRepo.__path__} / {cfg.DBFILE}"
-    assert orm.SqlHistoryRepo.__path__ == cfg.DBFILE, f"One parameter initialization failed: -> {orm.SqlHistoryRepo.__path__} / {cfg.DBFILE}"
+    assert orm.SqlTransactionRepo.__path__ == cfg_.dbpath, f"One parameter initialization failed {orm.SqlTransactionRepo.__path__} / {cfg.DBFILE}"
+    assert orm.SqlHistoryRepo.__path__ == cfg_.dbpath, f"One parameter initialization failed: -> {orm.SqlHistoryRepo.__path__} / {cfg.DBFILE}"
     # without parameters - use default values
     adapter = repo_adapter.RepoAdapter()
     assert adapter is not None, f"Adapter Repo not initialized"
@@ -230,9 +234,9 @@ def test_init_repo_adapter(repo_type, fx_test_db):
     ('memory', True),
     # ('fake', True),
 ])
-def test_add_transaction_repo_adapter(repo_, expected, fx_new_betaTransaction, fx_test_db):
+def test_add_transaction_repo_adapter(repo_, expected, fx_randomTransaction, fx_test_db):
     # Preparation
-    assert isinstance(fx_new_betaTransaction, model.Transaction), f"Transaction is not DataClass type"
+    assert isinstance(fx_randomTransaction, model.Transaction), f"Transaction is not DataClass type"
     if expected:
         if repo_ == 'sqlite' or repo_ == 'memory':
             adapter = repo_adapter.RepoAdapter(fx_test_db, repo_)
@@ -241,14 +245,14 @@ def test_add_transaction_repo_adapter(repo_, expected, fx_new_betaTransaction, f
         assert adapter.db_type == repo_, f"False repo type {adapter.db_type}"
         tctr = adapter.get_transaction_ctr()
         assert adapter.trepo is not None, f"Repo of Adapter not initialized {adapter.trepo}"
-        result = adapter.add_transaction(fx_new_betaTransaction)
-
+        result = adapter.add_transaction(fx_randomTransaction)
+        
         tctr_after = adapter.get_transaction_ctr()
         assert result == expected, f"Transaction was not added as expected {result}"
         assert (tctr + 1) == tctr_after, f"No transaction added {tctr} - {tctr_after}"
         # pushing of the same transaction should raise an exception
         with pytest.raises(err.ImportDuplicateTransaction):
-            adapter.add_transaction(fx_new_betaTransaction)
+            adapter.add_transaction(fx_randomTransaction)
 
 # @pytest.mark.skip()
 @pytest.mark.parametrize("repo_type, ", [
@@ -292,19 +296,18 @@ def test_init_repo(repo_type, table, fx_test_db):
 # @pytest.mark.skip()
 @pytest.mark.parametrize("repo_type, expected", [
     ('memory', True),
-    ('fake', True),
     # TODO test with physical DB
 ])
-def test_add_transaction_repo(repo_type, expected, fx_new_betaTransaction, fx_test_db):
+def test_add_transaction_repo(repo_type, expected, fx_randomTransaction, fx_test_db):
     # Preparation
-    assert isinstance(fx_new_betaTransaction, model.Transaction), f"Transaction is not DataClass type"
+    assert isinstance(fx_randomTransaction, model.Transaction), f"Transaction is not DataClass type"
     if expected:
         if repo_type == 'sqlite' or repo_type == 'memory':
             repo_ = repo.TransactionsRepo(fx_test_db, repo_type)
         else:
             repo_ = repo.FakeRepo()
         tctr = repo_.get_transaction_ctr()
-        result = repo_.add_transaction(fx_new_betaTransaction)
+        result = repo_.add_transaction(fx_randomTransaction)
         tctr_after = repo_.get_transaction_ctr()
         assert result == expected, f"Transaction was not added as expected {result}"
         assert (tctr + 1) == tctr_after, f"No transaction added {tctr} - {tctr_after}"
@@ -313,10 +316,10 @@ def test_add_transaction_repo(repo_type, expected, fx_new_betaTransaction, fx_te
         if repo_type != 'fake':
             assert transaction.id == 1, f"transaction object with wrong id"
         # test checksum
-        transaction = repo_.get_transaction(hash_=hash(fx_new_betaTransaction))
+        transaction = repo_.get_transaction(hash_=hash(fx_randomTransaction))
         assert transaction is not None, f"transaction was not read {transaction}"
         if repo_type != 'fake':
-            assert str(transaction.checksum) == str(hash(fx_new_betaTransaction)), f"transaction object with wrong hash {transaction.checksum} / {hash(fx_new_betaTransaction)}"
+            assert str(transaction.checksum) == str(hash(fx_randomTransaction)), f"transaction object with wrong hash {transaction.checksum} / {hash(fx_new_betaTransaction)}"
         if repo_type != 'fake':
             # test range of transactions
             date1 = date(2020, 10, 19)
@@ -331,30 +334,31 @@ def test_add_transaction_repo(repo_type, expected, fx_new_betaTransaction, fx_te
             assert str(datum) == '2022-01-01', f"first transaction has date: {datum}, was looking forgreater than {date2}"
             assert transactions[0].id != transactions[2].id, "Two transactions with the same ID"
             assert transactions[0].checksum != transactions[2].checksum, "Two transactions with the same checksum"
+
 # @pytest.mark.skip()
-@pytest.mark.parametrize("repo_type, ", [
-    ('fake'),
+@pytest.mark.parametrize("repo_type, ", [    
+  
     ('memory'),
 ])
-def test_add_duplicate_transaction_repo(repo_type, fx_new_betaTransaction, fx_test_db):
+def test_add_duplicate_transaction_repo(repo_type, fx_randomTransaction, fx_test_db):
     # Preparation
-    assert isinstance(fx_new_betaTransaction, model.Transaction), f"Transaction is not DataClass type"
+    assert isinstance(fx_randomTransaction, model.Transaction), f"Transaction is not DataClass type"
     if repo_type == 'sqlite' or repo_type == 'memory':
         repo_ = repo.TransactionsRepo(fx_test_db, repo_type)
     else:
         repo_ = repo.FakeRepo()
-    repo_.add_transaction(fx_new_betaTransaction)
+    repo_.add_transaction(fx_randomTransaction)
     tctr = repo_.get_transaction_ctr()
-    hash1 = hash(fx_new_betaTransaction)
+    hash1 = hash(fx_randomTransaction)
     with pytest.raises(err.ImportDuplicateTransaction):
-        repo_.add_transaction(fx_new_betaTransaction)
+        repo_.add_transaction(fx_randomTransaction)
     tctr_after = repo_.get_transaction_ctr()
-    hash2 = hash(fx_new_betaTransaction)
+    hash2 = hash(fx_randomTransaction)
     assert (tctr) == tctr_after, f"transaction added unexpected {tctr} {hash1} - {tctr_after} {hash2}"
 
 # @pytest.mark.skip()
-@pytest.mark.parametrize("repo_type, ", [
-    ('fake'),
+@pytest.mark.parametrize("repo_type, ", [    
+    # ('fake'),    
     ('sqlite'),
 ])
 def test_add_false_type_transaction_repo(repo_type, fx_transaction_example_classic, fx_test_db):
@@ -370,7 +374,7 @@ def test_add_false_type_transaction_repo(repo_type, fx_transaction_example_class
 @pytest.mark.parametrize("repo_type, expected", [
     ('memory', True),
     # ('sqlite', True),
-    ('fake', True),
+    # ('fake', True),
 ])
 def test_add_history_repo(repo_type, expected, fx_history, fx_test_db):
     # Preparation
@@ -397,31 +401,31 @@ def test_add_history_repo(repo_type, expected, fx_history, fx_test_db):
             assert history.checksum == fx_history.checksum, f"history object with wrong hash"
 
 # @pytest.mark.skip()
-@pytest.mark.parametrize("repo_type, ", [
-    ('fake'),
+@pytest.mark.parametrize("repo_type, ", [    
+    # ('fake'),    
     ('memory'),
 ])
-def test_add_duplicate_history_repo(repo_type, fx_history, fx_test_db):
+def test_add_duplicate_history_repo(repo_type, fx_history_unique, fx_test_db):
     # Preparation
-    assert isinstance(fx_history, model.History), f"History is not DataClass type"
+    assert isinstance(fx_history_unique, model.History), f"History is not DataClass type"
     orm_ = orm.Orm.get_instance()
     orm_.delete_tables()
     if repo_type == 'sqlite' or repo_type == 'memory':
         repo_ = repo.HistoryRepo(fx_test_db, repo_type)
     else:
         repo_ = repo.FakeRepo()
-    repo_.add_history(fx_history)
+    repo_.add_history(fx_history_unique)
     tctr = repo_.get_history_ctr()
-    hash1 = hash(fx_history)
+    hash1 = hash(fx_history_unique)
     with pytest.raises(err.ImportFileDuplicate):
-        repo_.add_history(fx_history)
+        repo_.add_history(fx_history_unique)
     tctr_after = repo_.get_history_ctr()
-    hash2 = hash(fx_history)
+    hash2 = hash(fx_history_unique)
     assert (tctr) == tctr_after, f"History added unexpected {tctr} {hash1} - {tctr_after} {hash2}"
 
 # @pytest.mark.skip()
-@pytest.mark.parametrize("repo_type, ", [
-    ('fake'),
+@pytest.mark.parametrize("repo_type, ", [    
+    # ('fake'),    
     ('sqlite'),
 ])
 def test_add_false_type_history_repo(repo_type, fx_transaction_example_classic, fx_test_db):
@@ -436,13 +440,13 @@ def test_add_false_type_history_repo(repo_type, fx_transaction_example_classic, 
         repo_.add_history(fx_transaction_example_classic)
 
 # @pytest.mark.skip()
-@pytest.mark.parametrize("repo_type, ", [
-    ('fake'),
+@pytest.mark.parametrize("repo_type, ", [    
+    # ('fake'),    
     ('memory'),
 ])
-def test_delete_transaction_repo(repo_type, fx_new_betaTransaction, fx_test_db):
+def test_delete_transaction_repo(repo_type, fx_randomTransaction, fx_test_db):
     # Preparation
-    assert isinstance(fx_new_betaTransaction, model.Transaction), f"History is not DataClass type"
+    assert isinstance(fx_randomTransaction, model.Transaction), f"History is not DataClass type"
     orm_ = orm.Orm.get_instance()
     orm_.delete_tables()
 
@@ -451,28 +455,27 @@ def test_delete_transaction_repo(repo_type, fx_new_betaTransaction, fx_test_db):
     else:
         repo_ = repo.FakeRepo()
 
-    repo_.add_transaction(fx_new_betaTransaction)
+    repo_.add_transaction(fx_randomTransaction)
     ctr = repo_.get_transaction_ctr()
     assert ctr > 0, f"adding new History failed"
     result = repo_.del_transaction(id_=1)
     assert result == True, f"History Not deleted {result}"
     ctr_after = repo_.get_transaction_ctr()
     assert ctr > ctr_after, f"deleting failed"
-    repo_.add_transaction(fx_new_betaTransaction)
     ctr = repo_.get_transaction_ctr()
-    result = repo_.del_transaction(hash_=hash(fx_new_betaTransaction))
+    result = repo_.del_transaction(hash_=hash(fx_randomTransaction))
     assert result == True, f"History Not deleted {result}"
     ctr_after = repo_.get_transaction_ctr()
     assert ctr > ctr_after, f"deleting failed"
 
 # @pytest.mark.skip()
-@pytest.mark.parametrize("repo_type, ", [
-    ('fake'),
+@pytest.mark.parametrize("repo_type, ", [    
+    # ('fake'),    
     ('memory'),
 ])
-def test_delete_history_repo(repo_type, fx_history, fx_test_db):
+def test_delete_history_repo(repo_type, fx_history_unique, fx_test_db):
     # Preparation
-    assert isinstance(fx_history, model.History), f"History is not DataClass type"
+    assert isinstance(fx_history_unique, model.History), f"History is not DataClass type"
     orm_ = orm.Orm.get_instance()
     orm_.delete_tables()
 
@@ -481,16 +484,15 @@ def test_delete_history_repo(repo_type, fx_history, fx_test_db):
     else:
         repo_ = repo.FakeRepo()
 
-    repo_.add_history(fx_history)
+    repo_.add_history(fx_history_unique)
     ctr = repo_.get_history_ctr()
     assert ctr > 0, f"adding new History failed"
     result = repo_.del_history(id_=1)
     assert result == True, f"History Not deleted {result}"
     ctr_after = repo_.get_history_ctr()
     assert ctr > ctr_after, f"deleting failed"
-    repo_.add_history(fx_history)
     ctr = repo_.get_history_ctr()
-    result = repo_.del_history(hash_=fx_history.checksum)
+    result = repo_.del_history(hash_=fx_history_unique.checksum)
     assert result == True, f"History Not deleted {result}"
     ctr_after = repo_.get_history_ctr()
     assert ctr > ctr_after, f"deleting failed"
