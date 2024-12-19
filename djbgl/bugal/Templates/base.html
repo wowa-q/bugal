@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Document</title>
 
     <!-- Bootstrap CSS can be also be downloaded locally -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-
-    <link rel="stylesheet" href="../static/css/bugal.css"> <!-- -->
+    {% load static %}
+    <img src="{% static 'img/euro1.jpg' %}" width="50" height="50" alt="My image">
+    <link rel="stylesheet" href="{% static 'css/bugal.css' %}">
+    <!-- <link rel="stylesheet" href="../../bugal/static/css/bugal.css">  -->
     {% block styles%} {%endblock%}
 </head>
 <body>
@@ -18,7 +21,7 @@
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
                 <div class="container-fluid">
                     <a class="navbar-brand" href="#">
-                        <img src="../static/img/euro1.jpg" width="50" height="50" class="d-inline-block align-top"alt="">
+                        <img src="../../static/img/euro1.jpg" width="50" height="50" class="d-inline-block align-top"alt="">
                     </a>
                     <a class="navbar-brand ms-auto bugal-nav" href="#">Finance Manager</a>
                     <!-- Beim Minimieren des Fensters ist das der "Burger-Button" -->
@@ -32,7 +35,7 @@
                     <div class="collapse navbar-collapse " id="navbarSupportedContent" >
                         <ul class="navbar-nav ms-auto">
                             <li class="nav-item active">
-                                <a class="nav-link" id="menuHome" href="#" >Home<span class="sr-only">(current)</span></a>
+                                <a class="nav-link" id="menuHome" href="#" >Home<span class="sr-only"></span></a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="menuStatistics" href="#" >Statistics</a>
@@ -56,5 +59,10 @@
 
     </div>
 
+    <div class="upper_block">
+    {% block upper_block %}
+        <h1> Block content </h1>
+    {% endblock upper_block%}
+    </div>
 </body>
 </html>

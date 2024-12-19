@@ -38,25 +38,12 @@
 
 6. `uv tree` - shows the dependency tree
 
-### ---
+### Commands
 
-`uv python list` to checkout the Python version
-`uv python install` installs Python
-`uv run xyz` runs the script
-`uv init --name NAME` creates a new project
-`uv add packagename` adds a package to the project dependency
-`uv remove packagename` removes the packages from the project
-`uv tool install toolname` tool can be installed to be used from command line
-`uv `
-
-
-
-## virtual environment
-
-### Create VE
-
-### Update VE
-
-
-
-## Build Python package
+- `uv python list` to checkout the Python version
+- `uv python install` installs Python
+- `uv run xyz` runs the script
+- `uv init --name NAME` creates a new project
+- `uv add packagename` adds a package to the project dependency
+- `uv remove packagename` removes the packages from the project
+- `uv tool install toolname` tool can be installed to be used from command line
