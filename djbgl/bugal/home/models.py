@@ -28,7 +28,6 @@ class History(models.Model):
         return str(self.file_name)
 
 
-
 class Transaction(models.Model):
     date = models.DateField()
     text = models.CharField(max_length=500)

@@ -3,7 +3,7 @@ label = "bugal"
 
 # Configure a test run with "True" or real run with "False"
 [[bugal.run]]
-TEST = "False"
+TEST = "True"
 
 # Configure the file locations absolute path
 [[bugal.test]]
