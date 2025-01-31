@@ -1,0 +1,201 @@
+#:kivy 2.3.0
+<CustomButton@Button>
+    font_size: 24   # Schriftgroesse
+	background_normal: ''
+	background_color: (68/255,78/255,153/255,1) # color picker online
+	size_hint: (0.9, None)
+    halign: "center"
+    valign: "middle"
+    spacing: [10, 10]
+
+<GlobalText@TextInput>
+    multiline: False
+    size_hint_y: None  # Höhe wird nicht automatisch angepasst
+    height: 30
+    width: 200
+
+<BugalStartWindow>:
+    BoxLayout:
+        size_hint: 1, 1  # Nimmt den gesamten Platz des Fensters ein
+        orientation: 'vertical'
+
+        ActionBar:
+            pos_hint: {'top': 1}  # Positioniere die ActionBar oben im Fenster
+            background_color: (0.2, 0.6, 0.8, 1)  # Hintergrundfarbe der ActionBar
+
+            ActionView:
+                use_separator: True
+
+                # App-Logo und Name
+                ActionPrevious:
+                    title: "Meine App"
+                    with_previous: False
+                    app_icon: "icon.jpg"  # Ersetze mit dem Pfad zu deinem Icon
+
+                # Buttons in der ActionBar
+                ActionButton:
+                    text: "Home"
+                    on_press: root.do_open_start_window()
+                ActionButton:
+                    text: "Suche"
+                    on_press: root.do_open_start_window()
+                ActionButton:
+                    text: "Einstellungen"
+                    on_press: root.do_open_start_window()
+                ActionButton:
+                    text: "Profil"
+                    on_press: root.do_open_start_window()
+                ActionButton:
+                    text: "Hilfe"
+                    on_press: root.do_open_start_window()
+        GridLayout:
+            cols: 3
+            padding: [10, 10, 10, 10]
+            spacing: [10, 10]
+            # size_hint: 1, 1  # Passt sich an das übergeordnete Layout an
+
+            CustomButton:
+                background_color: (41/255,150/255,105/255,1)
+                text: "IMPORT"
+                on_press: root.do_open_import_config_window()
+            CustomButton:
+                text: "PROCESS"
+            CustomButton:
+                background_color: (209/255,113/255,10/255,1)
+                text: "EXPORT"
+                # on_press: root.do_open_export_config_window()
+
+<BugalImportConfigWindow>:
+    BoxLayout:
+        size_hint: 1, 1  # Nimmt den gesamten Platz des Fensters ein
+        orientation: 'vertical'
+
+        ActionBar:
+            pos_hint: {'top': 1}  # Positioniere die ActionBar oben im Fenster
+            background_color: (0.2, 0.6, 0.8, 1)  # Hintergrundfarbe der ActionBar
+
+            ActionView:
+                use_separator: True
+
+                # App-Logo und Name
+                ActionPrevious:
+                    title: "Meine App"
+                    with_previous: False
+                    app_icon: "icon.jpg"  # Ersetze mit dem Pfad zu deinem Icon
+
+                # Buttons in der ActionBar
+                ActionButton:
+                    text: "Home"
+                    on_press: root.do_open_start_window()
+                ActionButton:
+                    text: "Suche"
+                    on_press: root.do_open_start_window()
+                ActionButton:
+                    text: "Einstellungen"
+                    on_press: root.do_open_start_window()
+                ActionButton:
+                    text: "Profil"
+                    on_press: root.do_open_start_window()
+                ActionButton:
+                    text: "Hilfe"
+                    on_press: root.do_open_start_window()
+
+        BoxLayout:
+            size_hint: 1, 1  # Nimmt den gesamten Platz des Fensters ein
+            orientation: 'horizontal'
+            GridLayout:
+                cols: 2
+                padding: [10, 10, 10, 10]
+                spacing: [10, 10]
+                row_default_height: '40dp'  # Einheitliche Höhe der Zeilen
+                row_force_default: True     # Erzwingt feste Zeilenhöhe
+                # size_hint: 1, 1  # Passt sich an das übergeordnete Layout an
+                Label:
+                    id: csv_import_path_config
+                    # size_hint: (0.75, 1)
+                    font_size: 24
+                    text: "CSV"
+                    halign: "right"
+                    valign: "middle"
+                GlobalText:
+                    id: csv_file_path_input
+                    text: "d:\\orange\\private_FP\\template.csv"
+
+                Label:
+                    id: db_import_path_config
+                    # size_hint: (0.75, 1)
+                    font_size: 24
+                    text: "DB"
+                    halign: "right"
+                    valign: "middle"
+                GlobalText:
+                    id: db_file_path_input
+                    text: "d:\\orange\\private_FP\\template.db"
+                Label:
+                    id: zip_import_path_config
+                    # size_hint: (0.75, 1)
+                    font_size: 24
+                    text: "ZIP"
+                    halign: "right"
+                    valign: "middle"
+                GlobalText:
+                    id: zip_file_path_input
+                    text: "d:\\orange\\private_FP\\template.zip"
+                    valign: "middle"
+                Label:
+                    id: xls_import_path_config
+                    # size_hint: (0.75, 1)
+                    font_size: 24
+                    text: "Excel"
+                    halign: "right"
+
+                GlobalText:
+                    id: xls_file_path_input
+                    text: "d:\\orange\\private_FP\\template.xlsx"
+
+
+
+             # FileChooser Widget
+            FileChooserListView:
+                id: filechooser
+                # filters: ['*.txt', '*.csv']  # Nur bestimmte Dateien anzeigen
+                path: '/'  # Startverzeichnis
+                hight: 0.8
+                # rootpath: '/bugal_p'
+                multiselect: False
+
+        BoxLayout:
+            size_hint_y: 0.5
+            orientation: 'horizontal'
+
+            padding: [10, 10, 10, 10]
+            spacing: 10
+
+
+            Spinner:
+                id: csv_type_spinner
+                text: "CSV Type"  # Standardtext
+                values: ["Modern","CLASSIC", "Modern_2024", "DailyCard"]  # Liste der Optionen
+                font_size: 24   # Schriftgroesse
+                background_normal: ''
+                background_color: (68/255,78/255,153/255,1)
+                size_hint: (0.9, None)
+                on_text: root.on_spinner_select(self.text)  # Reaktion auf Auswahl
+
+            Spinner:
+                id: db_type_spinner
+                text: "DB Type"  # Standardtext
+                values: ["memory","sqlite"]  # Liste der Optionen
+                size_hint: (0.9, None)
+                on_text: root.on_spinner_select(self.text)  # Reaktion auf Auswahl
+                font_size: 24   # Schriftgroesse
+                background_normal: ''
+                background_color: (68/255,78/255,153/255,1)
+
+            CustomButton:
+                text: "Select Files"
+                on_press: root.do_get_csv_file(filechooser.selection, csv_import_path_config)
+            CustomButton:
+                text: "Import"
+                background_color: (41/255,150/255,105/255,1)
+                on_press: root.cancel_selection()

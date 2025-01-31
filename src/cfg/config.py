@@ -113,7 +113,7 @@ class CFGToml(CFG):
     """TOML configuration
     """
     def __init__(self):
-        self.config_path = pathlib.Path("config.toml")        
+        self.config_path = pathlib.Path("config.toml")
 
     def get_config_path(self):
         """getting path for toml configuration
@@ -148,7 +148,7 @@ class CFGToml(CFG):
             toml_config = tomli.load(toml_file)
         logger.info("Configuration loaded %s", toml_config)
         return toml_config
-    
+
 
 #       *** PUBLIC APIs ***
 CSV_META = {
@@ -188,11 +188,11 @@ def get_config():
     config = cfghandler.load_config()
     run_config = config['bugal']['run']
     print(f'*** Run Configuration: {run_config}')
-    for cfg in run_config:        
+    for cfg in run_config:
         TEST = cfg.get('TEST')
         logger.info("Configuration loaded in TEST mode")
         break
-    
+
     # configuration of files
     if 'True' in TEST:
         src_config = config['bugal']['test']
@@ -201,13 +201,13 @@ def get_config():
 
     for cfg in src_config:
         # TODO: check the commented code if needed and delte if not
-        SRCPATH = pathlib.Path(cfg.get('srcpath'))        
-        CSVFILE = pathlib.Path(cfg.get('csv_file'))        
+        SRCPATH = pathlib.Path(cfg.get('srcpath'))
+        CSVFILE = pathlib.Path(cfg.get('csv_file'))
         DBFILE = pathlib.Path(cfg.get('db_file'))
-        DBTYPE = cfg.get('repo_type')      
-        ARCHIVE = pathlib.Path(cfg.get('zip_file'))        
+        DBTYPE = cfg.get('repo_type')
+        ARCHIVE = pathlib.Path(cfg.get('zip_file'))
         EXCEL = pathlib.Path(cfg.get('xls_file'))
-    
+
     TYPE = ''
     type_config = config['bugal']['type']
     for cfg in type_config:
@@ -222,6 +222,6 @@ def get_config():
     cfg_.dbpath = DBFILE
     cfg_.dbtype = DBTYPE
     cfg_.archive = ARCHIVE
-    cfg_.export_path = EXCEL   
-    
+    cfg_.export_path = EXCEL
+
     return cfg_

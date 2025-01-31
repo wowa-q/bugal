@@ -28,12 +28,11 @@ from kivy.logger import Logger
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty
 
-from bugal import service
-from bugal import model
-from bugal import repo
-from bugal import csv_adapter
-from bugal import handler
-from bugal import cfg
+from src.bugal.srvc import service
+from src.bugal.app import model, csv_handler
+from src.bugal.db import repo
+from src.cfg import config
+
 
 logging.basicConfig(filename='bugal.log',
                     filemode='a',
@@ -136,25 +135,6 @@ class BugalRoot(FloatLayout):
 
         return export_invoker
 
-    # def _create_transaction_read_invoker(self) -> service.Invoker:
-    #     year1 = self.ids.start_year.text
-    #     month1 = self.ids.start_month.text
-    #     day1 = self.ids.start_day.text
-
-    #     year2 = self.ids.end_year.text
-    #     month2 = self.ids.end_month.text
-    #     day2 = self.ids.end_day.text
-
-    #     datum = day1 + '.' + month1 + '.' + year1
-    #     print(datum)
-    #     startdate = datetime.strptime(datum, '%d.%m.%y').date()
-    #     datum = day2 + '.' + month2 + '.' + year2
-    #     print(datum)
-    #     enddate = datetime.strptime(datum, '%d.%m.%y').date()
-    #     read_invoker = service.CmdReadTransactions()
-    #     read_invoker.set_filter([startdate, enddate], datum_range=True)
-    #     return read_invoker
-
     def clear_input(self):
         """clearing the entered configuration from gui
         """
@@ -192,16 +172,19 @@ class BugalRoot(FloatLayout):
         """
         message = ''
         (classic, beta, rb2024) = self.get_input_type()
-        #TODO: check if directly the righ command can be configured here
+
+        bglcfg = config.get_config()
+        # values: [Modern_2024, DailyCard, Modern, CLASSIC]
         if classic:
-            self.input_type = cfg.TransactionListClassic
+            bglcfg.import_type = 'CLASSIC'
+            # self.input_type = cfg.TransactionListClassic
         elif beta:
-            self.input_type = cfg.TransactionListBeta
+            bglcfg.import_type = 'Modern'
         elif rb2024:
-            self.input_type = cfg.TransactionListBeta
+            bglcfg.import_type = 'Modern_2024'
         else:
             message = message + 'ERROR: Input Type configuration failed'
-        message = message + f'Input type: {self.input_type} \n'
+        message = message + f'Input type: {bglcfg.import_type } \n'
         (validation, self.csv_pth) = self._validate_path(self.ids.csv_pth_input.text)
         message = message + 'CSV' + validation
         (validation, self.db_pth) = self._validate_path(self.ids.db_pth_input.text)
@@ -215,11 +198,11 @@ class BugalRoot(FloatLayout):
         if self.toml_pth.is_file():
             message = f'use configuration from TOML file: {self.toml_pth} \n'
         else:
-            cfg.TYPECLASS = self.input_type     # overwriting configuration from toml
-            cfg.CSVFILE = self.csv_pth          # overwriting configuration from toml
-            cfg.DBFILE = self.db_pth            # overwriting configuration from toml
-            cfg.ARCHIVE = self.zip_pth          # overwriting configuration from toml
-            cfg.EXCEL = self.xlsx_pth           # overwriting configuration from toml
+            bglcfg.input_type = self.input_type     # overwriting configuration from toml
+            bglcfg.import_path = self.csv_pth          # overwriting configuration from toml
+            bglcfg.dbpath = self.db_pth            # overwriting configuration from toml
+            bglcfg.archive = self.zip_pth          # overwriting configuration from toml
+            bglcfg.export_path = self.xlsx_pth           # overwriting configuration from toml
         self.import_invoker = self._create_import_csv_invoker()
         message = message + f'Invoker result: {self.import_invoker}'
 

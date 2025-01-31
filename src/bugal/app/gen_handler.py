@@ -7,7 +7,7 @@ import logging
 from pathlib import Path
 from typing import Any, Optional
 
-from bugal.app import bugal_if as a
+from . import bugal_if as a
 from cfg import config as cfg
 logger = logging.getLogger(__name__)
 
@@ -63,5 +63,5 @@ class PathHandler(a.AbstractHandler):
                 return (message, '')
         else:
             message = message + ' - Path will use working directory \n'
-            
+
         return (message, Path(_path))

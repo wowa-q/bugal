@@ -1,8 +1,8 @@
 
 import logging
 
-from bugal.db import orm
-from bugal.db import db_if as a
+from . import orm
+from . import db_if as a
 
 logger = logging.getLogger(__name__)
 

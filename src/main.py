@@ -11,11 +11,11 @@ if SRC_DIR not in sys.path:
     sys.path.append(SRC_DIR)
 
 # Module importieren
- 
+
 from cfg.config import get_config  # Beispiel: Import aus cfg
 from bugal.srvc import service as srvc
 
-
+from bugal.ui.gui import start as gui
 
 def main():
     """Hauptfunktion des Programms."""
@@ -30,4 +30,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    gui.BugalStartApp().run()
+

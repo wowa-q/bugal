@@ -1,6 +1,6 @@
 """
 Gehört zu busines layer. spezialisierter Handler.
-Soll keine model spezifische Datentypen verwenden. 
+Soll keine model spezifische Datentypen verwenden.
 Es ist die Aufgabe des Stacks die Datentypen in Dataclass umzuwandeln
 """
 import os
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class InputMaster():
-    """ Provides generic operations - must not be used outside of 
+    """ Provides generic operations - must not be used outside of
         handler implementation.
     """
     # Reviewed
@@ -38,7 +38,7 @@ class InputMaster():
             checksum = hashlib.md5(csvfile.read().encode('ISO-8859-1')).hexdigest().upper()
             logger.info("csv hash calculated: %s", checksum)
             return checksum
-    
+
     def read_lines(self, csv_file):
         with open(csv_file, encoding='ISO-8859-1') as csvfile:
             reader = csv.reader(csvfile, delimiter=';')
@@ -98,7 +98,7 @@ class InputMaster():
         meta['file_name'] = str(csv_file.stem).replace('.csv', '')
         meta['start_date'] = datetime.strptime('01.01.3000', "%d.%m.%Y")
         meta['end_date'] = datetime.strptime('01.01.1000', "%d.%m.%Y")
-        
+
         for ctr, line in enumerate(self.read_lines(csv_file)):
             if len(line) < 1:
                 # skip empty lines
@@ -115,11 +115,11 @@ class InputMaster():
                     # Aktualisiere das Startdatum mit dem kleineren der beiden Werte
                     meta['start_date'] = min(meta['start_date'], date_obj)
                     # Aktualisiere das Enddatum mit dem größeren der beiden Werte
-                    meta['end_date'] = max(meta['end_date'], date_obj)                
+                    meta['end_date'] = max(meta['end_date'], date_obj)
             else:
                 logger.warning("No Transaction in the line nr.:: %s", ctr)
         return meta
-    # Reviewed    
+    # Reviewed
     def extract_account_or_card_number(self, line: list) -> str:
         # Suche nach einer Kontonummer, die mit "DE" beginnt
         for entry in line:
@@ -139,7 +139,7 @@ class InputMaster():
     def get_transactions_as_list(self, csv_file: pathlib.Path, start_row: int):
         """reads line from CSV file and yields a line as transaction
             If a directory is provided, loops over csv files in the directory
-        
+
         Yields:
             generator: to get the line as a list  for loop is necessary
         """
@@ -153,12 +153,12 @@ class InputMaster():
     # def get_tr_value(self, line: list, VALUE: int) -> float:
         # value = self._make_num(str(line[VALUE]))
         value = self._make_num(tran.get('value'))
-        return value    
+        return value
     # Reviewed
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}"
 
- 
+
 class Importer():
     """
     """
@@ -191,7 +191,7 @@ class ClassicInputAdapter(InputMaster, a.ICSVAdapter):
     CUSTOMER_REF = 10
     CSV_START_ROW = 6
     __instance__ = None
-   
+
     def __init__(self, pth: pathlib.Path):
         """
         Process the classic csv input
@@ -200,7 +200,7 @@ class ClassicInputAdapter(InputMaster, a.ICSVAdapter):
         self.src_account = None
 
     @staticmethod
-    def get_instance(pth: pathlib.Path): 
+    def get_instance(pth: pathlib.Path):
         """provides instance of the ClassicInputAdapter
 
         Returns:
@@ -222,7 +222,7 @@ class ClassicInputAdapter(InputMaster, a.ICSVAdapter):
             - 'file_name': (str) showing the file name
             - 'file_ext': showing the file extension
         """
-        meta = super().get_meta_data(self.input, self.CSV_START_ROW, self._get_date_object)    
+        meta = super().get_meta_data(self.input, self.CSV_START_ROW, self._get_date_object)
         self.src_account=meta['account']
         return meta
     # Reviewed
@@ -236,7 +236,7 @@ class ClassicInputAdapter(InputMaster, a.ICSVAdapter):
             src_konto = self.src_account
         else:
             raise err.NoValidTransactionData('source account not provided')
-        
+
         transaction = cfg.META_TRANSACTION.copy()
         transaction['tdate'] = line[self.DATE]
         transaction['text'] = line[self.TEXT]
@@ -249,9 +249,9 @@ class ClassicInputAdapter(InputMaster, a.ICSVAdapter):
         transaction['mandats_ref'] = line[self.MANDATS_REF]
         transaction['customer_ref'] = line[self.CUSTOMER_REF]
         transaction['src_konto'] = src_konto
-        
+
         return transaction
-    
+
     def get_transaction(self):
         """Must not be executed before get_meta_data, otherwise account is not set properly
 
@@ -274,7 +274,7 @@ class ClassicInputAdapter(InputMaster, a.ICSVAdapter):
             temp_dict['debitor_id'] = transrow[self.DEBITOR_ID]
             temp_dict['mandats_ref'] = transrow[self.MANDATS_REF]
             temp_dict['customer_ref'] = transrow[self.CUSTOMER_REF]
-            
+
             yield temp_dict
 
     def __repr__(self) -> str:
@@ -302,7 +302,7 @@ class ModernInputAdapter(InputMaster, a.ICSVAdapter):
         self.src_account = None
 
     @staticmethod
-    def get_instance(pth: pathlib.Path): 
+    def get_instance(pth: pathlib.Path):
         """provides instance of the ModernInput
 
         Returns:
@@ -311,27 +311,27 @@ class ModernInputAdapter(InputMaster, a.ICSVAdapter):
         if ModernInputAdapter.__instance__ is None:
             ModernInputAdapter.__instance__ = ModernInputAdapter(pth)
         return ModernInputAdapter.__instance__
-    
+
     # def _get_date_object(self, date_str: str) -> datetime:
     #     date_obj = None
     #     try:
     #         date_obj = datetime.strptime(date_str, "%d.%m.%y")
     #     except ValueError:
-    #         raise err.InvalidTimeFormat('Modern format provided with incompatible date format')        
+    #         raise err.InvalidTimeFormat('Modern format provided with incompatible date format')
     #     return date_obj
-    
+
     def _get_tr_date(self, line: list) -> datetime:
         date_string = line[self.DATE]
         date_obj = self._get_date_object(date_string)
         return date_obj
-    
+
     # Reviewed - wird das gebraucht oder kommt Stack auch so zurecht?
     def _make_transaction(self, line: list) -> dict:
         if self.src_account is not None:
             src_konto = self.src_account
         else:
             raise err.NoValidTransactionData('source account not provided')
-        
+
         transaction = cfg.TRANSACTION.copy()
         transaction['date'] = self._get_tr_date(line)
         transaction['text'] = line[self.TEXT]
@@ -344,9 +344,9 @@ class ModernInputAdapter(InputMaster, a.ICSVAdapter):
         transaction['mandats_ref'] = line[self.MANDATS_REF]
         transaction['customer_ref'] = line[self.CUSTOMER_REF]
         transaction['src_konto'] = src_konto
-        
+
         return transaction
-    
+
     def get_transaction(self):
         """Must not be executed before get_meta_data, otherwise account is not set properly
 
@@ -372,7 +372,7 @@ class ModernInputAdapter(InputMaster, a.ICSVAdapter):
         meta = super().get_meta_data(self.input, self.CSV_START_ROW, self._get_date_object)
         self.src_account=meta['account']
         return meta
-    
+
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}  located in {self.input}"
 
@@ -410,7 +410,7 @@ class ModernInput_2024Adapter(InputMaster, a.ICSVAdapter):
         if ModernInput_2024Adapter.__instance__ is None:
             ModernInput_2024Adapter.__instance__ = ModernInput_2024Adapter(pth)
         return ModernInput_2024Adapter.__instance__
-    
+
     def get_transaction(self):
         """Must not be executed before get_meta_data, otherwise account is not set properly
 
@@ -433,7 +433,7 @@ class ModernInput_2024Adapter(InputMaster, a.ICSVAdapter):
             temp_dict['debitor_id'] = transrow[self.DEBITOR_ID]
             temp_dict['mandats_ref'] = transrow[self.MANDATS_REF]
             temp_dict['customer_ref'] = transrow[self.CUSTOMER_REF]
-            
+
             yield temp_dict
 
     def get_meta_data(self) -> dict:
@@ -448,13 +448,13 @@ class ModernInput_2024Adapter(InputMaster, a.ICSVAdapter):
             - 'file_name': (str) showing the file name
             - 'file_ext': showing the file extension
         """
-        meta = super().get_meta_data(self.input, self.CSV_START_ROW, self._get_date_object)    
+        meta = super().get_meta_data(self.input, self.CSV_START_ROW, self._get_date_object)
         self.src_account=meta['account']
         return meta
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}  located in {self.input}"
-    
+
 
 class DailyCardAdapter(InputMaster, a.ICSVAdapter):
     DATE = 0
@@ -473,7 +473,7 @@ class DailyCardAdapter(InputMaster, a.ICSVAdapter):
         self.src_account = None
 
     @staticmethod
-    def get_instance(pth: pathlib.Path): 
+    def get_instance(pth: pathlib.Path):
         """provides instance of the DailyCard
 
         Returns:
@@ -482,28 +482,28 @@ class DailyCardAdapter(InputMaster, a.ICSVAdapter):
         if DailyCardAdapter.__instance__ is None:
             DailyCardAdapter.__instance__ = DailyCardAdapter(pth)
         return DailyCardAdapter.__instance__
-    
+
     # Inputmaster covers this
     # def _get_date_object(self, date_str: str) -> datetime:
     #     date_obj = None
     #     try:
     #         date_obj = datetime.strptime(date_str, "%d.%m.%Y")
     #     except ValueError:
-    #         raise err.InvalidTimeFormat('Credit Card format provided with incompatible date format')        
+    #         raise err.InvalidTimeFormat('Credit Card format provided with incompatible date format')
     #     return date_obj
-    
+
     def _get_tr_date(self, line: list) -> datetime:
         date_string = line[self.DATE]
         date_obj = self._get_date_object(date_string)
         return date_obj
-  
+
     # Reviewed - wird das gebraucht oder kommt Stack auch so zurecht?
     def _make_transaction(self, line: list) -> dict:
         if self.src_account is not None:
             src_konto = self.src_account
         else:
             raise err.NoValidTransactionData('source account not provided')
-        
+
         transaction = cfg.TRANSACTION.copy()
         transaction['date'] = self._get_tr_date(line)
         transaction['text'] = line[self.TEXT]
@@ -516,9 +516,9 @@ class DailyCardAdapter(InputMaster, a.ICSVAdapter):
         transaction['mandats_ref'] = line[self.MANDATS_REF]
         transaction['customer_ref'] = line[self.CUSTOMER_REF]
         transaction['src_konto'] = src_konto
-        
+
         return transaction
-    
+
     def get_transaction(self):
         """Must not be executed before get_meta_data, otherwise account is not set properly
 
@@ -541,7 +541,7 @@ class DailyCardAdapter(InputMaster, a.ICSVAdapter):
             temp_dict['debitor_id'] = ''
             temp_dict['mandats_ref'] = ''
             temp_dict['customer_ref'] = ''
-            
+
             yield temp_dict
 
     def get_transaction_old(self):
@@ -569,7 +569,7 @@ class DailyCardAdapter(InputMaster, a.ICSVAdapter):
         meta = super().get_meta_data(self.input, self.CSV_START_ROW, self._get_date_object)
         self.src_account=meta['account']
         return meta
-        
+
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}  located in {self.input}"
 

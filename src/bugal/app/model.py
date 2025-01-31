@@ -9,13 +9,11 @@ from datetime import date, datetime
 import logging
 from pathlib import Path
 
-from libs import exceptions as err
-from bugal.db import repo
+from ..db import repo
 # import the handlers
-from bugal.app import csv_handler
-from bugal.app import bugal_if as a
-# from bugal.app import xls_handler
-from bugal.app import gen_handler
+from . import csv_handler, gen_handler, xls_handler
+from . import bugal_if as a
+from libs import exceptions as err
 
 logger = logging.getLogger(__name__)
 
@@ -146,7 +144,7 @@ class Stack():
         """
         if datum is None:
             raise err.InvalidTimeFormat("datum provided with false format: None")
-        
+
         if isinstance(datum, datetime):
             logger.debug("datum provided not as string, but as datetime: %s", datum)
             return datum
@@ -159,7 +157,7 @@ class Stack():
             except ValueError:
                 logger.exception("datum provided with false format: %s", datum)
                 raise err.InvalidTimeFormat(f"datum provided with false format: {datum}")
-            
+
         return newdate
 
     def _make_num(self, value: str) -> float:
@@ -198,7 +196,7 @@ class Stack():
                 min_date = transaction.date
         logger.info("Minimum transaction date found: %s", min_date)
         return min_date
-    
+
     def create_history(self, meta: dict) -> History:
         """The API is creating a History Dataclass instance,
             which can be used to be imported into DB.
@@ -257,7 +255,7 @@ class Stack():
             data (dict): data extracted from csv file as a dictionary
 
         Raises:
-            
+
             bugal.exceptions.NoValidTransactionData: validation of provided transaction data failed
             AttributeError: raised when DATE does't exist in input_type
         Returns:
@@ -265,7 +263,7 @@ class Stack():
         """
         if not isinstance(data, dict):
             logger.debug("#Data provided is not instance of dict")
-            raise err.NoValidTransactionData(f'Model: Transaction data not as dict {data}')        
+            raise err.NoValidTransactionData(f'Model: Transaction data not as dict {data}')
         if self.src_account is not None:
             src_konto = self.src_account
         else:
@@ -331,11 +329,11 @@ def get_transaction_repo(pth_):
 
 # tested, without checking already imported branch
 def validate_import_file(config) -> bool:
-    """The function is validating the path of the import, 
-    selecting the right adapter and stores it into Stack, 
+    """The function is validating the path of the import,
+    selecting the right adapter and stores it into Stack,
     checking if the csv file is already existing in DB,
-    geting meta data and stores it into Stack, 
-    
+    geting meta data and stores it into Stack,
+
     Args:
         config (SimpleNamed): configuration of different pathes
 
@@ -350,15 +348,15 @@ def validate_import_file(config) -> bool:
     if len(str(csvpth)) == 0:
         print(msg)
         logger.debug(msg)
-        raise err.NoCsvFilesFound(f'Model: input File not found: {config.import_path}')   
+        raise err.NoCsvFilesFound(f'Model: input File not found: {config.import_path}')
     else:
         return True
 
 def make_stack(config):
-    """ 
-    selecting the right adapter and stores it into Stack, 
-    geting meta data and stores it into Stack, 
-    
+    """
+    selecting the right adapter and stores it into Stack,
+    geting meta data and stores it into Stack,
+
     Args:
         config (_type_): configuration of different pathes
 
@@ -379,8 +377,8 @@ def make_stack(config):
         print(f"This input type is not supported: {config.import_type}")
         raise err.NoInputTypeSet(f"Input type is not supported: {config.import_type}")
     csv_adapter = selector.get(config.import_type)(config.import_path)
-    
-    # leave the function if checksum exists in DB history    
+
+    # leave the function if checksum exists in DB history
     # csv_checksum = csv_adapter.get_checksum(csvpth)
     meta = csv_adapter.get_meta_data()
     stack = Stack(config.import_type)
@@ -390,9 +388,9 @@ def make_stack(config):
     return stack
 
 def compare_hash(csv_checksum, dbpath:Path):
-    """ 
-    checking if the csv file is already existing in DB    
-    
+    """
+    checking if the csv file is already existing in DB
+
     Args:
         csv_checksum (str): hash which will be searched in DB
         dbpath (pathlib.Path): DB path
@@ -423,7 +421,7 @@ def start_csv_import(config, stack):
     elif not isinstance(csv_adapter, a.ICSVAdapter):
         logger.debug("No valid stack received - broken import_adapter provided")
         raise err.ModelStackError
-    
+
     ctr_t = 0
     # get transaction row generator
     for _, transrow in enumerate(csv_adapter.get_transaction()):
@@ -442,13 +440,13 @@ def start_csv_import(config, stack):
             ctr_t += 1
 
     return ctr_t
-            
+
 def update_history(config, stack):
     hrepo = repo.HistoryRepo(pth=config.dbpath)
     history_entry = stack.create_history(stack.import_meta)
     result = hrepo.add_history(history_entry)
     return result
 
-def archive_import_file(config):    
+def archive_import_file(config):
     archiver = gen_handler.ArtifactHandler(config.archive)
     archiver.archive_imports(config.import_path)

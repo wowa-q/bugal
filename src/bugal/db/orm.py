@@ -7,8 +7,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
-from bugal.app import model
-from bugal.db import db_if as a
+from ..app import model
+from . import db_if as a
 from cfg import config as cfg
 from libs import exceptions as err
 

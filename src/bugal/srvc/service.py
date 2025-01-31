@@ -11,12 +11,12 @@ Kann importieren:
 
 import logging
 
-from bugal.app import model as bmodel
+from ..app import model as bmodel
 # from bugal.app import fmodel as bmodel
 # from bugal.app import csv_handler
 # from bugal.app import xls_handler
 # from bugal.app import gen_handler
-from bugal.srvc import srvc_if as a
+from ..srvc import srvc_if as a
 from libs import exceptions as err
 
 
@@ -29,36 +29,36 @@ class CmdImportCsv(a.Command):
     def __init__(self, config):
         self.config = config
         logger.info("Command initialized: CmdImportCsv")
-        
+
     def execute(self):
-        
+
         # do some validations and store some handlers and data in the stack
         try:
             bmodel.validate_import_file(self.config)
         except err.NoCsvFilesFound:
             logger.warning(f"# CSV file was not found {self.config.import_path}")
-        
+
         try:
             stack = bmodel.make_stack(self.config)
         except err.NoInputTypeSet:
             logger.warning(f"Input type not recognised: {self.config.import_type}")
-        
+
         if len(stack.import_meta['checksum']) == 0:
             logger.warning("CSV hash not calculated for stack")
             raise err.ModelStackError
-        
+
         result = bmodel.compare_hash(stack.import_meta['checksum'], self.config.dbpath)
         if result is not None:
             logger.warning("CSV hash exists already")
             raise err.ImportDuplicateHistory
-        
+
         logger.info("# start execution CmdImportCsv #")
         ctr_t = bmodel.start_csv_import(self.config, stack)
-        
+
         if ctr_t > 0:
             logger.info("number of transaction imported: %s", ctr_t)
-            bmodel.update_history(self.config, stack)    
-        
+            bmodel.update_history(self.config, stack)
+
         result = bmodel.archive_import_file(self.config)
         if not result:
             logger.warning("History was not updated")
@@ -76,9 +76,8 @@ class CmdFake(a.Command):
     def __init__(self, dut: str):
         self.invoker = dut
 
-    def execute(self) -> int:
+    def execute(self) -> None:
         logger.info("# start execution CmdFake # %s", self.invoker)
-        return 1
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__} Testing interface for bugal operations"
@@ -140,7 +139,7 @@ def import_data(config):
     Returns:
         (message, result): _description_
     """
-    message = ''   
+    message = ''
     invoker = Invoker()
     invoker.set_main_command(CmdImportCsv(config))
     # invoker.set_main_command(CmdFake(config))

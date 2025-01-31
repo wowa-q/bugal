@@ -4,12 +4,11 @@
 import logging
 from datetime import datetime
 
-from bugal.app import model
-from bugal.db import repo_adapter
-from libs import exceptions as err
-# from bugal import bugal_orm
-# from libs import abstract as a
-from bugal.db import db_if as a
+
+from . import repo_adapter
+from . import db_if as a
+# from libs import exceptions as err
+
 
 
 logger = logging.getLogger(__name__)
