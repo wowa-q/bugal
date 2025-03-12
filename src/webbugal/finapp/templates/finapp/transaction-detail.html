@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Bugalteria{% endblock title %}
+{% block css_files %}
+    <link rel="stylesheet" href="{%static "finapp/transaction.css"%}">
+    <link rel="stylesheet" href="{%static "finapp/index.css"%}">
+{% endblock css_files %}
+
+{% block content %}
+<div class="bugal-base">
+    <div class="container-fluid row afterNav" >
+        <!-- HEAD -->
+        <div class="container-fluid" >
+            <header class="container">
+                <h1>Seitenüberschrift</h1>
+            </header>
+        </div>
+        <!-- COLUMN 1 
+        <div class="col-sm-2 d-inline-block" >
+            <h6 class="side-menu-list">DUMMY HEADER</h6>
+            <ul class="side-menu-list">
+                <li><a href="#">link 1</a></li>
+                <li><a href="#">link 2</a></li>
+                <li><a href="#">link 3</a></li>
+                <li><a href="#">link 4</a></li>
+                <li><a href="#">link 5</a></li>
+                <li><a href="#">link 6</a></li>
+                <li><a href="#">link 7</a></li>
+            </ul>
+        </div> -->
+        <!-- COLUMN 2 -->
+        <p class="card-text">
+            Transaction date: {{tdate}}
+        </p>
+        {% include "Finapp/includes/transaction.html" %}
+        <!-- COLUMN 3 -->
+        {% comment %} {% include "Finapp/includes/category.html" %} {% endcomment %}
+    </div>
+</div>
+{% endblock %}

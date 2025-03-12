@@ -5,10 +5,12 @@ Gehört zu busines layer. spezialisierter Handler.
 import zipfile
 import logging
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any  # , Optional
 
 from . import bugal_if as a
-from cfg import config as cfg
+from libs import exceptions as err
+
+
 logger = logging.getLogger(__name__)
 
 class ArtifactHandler(a.Artifact):
@@ -18,7 +20,7 @@ class ArtifactHandler(a.Artifact):
         if archive is not None and archive.is_file():
             self.archive = archive
         else:
-            self.archive = cfg.ARCHIVE
+            raise err.BaseBugalModelError('No zip file provided')
 
     def archive_imports(self, artifact=None):
         """adds the imported csv file into archive

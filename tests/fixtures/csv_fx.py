@@ -172,6 +172,7 @@ def fx_classic_csv_config(fx_single_csv):
     cfg_ = SimpleNamespace(import_type='CLASSIC',
                            import_path=fx_single_csv,
                            dbpath=dbpth,
+                           dbtype='sqlite',
                            archive=zippth,
                            export_path=xlspth)
     yield cfg_

@@ -8,6 +8,28 @@ from pathlib import Path
 # https://github.com/spdx/tools-python/blob/main/pyproject.toml
 
 
+def calc_restschuld(kreditsumme, tilgungsrate, zinssatz):
+    # Monatliche Rate berechnen
+    monatlicher_tilgungsanteil = kreditsumme * tilgungsrate / 12  # Anfangs-Tilgung pro Monat
+    monatlicher_zinsanteil = kreditsumme * zinssatz / 12  # Anfangs-Zinsen pro Monat
+    monatliche_rate = monatlicher_tilgungsanteil + monatlicher_zinsanteil
+
+    # Variablen initialisieren
+    restschuld = kreditsumme
+    abbezahlter_betrag = 0
+
+    # Berechnung über 12 Monate
+    for _ in range(12):
+        zinsanteil = restschuld * zinssatz / 12
+        tilgungsanteil = monatliche_rate - zinsanteil
+        restschuld -= tilgungsanteil
+        abbezahlter_betrag += tilgungsanteil
+    
+    return {'abbezahlt':abbezahlter_betrag,
+            'restschuld':restschuld
+            }
+
+
 
 def validate_path(_path):
     message = ''

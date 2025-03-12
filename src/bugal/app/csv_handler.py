@@ -3,7 +3,6 @@ Gehört zu busines layer. spezialisierter Handler.
 Soll keine model spezifische Datentypen verwenden.
 Es ist die Aufgabe des Stacks die Datentypen in Dataclass umzuwandeln
 """
-import os
 import pathlib
 import hashlib
 import csv
@@ -287,6 +286,7 @@ class ModernInputAdapter(InputMaster, a.ICSVAdapter):
     SENDER = 3
     RECEIVER = 4
     VERWENDUNG = 5
+    KONTO = 5
     VALUE = 7
     DEBITOR_ID = 8
     MANDATS_REF = 9
@@ -386,6 +386,7 @@ class ModernInput_2024Adapter(InputMaster, a.ICSVAdapter):
     SENDER = 3
     RECEIVER = 4
     VERWENDUNG = 5
+    KONTO = 7
     VALUE = 8
     DEBITOR_ID = 9
     MANDATS_REF = 10
@@ -426,6 +427,7 @@ class ModernInput_2024Adapter(InputMaster, a.ICSVAdapter):
                 raise err.NoValidTransactionData(f'Model: Transaction data list to short: {len(transrow)}')
             temp_dict['tdate'] = transrow[self.DATE]
             temp_dict['text'] = ''
+            temp_dict['konto'] = transrow[self.KONTO]
             temp_dict['status'] = transrow[self.STATUS]
             temp_dict['debitor'] = transrow[self.RECEIVER]
             temp_dict['verwendung'] = transrow[self.VERWENDUNG]
@@ -433,6 +435,7 @@ class ModernInput_2024Adapter(InputMaster, a.ICSVAdapter):
             temp_dict['debitor_id'] = transrow[self.DEBITOR_ID]
             temp_dict['mandats_ref'] = transrow[self.MANDATS_REF]
             temp_dict['customer_ref'] = transrow[self.CUSTOMER_REF]
+            temp_dict['src_konto'] = self.src_account
 
             yield temp_dict
 
@@ -482,15 +485,6 @@ class DailyCardAdapter(InputMaster, a.ICSVAdapter):
         if DailyCardAdapter.__instance__ is None:
             DailyCardAdapter.__instance__ = DailyCardAdapter(pth)
         return DailyCardAdapter.__instance__
-
-    # Inputmaster covers this
-    # def _get_date_object(self, date_str: str) -> datetime:
-    #     date_obj = None
-    #     try:
-    #         date_obj = datetime.strptime(date_str, "%d.%m.%Y")
-    #     except ValueError:
-    #         raise err.InvalidTimeFormat('Credit Card format provided with incompatible date format')
-    #     return date_obj
 
     def _get_tr_date(self, line: list) -> datetime:
         date_string = line[self.DATE]
@@ -573,6 +567,119 @@ class DailyCardAdapter(InputMaster, a.ICSVAdapter):
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}  located in {self.input}"
 
+
+class TemplateAdapter(InputMaster, a.ICSVAdapter):
+    DATE = 0
+    TEXT = 2
+    RECEIVER = 3
+    VERWENDUNG = 4
+    KONTO = 5
+    VALUE = 7
+    DEBITOR_ID = 8
+    MANDATS_REF = 9
+    CUSTOMER_REF = 10
+    CSV_START_ROW = 6
+    __instance__ = None
+
+    def __init__(self, pth: pathlib.Path):
+        """
+        Process the cradit card csv input
+        """
+        self.input = pth
+        self.src_account = None
+
+    @staticmethod
+    def get_instance(pth: pathlib.Path):
+        """provides instance of the DailyCard
+
+        Returns:
+            DailyCard (HandlerReadIF): singleton instance
+        """
+        if DailyCardAdapter.__instance__ is None:
+            DailyCardAdapter.__instance__ = DailyCardAdapter(pth)
+        return DailyCardAdapter.__instance__
+
+    def _get_tr_date(self, line: list) -> datetime:
+        date_string = line[self.DATE]
+        date_obj = self._get_date_object(date_string)
+        return date_obj
+
+    # Reviewed - wird das gebraucht oder kommt Stack auch so zurecht?
+    def _make_transaction(self, line: list) -> dict:
+        if self.src_account is not None:
+            src_konto = self.src_account
+        else:
+            raise err.NoValidTransactionData('source account not provided')
+
+        transaction = cfg.TRANSACTION.copy()
+        transaction['date'] = self._get_tr_date(line)
+        transaction['text'] = line[self.TEXT]
+        transaction['status'] = 'not provided'
+        transaction['receiver'] = line[self.RECEIVER]
+        transaction['verwendung'] = line[self.VERWENDUNG]
+        transaction['konto'] = line[self.KONTO]
+        transaction['value'] = self.get_tr_value(line, self.VALUE)
+        transaction['debitor_id'] = line[self.DEBITOR_ID]
+        transaction['mandats_ref'] = line[self.MANDATS_REF]
+        transaction['customer_ref'] = line[self.CUSTOMER_REF]
+        transaction['src_konto'] = src_konto
+
+        return transaction
+
+    def get_transaction(self):
+        """Must not be executed before get_meta_data, otherwise account is not set properly
+
+        Yields:
+            Transaction: Transaction object to be pushed into db
+        """
+        for _, transrow in enumerate(self.get_transactions_as_list(self.input, self.CSV_START_ROW)):
+            # return self._make_transaction(transrow)
+            temp_dict = cfg.META_TRANSACTION.copy()
+            if len(transrow) < 7:
+                self.logger.debug("#Data provided has not correct length: %s", len(transrow))
+                print(f'###  has not correct length: {transrow} ###')
+                raise err.NoValidTransactionData(f'Model: Transaction data list to short: {len(transrow)}')
+            temp_dict['tdate'] = transrow[self.DATE]
+            temp_dict['text'] = 'DAILY-CARD'
+            temp_dict['status'] = transrow[self.STATUS]
+            temp_dict['debitor'] = transrow[self.RECEIVER]
+            temp_dict['verwendung'] = transrow[self.TYPE]
+            temp_dict['value'] = transrow[self.VALUE]
+            temp_dict['debitor_id'] = ''
+            temp_dict['mandats_ref'] = ''
+            temp_dict['customer_ref'] = ''
+
+            yield temp_dict
+
+    def get_transaction_old(self):
+        """Must not be executed before get_meta_data, otherwise account is not set properly
+
+        Yields:
+            Transaction: Transaction object to be pushed into db
+        """
+        for _, transrow in enumerate(self.get_transactions_as_list(self.input, self.CSV_START_ROW)):
+            # return self._make_transaction(transrow)
+            return transrow
+
+    def get_meta_data(self) -> dict:
+        """returns some meta data necessary for creation a history Dataclass instance
+
+        Returns:
+            list: list of dictionpories. Every dict should have:
+            - 'end_date': datetime object in format '%d.%m.%Y'
+            - 'start_date': datetime object in format '%d.%m.%Y'
+            - 'account': string object showing from which account the data were exported
+            - 'checksum': calculated checksum over the csv file to be compared with checksums from History table in DB
+            - 'file_name': (str) showing the file name
+            - 'file_ext': showing the file extension
+        """
+        meta = super().get_meta_data(self.input, self.CSV_START_ROW, self._get_date_object)
+        self.src_account=meta['account']
+        return meta
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}  located in {self.input}"
+    
 
 #       *** PUBLIC APIs ***
 def read_lines(csv_file):

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Bugalteria{% endblock title %}
+{% block css_files %}
+    <link rel="stylesheet" href="{%static "finapp/transaction.css"%}">
+    <link rel="stylesheet" href="{%static "finapp/index.css"%}">
+{% endblock css_files %}
+
+{% block content %}
+
+    <section id="welcome">
+        <header>
+            {% comment %} <img src="{%static "Finapp/img/euro1.jpg"%}" alt="Autor des Blogs"> {% endcomment %}
+            <h2>INDEX</h2>
+        </header>
+    </section>
+
+    <section id="latest-transaction">
+        <h2>EUR</h2>
+        <ul>
+            {% for entry in eur %}
+            <li>{{entry.position}}</li>
+                {% include "finapp/includes/EUR.html" %}
+                {{ forloop.counter }}                
+            {% endfor %}
+        </ul>
+        <h3>FINISH</h3>
+
+    </section>
+
+{% endblock %}

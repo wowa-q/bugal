@@ -7,7 +7,7 @@ from datetime import datetime
 
 from . import repo_adapter
 from . import db_if as a
-# from libs import exceptions as err
+from libs import exceptions as err
 
 
 
@@ -121,8 +121,10 @@ class FakeRepo(a.AbstractRepository):
 class TransactionsRepo(a.AbstractRepository):
     """Repository resource for transactions
     """
-    def __init__(self, pth='', db_type='sqlite'):  # tested
-        self.adapter = repo_adapter.RepoAdapter(pth, db_type)
+    def __init__(self, config):  # tested
+        if config is None:
+            raise err.BaseBugalModelError('Configuration failed: TransactionsRepo')
+        self.adapter = repo_adapter.RepoAdapter(config)
 
     def deinit(self):
         """to close the connection
@@ -195,8 +197,10 @@ class TransactionsRepo(a.AbstractRepository):
 class HistoryRepo(a.AbstractRepository):
     """Repository resource for history
     """
-    def __init__(self, pth='', db_type='sqlite'):  # tested
-        self.adapter = repo_adapter.RepoAdapter(pth=pth, db_type=db_type)
+    def __init__(self, config):  # tested
+        if config is None:
+            raise err.BaseBugalModelError('Configuration failed: HistoryRepo')
+        self.adapter = repo_adapter.RepoAdapter(config)
 
     def add_history(self, history):
         """

@@ -2,14 +2,12 @@
 The user can access the services from bugal App throug this CLI
 """
 
-from pathlib import Path
+# from pathlib import Path
 import logging
 import sys
 
 import click
 
-from bugal.srvc import service
-from bugal.cfg import cfg
 
 logger = logging.getLogger(__name__)
 
@@ -30,10 +28,10 @@ def execute(cmd):
         # configure the invoker depndent on the provided command options
         if "import" in cmd:
             click.echo(f'Hello {cmd} will be executed!')
-            csv_file = cfg.CSVFILE
+            csv_file = 'cfg.CSVFILE'
             click.echo(f'Bugal Importing:  {csv_file}')
             logger.info("Import csv file requested: %s", csv_file)
-            invoker = create_import_csv_invoker(csv_file)
+            # invoker = create_import_csv_invoker(csv_file)
 
         else:
             click.echo('INVALID COMMAND')

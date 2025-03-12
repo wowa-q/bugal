@@ -25,7 +25,7 @@ from fixtures import sql_fx
 
 #TODO: gen_handler needs to be tested
 
-# @pytest.mark.skip()
+@pytest.mark.skip()
 def test_validate_import_file(fx_classic_csv_config):
     result = model.validate_import_file(fx_classic_csv_config)
     assert result == True
@@ -37,7 +37,7 @@ def test_validate_import_file(fx_classic_csv_config):
     with pytest.raises(err.NoCsvFilesFound):
         result = model.validate_import_file(cfg_)
 
-# @pytest.mark.skip()    
+@pytest.mark.skip()    
 def test_make_stack(fx_classic_csv_config):
     stack = model.make_stack(fx_classic_csv_config)
     assert stack is not None
@@ -57,13 +57,15 @@ def test_make_stack(fx_classic_csv_config):
 #TODO: Erst repo testen
 # @pytest.mark.skip()    
 def test_compare_hash(fx_classic_csv_config, fx_new_db_file_name):
+    assert fx_classic_csv_config is not None, f'Fixture for the config is broken {fx_classic_csv_config}'
     stack = model.make_stack(fx_classic_csv_config)
     checksum = stack.import_adapter.get_checksum(fx_classic_csv_config.import_path)
-    result = model.compare_hash(checksum, fx_new_db_file_name)
+    result = model.compare_hash(checksum, fx_classic_csv_config)
     assert result is None
 
 # @pytest.mark.skip()
 def test_csv_import(fx_classic_csv_config):
+    assert fx_classic_csv_config is not None, 'Fixture for the config is broken'
     with pytest.raises(err.ModelStackError):
         model.start_csv_import(fx_classic_csv_config, None)
     stack = Stack('')

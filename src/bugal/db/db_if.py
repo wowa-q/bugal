@@ -127,7 +127,7 @@ class TransactionRepo(abc.ABC):
 
     @staticmethod
     @abc.abstractmethod
-    def get_instance():
+    def get_instance(config):
         """
         Raises:
             NotImplementedError: _description_
@@ -189,7 +189,17 @@ class TransactionRepo(abc.ABC):
 
 
 class HistoryRepo(abc.ABC):
+    __instance__ = None
 
+    @staticmethod
+    @abc.abstractmethod
+    def get_instance(config):
+        """
+        Raises:
+            NotImplementedError: _description_
+        """
+        raise NotImplementedError
+    
     @abc.abstractmethod
     def add(self, history) -> bool:
         """push history to db

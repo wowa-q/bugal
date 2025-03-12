@@ -13,22 +13,25 @@ class RepoAdapter(a.AbstractRepository):
         - sqlite
         - sqlite (memory)
     """
-    def __init__(self, pth='', db_type='sqlite'):  # tested
-        self.db_type = db_type
-        self.pth = pth
+    def __init__(self, config):  
+        self.config = config
+        self.db_type = self.config.dbtype
+        self.pth = self.config.dbpath
         self.trepo = None
         self.hrepo = None
         if self.db_type in ['sqlite', 'memory']:
-
-            orm.SqlTransactionRepo.__path__ = pth
-            orm.SqlTransactionRepo.__type__ = db_type
-            orm.SqlHistoryRepo.__path__ = pth
-            orm.SqlHistoryRepo.__type__ = db_type
+            orm.SqlTransactionRepo.__path__ = self.pth
+            orm.SqlTransactionRepo.__type__ = self.db_type
+            orm.SqlHistoryRepo.__path__ = self.pth
+            orm.SqlHistoryRepo.__type__ = self.db_type
             logger.debug("""ADAPTER initialization: path: %s and type: %s""",
                          orm.SqlTransactionRepo.__path__,
                          orm.SqlTransactionRepo.__type__)
         else:
             logger.debug("""No adapter found for transaction to DB: %s""", self.db_type)
+
+    def set_config(self, config):
+        self.config = config
 
     def deinit(self):
         """closing connection to DB
@@ -41,7 +44,7 @@ class RepoAdapter(a.AbstractRepository):
 
         logger.debug("""Pushing transaction to DB: sqlite""")
         if self.trepo is None:
-            self.trepo = orm.SqlTransactionRepo.get_instance()
+            self.trepo = orm.SqlTransactionRepo.get_instance(self.config)
         result = self.trepo.add(transaction)
         return result
 
@@ -50,13 +53,13 @@ class RepoAdapter(a.AbstractRepository):
 
         logger.debug("""Pushing history to DB: sqlite""")
         if self.hrepo is None:
-            self.hrepo = orm.SqlHistoryRepo.get_instance()
+            self.hrepo = orm.SqlHistoryRepo.get_instance(self.config)
         result = self.hrepo.add(history)
         return result
 
     def get_transaction(self, *args, **kwargs):  # tested
         if self.trepo is None:
-            self.trepo = orm.SqlTransactionRepo.get_instance()
+            self.trepo = orm.SqlTransactionRepo.get_instance(self.config)
 
         if 'id_' in kwargs:  # tested
             return self.trepo.get(id_=kwargs.get('id_'))
@@ -70,7 +73,7 @@ class RepoAdapter(a.AbstractRepository):
 
     def get_history(self, *args, **kwargs):
         if self.hrepo is None:
-            self.hrepo = orm.SqlHistoryRepo.get_instance()
+            self.hrepo = orm.SqlHistoryRepo.get_instance(self.config)
 
         if 'id_' in kwargs:  # tested
             return self.hrepo.get(id_=kwargs.get('id_'))
@@ -84,7 +87,7 @@ class RepoAdapter(a.AbstractRepository):
         result = -1
 
         if self.trepo is None:
-            self.trepo = orm.SqlTransactionRepo.get_instance()
+            self.trepo = orm.SqlTransactionRepo.get_instance(self.config)
         result = self.trepo.get_ctr()
         return result
 
@@ -92,7 +95,7 @@ class RepoAdapter(a.AbstractRepository):
         result = -1
 
         if self.hrepo is None:
-            self.hrepo = orm.SqlHistoryRepo.get_instance()
+            self.hrepo = orm.SqlHistoryRepo.get_instance(self.config)
         result = self.hrepo.get_ctr()
         return result
 
@@ -100,7 +103,7 @@ class RepoAdapter(a.AbstractRepository):
         """ deleting history from table
         """
         if self.hrepo is None:
-            self.hrepo = orm.SqlHistoryRepo.get_instance()
+            self.hrepo = orm.SqlHistoryRepo.get_instance(self.config)
         logger.debug("""Deleting history from DB: %s""", kwargs)
         if 'id_' in kwargs:  # tested
             return self.hrepo.remove(id_=kwargs.get('id_'))
@@ -113,7 +116,7 @@ class RepoAdapter(a.AbstractRepository):
         """ deleting transaction from table
         """
         if self.hrepo is None:
-            self.hrepo = orm.SqlTransactionRepo.get_instance()
+            self.hrepo = orm.SqlTransactionRepo.get_instance(self.config)
         logger.debug("""Deleting transaction from DB: %s""", kwargs)
         if 'id_' in kwargs:  # tested
             return self.hrepo.remove(id_=kwargs.get('id_'))

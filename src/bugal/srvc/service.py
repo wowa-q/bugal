@@ -47,7 +47,7 @@ class CmdImportCsv(a.Command):
             logger.warning("CSV hash not calculated for stack")
             raise err.ModelStackError
 
-        result = bmodel.compare_hash(stack.import_meta['checksum'], self.config.dbpath)
+        result = bmodel.compare_hash(stack.import_meta['checksum'], self.config)
         if result is not None:
             logger.warning("CSV hash exists already")
             raise err.ImportDuplicateHistory

@@ -1,0 +1,34 @@
+{% load static %}
+<div class="col-sm-5 d-inline-block" style="position: relative;">
+    <main class="container-responsive">
+        <div class="card mt-3" >
+            <div class="card-header">ID | Datum</div>
+            <div class="card-body">
+              <p class="card-text">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th class="col-medium">Date</th>
+                            <th class="col-medium">Verwendung</th>
+                            <th class="col-medium">Konto Begünstigter</th>
+                            <th class="col-small">text</th>
+                            <th class="col-small">gebucht von</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="col-medium">{{tdate}}</td  >
+                            <td class="col-medium">{{verwendung}}</td >
+                            <td class="col-medium">{{konto}}</td >
+                            <td class="col-small">{{text}}</td >
+                            <td class="col-small">{{src_konto}}</td >
+                        </tr>
+                    </tbody>
+                </table>
+              </p>
+            </div>
+            <div class="card-footer">{{value}}</div>
+        </div>
+        
+    </main>
+</div>

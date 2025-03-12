@@ -7,11 +7,10 @@ from dataclasses import dataclass, field
 import dataclasses
 from datetime import date, datetime
 import logging
-from pathlib import Path
 
 from ..db import repo
 # import the handlers
-from . import csv_handler, gen_handler, xls_handler
+from . import csv_handler, gen_handler # xls_handler
 from . import bugal_if as a
 from libs import exceptions as err
 
@@ -387,7 +386,7 @@ def make_stack(config):
 
     return stack
 
-def compare_hash(csv_checksum, dbpath:Path):
+def compare_hash(csv_checksum, config):
     """
     checking if the csv file is already existing in DB
 
@@ -401,13 +400,14 @@ def compare_hash(csv_checksum, dbpath:Path):
     # search the checksum in the meta table
     # check if checksum already exists
     ''''''
-    hrepo = repo.HistoryRepo(pth=dbpath)
+    if config is None:
+            raise err.BaseBugalModelError('Configuration failed: compare_hash()')
+    hrepo = repo.HistoryRepo(config)
     found = hrepo.get_history(hash_=csv_checksum)
     return found
 
 
 def start_csv_import(config, stack):
-    repo_type='sqlite'
     try:
         meta = stack.import_meta
         csv_adapter = stack.import_adapter
@@ -428,7 +428,7 @@ def start_csv_import(config, stack):
         # build Transaction
         tran = stack.create_transaction(transrow)
         # check if transaction exists already in db
-        trepo = repo.TransactionsRepo(pth=config.dbpath, db_type=repo_type)
+        trepo = repo.TransactionsRepo(config)
         found = trepo.get_transaction(hash_=hash(tran))
         if found is not None:
             # an entry was found with the same hash -> transaction exists already
@@ -442,7 +442,7 @@ def start_csv_import(config, stack):
     return ctr_t
 
 def update_history(config, stack):
-    hrepo = repo.HistoryRepo(pth=config.dbpath)
+    hrepo = repo.HistoryRepo(config)
     history_entry = stack.create_history(stack.import_meta)
     result = hrepo.add_history(history_entry)
     return result

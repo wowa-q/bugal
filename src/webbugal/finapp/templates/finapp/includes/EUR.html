@@ -1,0 +1,65 @@
+{% load static %}
+<!-- COLUMN 2 -->
+<div class="col-sm-5 d-inline-block" >
+    <h1>EUR Include</h1>
+    <main class="container-responsive">
+        <div class="card mt-3" >
+            <div class="card-header">ID | Datum</div>
+            <div class="card-body">
+                <p class="card-text">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th class="col-small">Position</th>
+                            <th class="col-small">Kategorie</th>
+                            <th class="col-small">Wert</th>
+                            <th class="col-small">Intervall</th>
+                            <th class="col-small">Priorität</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="col-small">{{entry.position}}</td  >
+                            <td class="col-small">{{entry.category}}</td >
+                            <td class="col-small">{{entry.value}}</td >
+                            <td class="col-small">{{entry.cycle}}</td >
+                            <td class="col-small">{{entry.priority}}</td >
+                        </tr>
+                    </tbody>
+                </table>
+                </p>
+            </div>
+            <div class="card-footer">{{entry.value}}</div>
+        </div>
+
+        {% comment %} <div class="card mt-3" >
+            <div class="card-header">ID | Datum</div>
+            <div class="card-body">
+                <p class="card-text">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th class="col-small">Täglich</th>
+                            <th class="col-small">Wöchentlich</th>
+                            <th class="col-small">Monatlich</th>
+                            <th class="col-small">Jährlich</th>
+                            <th class="col-medium">Gezahlt über</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="col-small">10€</td  >
+                            <td class="col-small">70€</td >
+                            <td class="col-small">280€</td >
+                            <td class="col-small">3.260€</td >
+                            <td class="col-small">205745074322961859</td>
+                        </tr>
+                    </tbody>
+                </table>
+                </p>
+            </div>
+            <div class="card-footer">value</div>
+        </div> {% endcomment %}
+
+    </main>
+</div>

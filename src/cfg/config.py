@@ -7,7 +7,7 @@ import pathlib
 from datetime import datetime
 import logging
 import tomli
-
+from types import SimpleNamespace
 
 from libs import exceptions as err
 
@@ -173,7 +173,7 @@ META_TRANSACTION = {
     'customer_ref': '',
     'src_konto': '',
 }
-from types import SimpleNamespace
+# from types import SimpleNamespace
 
 
 def get_config():

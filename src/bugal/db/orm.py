@@ -9,7 +9,6 @@ from sqlalchemy import text
 
 from ..app import model
 from . import db_if as a
-from cfg import config as cfg
 from libs import exceptions as err
 
 logger = logging.getLogger(__name__)
@@ -60,36 +59,6 @@ class History(Base):
         return f"{self.__class__.__name__} for {self.__tablename__}"
 
 
-# class Property(Base):
-#     """Property table
-#     """
-#     __tablename__ = 'eigenschaften'
-#     id = Column(Integer, primary_key=True)
-#     inout = Column(String)
-#     name = Column(String)
-#     type = Column(String)
-#     cycle = Column(String)
-#     number = Column(Integer)
-#     sum = Column(Integer)
-
-    # def __repr__(self) -> str:
-    #     return f"{self.__class__.__name__} for {self.__tablename__}"
-
-# class Mapping(Base):
-#     """Mapping table
-#     """
-#     __tablename__ = 'mapping'
-#     id = Column(Integer, primary_key=True)
-#     transaction_id = Column(Integer)
-#     property_id = Column(Integer)
-#     type = Column(String)
-#     number = Column(Integer)
-#     value = Column(Integer)
-
-    # def __repr__(self) -> str:
-    #     return f"{self.__class__.__name__} for {self.__tablename__}"
-
-
 class Orm():
     """DB APIs
     """
@@ -97,10 +66,10 @@ class Orm():
     __path__ = ""
     __type__ = None
 
-    def __init__(self):
+    def __init__(self, config):
         self.engine = None
         self.session = None
-        config = cfg.get_config()
+        # config = cfg.get_config()
         if Orm.__path__ == '':
             Orm.__path__ = config.dbpath    #cfg.DBFILE
         if Orm.__type__ is None:
@@ -122,14 +91,14 @@ class Orm():
         logger.info("Repohandler was initalized with DB: %s", Orm.__path__)
 
     @staticmethod
-    def get_instance():
+    def get_instance(config):
         """provides instance of the SqlHistoryRepo
 
         Returns:
             Orm: singleton instance
         """
         if Orm.__instance__ is None:
-            Orm.__instance__ = Orm()
+            Orm.__instance__ = Orm(config)
         return Orm.__instance__
 
     def get_session(self):
@@ -178,13 +147,13 @@ class SqlTransactionRepo(a.TransactionRepo):
     __path__ = ""
     __type__ = None
 
-    def __init__(self):  # tested
+    def __init__(self, config):  # tested
         """Initialization of Sql Transaction repo - Fully tested
 
         Args:
             pth (str, optional): Path to DB. Defaults to 'cfg.DBFILE'.
         """
-        config = cfg.get_config()
+        # config = cfg.get_config()
         if SqlTransactionRepo.__path__ == '':
             SqlTransactionRepo.__path__ = config.dbpath    #cfg.DBFILE
             Orm.__path__ = config.dbpath
@@ -193,7 +162,7 @@ class SqlTransactionRepo(a.TransactionRepo):
             Orm.__type__ = config.dbtype
 
         print(f'DEBUG ORM - path: {SqlTransactionRepo.__path__} and type: {SqlTransactionRepo.__type__} ')
-        self.orm = Orm.get_instance()
+        self.orm = Orm.get_instance(config)
         self.session = self.orm.get_session()
         self.engine = self.orm.engine
 
@@ -203,14 +172,14 @@ class SqlTransactionRepo(a.TransactionRepo):
         self.orm.close_session()
 
     @staticmethod
-    def get_instance():  # tested
+    def get_instance(config):  # tested
         """provides instance of the SqlHistoryRepo
 
         Returns:
             SqlHistoryRepo (bool): singleton instance
         """
         if SqlTransactionRepo.__instance__ is None:
-            SqlTransactionRepo.__instance__ = SqlTransactionRepo()
+            SqlTransactionRepo.__instance__ = SqlTransactionRepo(config)
         logger.debug("""ORM instatiated with path: %s and type: %s""",
                      SqlTransactionRepo.__path__,
                      SqlTransactionRepo.__type__)
@@ -331,13 +300,12 @@ class SqlHistoryRepo(a.HistoryRepo):
     __path__ = ""
     __type__ = None
 
-    def __init__(self):  # tested
+    def __init__(self, config):  # tested
         """Initialization of Sql History repo - Fully tested
 
         Args:
             pth (str, optional): Path to DB. Defaults to 'cfg.DBFILE'.
         """
-        config = cfg.get_config()
         if SqlHistoryRepo.__path__ == '':
             SqlHistoryRepo.__path__ = config.dbpath    #cfg.DBFILE
             Orm.__path__ = config.dbpath
@@ -345,19 +313,19 @@ class SqlHistoryRepo(a.HistoryRepo):
             SqlHistoryRepo.__type__ = config.dbtype
             Orm.__type__ = config.dbtype
 
-        self.orm = Orm.get_instance()
+        self.orm = Orm.get_instance(config)
         self.session = self.orm.get_session()
         self.engine = self.orm.engine
 
     @staticmethod
-    def get_instance():  # tested
+    def get_instance(config):  # tested
         """provides instance of the SqlHistoryRepo
 
         Returns:
             SqlHistoryRepo: singleton instance
         """
         if SqlHistoryRepo.__instance__ is None:
-            SqlHistoryRepo.__instance__ = SqlHistoryRepo()
+            SqlHistoryRepo.__instance__ = SqlHistoryRepo(config)
         return SqlHistoryRepo.__instance__
 
     def add(self, history) -> bool:  # tested

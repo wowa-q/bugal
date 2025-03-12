@@ -3,10 +3,10 @@ name = "bugal"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 dependencies = [
     "django>=4.2.17",
-    "kivy>=2.3.0",
+    "kivy>=2.3.0",    
     "openpyxl>=3.1.5",
     "sqlalchemy>=2.0.36",
     "tomli>=2.1.0",
@@ -16,12 +16,29 @@ dependencies = [
 dev = [
     "autopep8>=2.3.1",
     "flake8>=7.1.1",
-    "mkdoc>=0.1",
+    "mkdocs-material>=9.6.5",
+    "mkdocs>=1.6.1",
+    "mkdocstrings>=0.28.2",
     "mypy>=1.13.0",
     "pre-commit>=4.0.1",
     "pytest>=8.3.3",
     "strictdoc>=0.3.0",
+	# "pytest-describe",		# https://pypi.org/project/pytest-describe/
+	# "pytest-csv", 			# https://pypi.org/project/pytest-csv/ OR
+	# "pytest-md-report",	   	# plugin for report generation: https://pypi.org/project/pytest-md-report/
+	# "pytest-django", 			# https://pypi.org/project/pytest-django/
+    # "tamga>=0.1.11",     		# https://github.com/dogukanurker/tamga
+    # for Behavior driven development: https://semaphoreci.com/blog/tdd-vs-bdd
+    # "behave>=1.2.7",     		# https://github.com/behave/behave OR
+    # "pytest-bdd",        		# https://github.com/pytest-dev/pytest-bdd
 ]
 lint = [
     "ruff>=0.8.3",
 ]
+
+# configuration for the tools for packaging
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
