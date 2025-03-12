@@ -17,6 +17,7 @@ from fixtures.fx import fx_test_beta_csv
 from fixtures.csv_fx import fx_single_csv
 from fixtures.csv_fx import fx_classic_csv_config
 from fixtures.csv_fx import fx_single_csv_new
+from fixtures.csv_fx import fx_single_csv_2024
 from fixtures.csv_fx import fx_single_csv_single_line
 from fixtures.csv_fx import fx_banch_of_csv
 from fixtures.csv_fx import fx_single_invalid_csv

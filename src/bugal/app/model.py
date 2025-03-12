@@ -176,6 +176,7 @@ class Stack():
         cleaned_string = cleaned_string.replace(',', '.')
         cleaned_string = ''.join(char for char in cleaned_string if char.isdigit() or char == '-' or char == '.')
         logger.debug("cleaned string: %s", cleaned_string)
+        print(f'+++++ {value}  ++++')
         return float(cleaned_string)
 
     # das Datum wird aus csv history extrahiert. Braucht man das noch?
@@ -263,11 +264,14 @@ class Stack():
         if not isinstance(data, dict):
             logger.debug("#Data provided is not instance of dict")
             raise err.NoValidTransactionData(f'Model: Transaction data not as dict {data}')
-        if self.src_account is not None:
-            src_konto = self.src_account
+        
+        if isinstance(self.import_meta.get('account'), str) and \
+            len(self.import_meta.get('account')) > 10:
+            src_konto = self.import_meta.get('account')
         else:
             logger.debug("Source account not initialized: %s", self.src_account)
             raise err.NoValidTransactionData('Model: Source account not set')
+        print(f'------ {src_konto} ----')
         value = self._make_num(str(data.get('value')))
         date_obj = self._make_date(data.get('tdate'))
         transaction = Transaction(date_obj,

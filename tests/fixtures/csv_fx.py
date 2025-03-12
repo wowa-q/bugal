@@ -87,6 +87,34 @@ def fx_single_csv_new():
         pass 
 
 @pytest.fixture
+def fx_single_csv_2024():
+    """Definitiaon of csv file, which shall be created and deleted when the test was done
+
+    Yields:
+        path string: file path
+    """
+    pth = ''
+    with open(FIXTURE_DIR / 'single_new.csv', 'w') as f:
+
+        f.write('"Konto";"Girokonto DE12345300001019363165";\n')
+        f.write('"";\n')
+        f.write('"Kontostand vom 20.10.2023:";"6,37 EUR";\n')
+        f.write('"";\n')
+        f.write('"Buchungstag";"Wertstellung";"Buchungstext";"Auftraggeber / Begünstigter";"Verwendungszweck";"Kontonummer";"BLZ";"Betrag (EUR)";"Gläubiger-ID";"Mandatsreferenz";"Kundenreferenz";')
+        f.write('"19.07.2024";"19.07.2024";"ONLINE-UEBERWEISUNG";"AGRAVIS Bauservice GmbH";"ReNr 13022061, KdNr 941149                       DATUM 19.07.2024, 12.32 UHR";"DE31400600000000222720";"GENODEMSXXX";"-160,28";"";"";"";')
+        f.write('"19.07.2024";"19.07.2024";"ONLINE-UEBERWEISUNG";"AGRAVs Bauservice GmbH";"ReNr 13022359, KdNr 941149                       DATUM 19.07.2024, 12.38 UHR";"DE31400600000000222720";"GENODEMSXXX";"-11,96";"";"";"";')
+
+        
+        pth = FIXTURE_DIR / 'single_new.csv'
+
+    yield pth 
+    # delete the modified db file and copy one to make repeat of the test possible
+    try:
+        pth.unlink()
+    except FileNotFoundError:
+        pass 
+
+@pytest.fixture
 def fx_single_csv_single_line():
     """Definitiaon of csv file, which shall be created and deleted when the test was done
 
