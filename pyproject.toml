@@ -1,0 +1,9 @@
+[project]
+name = "finman"
+version = "0.1.0"
+description = "EÜR-Manager: locally running Django webapp for managing Einnahmen-Überschuss-Rechnung"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "django>=5.0",
+]

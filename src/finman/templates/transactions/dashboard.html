@@ -1,0 +1,121 @@
+{% extends 'transactions/base.html' %}
+{% block title %}Dashboard - EÜR-Manager{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Dashboard</h1>
+
+<div class="accordion mb-4" id="lastImportsAccordion">
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#lastImportsBody"
+                    aria-expanded="false" aria-controls="lastImportsBody">
+                Letzte Imports ({{ last_imports|length }})
+            </button>
+        </h2>
+        <div id="lastImportsBody" class="accordion-collapse collapse"
+             data-bs-parent="#lastImportsAccordion">
+            <div class="accordion-body">
+                {% if last_imports %}
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Datei</th><th>Von</th><th>Bis</th><th>Zeilen</th><th>Duplikate</th></tr></thead>
+                    <tbody>
+                        {% for imp in last_imports %}
+                        <tr>
+                            <td>{{ imp.filename|truncatechars:60 }}</td>
+                            <td>{{ imp.min_date|date:"d.m.Y"|default:"—" }}</td>
+                            <td>{{ imp.max_date|date:"d.m.Y"|default:"—" }}</td>
+                            <td>{{ imp.row_count }}</td>
+                            <td>{{ imp.duplicate_count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-muted mb-0">Keine Imports vorhanden.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Einnahmen diesen Monat</h5>
+                <p class="card-text fs-3 positive">{{ income|floatformat:2 }} €</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-bg-danger mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Ausgaben diesen Monat</h5>
+                <p class="card-text fs-3 negative">{{ expenses|floatformat:2 }} €</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card {% if balance >= 0 %}text-bg-success{% else %}text-bg-danger{% endif %} mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Saldo</h5>
+                <p class="card-text fs-3">{{ balance|floatformat:2 }} €</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">Top-5 Ausgaben nach Kategorie</div>
+            <div class="card-body">
+                {% if top_expenses %}
+                <table class="table table-sm">
+                    <thead><tr><th>Kategorie</th><th class="text-end">Summe</th></tr></thead>
+                    <tbody>
+                        {% for item in top_expenses %}
+                        <tr>
+                            <td>{{ item.category__name }}</td>
+                            <td class="text-end negative">{{ item.total|floatformat:2 }} €</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-muted">Keine Daten verfügbar.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">Nächste erwartete Zahlungen</div>
+            <div class="card-body">
+                {% if upcoming %}
+                <table class="table table-sm">
+                    <thead><tr><th>Debitor</th><th>Datum</th><th>Confidence</th></tr></thead>
+                    <tbody>
+                        {% for p in upcoming %}
+                        <tr>
+                            <td>{{ p.debitor|truncatechars:20 }}</td>
+                            <td>{{ p.next_expected_date|date:"d.m.Y" }}</td>
+                            <td>
+                                <div class="confidence-bar">
+                                    <div class="confidence-fill" style="width: {{ p.confidence|floatformat:0 }}%"></div>
+                                </div>
+                                <small>{{ p.confidence|floatformat:0 }}%</small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-muted">Keine Vorhersagen verfügbar.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

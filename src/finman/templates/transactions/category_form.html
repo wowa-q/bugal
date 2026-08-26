@@ -1,0 +1,64 @@
+{% extends 'transactions/base.html' %}
+{% block title %}
+    {% if fixed_parent %}Subkategorie anlegen{% elif object.pk %}Kategorie bearbeiten{% else %}Neue Kategorie{% endif %}
+    - EÜR-Manager
+{% endblock %}
+
+{% block content %}
+<h1 class="mb-2">
+    {% if fixed_parent %}Subkategorie anlegen
+    {% elif object.pk %}Kategorie bearbeiten
+    {% else %}Neue Kategorie{% endif %}
+</h1>
+
+{% if fixed_parent %}
+<p class="text-muted">
+    Ziel-Hauptkategorie: <strong>{{ root.name }}</strong>
+</p>
+<div class="alert alert-success py-2">
+    Diese neue Subkategorie wird unter der Hauptkategorie
+    &bdquo;<strong>{{ root.name }}</strong>&ldquo; angelegt.
+</div>
+{% else %}
+{% if object.pk %}
+<p class="text-muted">
+    Aktueller Pfad: <strong>{{ object.get_full_path }}</strong>
+</p>
+{% endif %}
+<div class="alert alert-info py-2">
+    <strong>Hinweis:</strong> Hier verschiebst du die Kategorie unter eine andere.
+    Eine <em>neue Subkategorie anlegen</em> geht am schnellsten &uuml;ber den
+    Plus-Button der jeweiligen Hauptkategorie auf der Kategorien-Seite.
+</div>
+{% endif %}
+
+<div class="card" style="max-width: 600px;">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {% include 'transactions/_form_alert.html' %}
+            <div class="mb-3">
+                <label class="form-label" for="{{ form.name.id_for_label }}">Name</label>
+                {{ form.name }}
+                {% include 'transactions/_field_errors.html' with field=form.name %}
+            </div>
+            {% if not fixed_parent %}
+            <div class="mb-3">
+                <label class="form-label" for="{{ form.parent.id_for_label }}">
+                    Diese Kategorie wird eingeordnet unter
+                </label>
+                {{ form.parent }}
+                <div class="form-text">
+                    Die Kategorie wird unter der gew&auml;hlten Hauptkategorie eingeordnet.
+                    Zur Auswahl stehen ausschlie&szlig;lich Hauptkategorien.                     Leer lassen,
+                    um sie selbst zur Hauptkategorie zu machen.
+                </div>
+                {% include 'transactions/_field_errors.html' with field=form.parent %}
+            </div>
+            {% endif %}
+            <a href="{% url 'category_list' %}" class="btn btn-outline-secondary">Abbrechen</a>
+            <button type="submit" class="btn btn-primary">Speichern</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

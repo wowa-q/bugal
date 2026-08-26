@@ -1,0 +1,242 @@
+{% extends 'transactions/base.html' %}
+{% block title %}Transaktionen - EÜR-Manager{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tx-toggle .bi-chevron-right {
+        transition: transform 0.2s;
+    }
+    .tx-toggle[aria-expanded="true"] .bi-chevron-right {
+        transform: rotate(90deg);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Transaktionen</h1>
+
+<form method="get" class="card p-3 mb-4">
+    {% if filter_form.errors %}
+    <div class="alert alert-danger py-2 mb-2">
+        Ung&uuml;ltige Filterangaben. Bitte Datum im Format TT.MM.JJJJ w&auml;hlen.
+    </div>
+    {% endif %}
+    <div class="row g-2 align-items-end">
+        <div class="col-auto">
+            <label class="form-label" for="{{ filter_form.start.id_for_label }}">Von</label>
+            {{ filter_form.start }}
+        </div>
+        <div class="col-auto">
+            <label class="form-label" for="{{ filter_form.end.id_for_label }}">Bis</label>
+            {{ filter_form.end }}
+        </div>
+        <div class="col-auto">
+            <label class="form-label" for="{{ filter_form.debitor.id_for_label }}">Debitor</label>
+            {{ filter_form.debitor }}
+        </div>
+        <div class="col-auto">
+            <label class="form-label" for="{{ filter_form.category.id_for_label }}">Kategorie</label>
+            {{ filter_form.category }}
+        </div>
+        <div class="col-auto">
+            <label class="form-label" for="{{ filter_form.art.id_for_label }}">Art</label>
+            {{ filter_form.art }}
+        </div>
+        <div class="col-auto">
+            <label class="form-label" for="{{ filter_form.prioritaet.id_for_label }}">Priorität</label>
+            {{ filter_form.prioritaet }}
+        </div>
+        <div class="col-auto">
+            <label class="form-label" for="{{ filter_form.intervall.id_for_label }}">Intervall</label>
+            {{ filter_form.intervall }}
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary btn-sm">Filtern</button>
+            <a href="{% url 'transaction_list' %}" class="btn btn-outline-secondary btn-sm">Zurücksetzen</a>
+        </div>
+    </div>
+</form>
+
+<div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+    <div class="dropdown">
+        <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                data-bs-toggle="dropdown" aria-expanded="false">
+            Sortierung
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item {% if sort == '-date' %}active{% endif %}"
+                   href="?sort=-date&{% for k,v in filters.items %}{{ k }}={{ v }}&{% endfor %}">Neueste zuerst</a></li>
+            <li><a class="dropdown-item {% if sort == 'date' %}active{% endif %}"
+                   href="?sort=date&{% for k,v in filters.items %}{{ k }}={{ v }}&{% endfor %}">&Auml;lteste zuerst</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item {% if sort == '-value' %}active{% endif %}"
+                   href="?sort=-value&{% for k,v in filters.items %}{{ k }}={{ v }}&{% endfor %}">Betrag absteigend</a></li>
+            <li><a class="dropdown-item {% if sort == 'value' %}active{% endif %}"
+                   href="?sort=value&{% for k,v in filters.items %}{{ k }}={{ v }}&{% endfor %}">Betrag aufsteigend</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item {% if sort == 'debitor' %}active{% endif %}"
+                   href="?sort=debitor&{% for k,v in filters.items %}{{ k }}={{ v }}&{% endfor %}">Debitor A&ndash;Z</a></li>
+        </ul>
+    </div>
+    <span class="small">
+        {{ page_obj.paginator.count }} Transaktionen &middot;
+        Summe: <strong class="{% if total_sum >= 0 %}positive{% else %}negative{% endif %}">{{ total_sum|floatformat:2 }} &euro;</strong>
+    </span>
+</div>
+
+<div class="list-group">
+    {% for tx in page_obj %}
+    <div class="list-group-item">
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none tx-toggle"
+                    data-bs-toggle="collapse" data-bs-target="#tx-detail-{{ tx.pk }}"
+                    aria-expanded="false" aria-controls="tx-detail-{{ tx.pk }}"
+                    title="Details ein-/ausklappen">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+            <span class="text-muted small text-nowrap">{{ tx.date|date:"d.m.Y" }}</span>
+            <span class="flex-grow-1 text-truncate" title="{{ tx.debitor }}">{{ tx.debitor }}</span>
+            <span class="badge bg-info-subtle text-dark text-nowrap"
+                  title="Zugewiesene Merkmale">{{ tx.attribute_count }}</span>
+            <span class="text-nowrap d-flex align-items-center gap-1">
+                <button type="button" class="btn btn-sm btn-outline-success py-0" title="Felder ergänzen"
+                        data-bs-toggle="modal" data-bs-target="#metaModal"
+                        data-tx-id="{{ tx.pk }}"
+                        data-cat="{{ tx.categories.first.category_id|default:'' }}"
+                        data-art="{{ tx.meta.art|default:'' }}"
+                        data-prio="{{ tx.meta.prioritaet|default:'' }}"
+                        data-intervall="{{ tx.meta.intervall|default:'' }}">
+                    <i class="bi bi-plus-circle"></i>
+                </button>
+                {% if tx.info %}
+                <a href="{% url 'transaction_detail' tx.pk %}" class="btn btn-sm btn-outline-info py-0"
+                   title="{{ tx.info.text }}" aria-label="Info anzeigen">
+                    <i class="bi bi-info-circle"></i>
+                </a>
+                {% endif %}
+                <span class="fw-bold {% if tx.value >= 0 %}positive{% else %}negative{% endif %}">{{ tx.value|floatformat:2 }} &euro;</span>
+            </span>
+        </div>
+        <div class="collapse" id="tx-detail-{{ tx.pk }}">
+            <div class="border-top mt-2 pt-2 ps-4">
+                <p class="small mb-2 text-break">
+                    {% if tx.verwendung %}{{ tx.verwendung }}
+                    {% else %}<span class="text-muted">Keine Verwendung angegeben.</span>{% endif %}
+                </p>
+                <div class="d-flex flex-wrap gap-1 align-items-center mb-2">
+                    {% for tc in tx.categories.all %}
+                    <form method="post" action="{% url 'transaction_category_remove' tx.pk tc.category_id %}" class="d-inline"
+                          onsubmit="return confirm('Diesen Wert entfernen?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="badge bg-secondary border-0 text-decoration-none"
+                                title="Klicken zum Entfernen">{{ tc.category.name }}</button>
+                    </form>
+                    {% endfor %}
+                    {% if tx.meta.art %}
+                    <form method="post" action="{% url 'transaction_meta_clear' tx.pk %}" class="d-inline"
+                          onsubmit="return confirm('Diesen Wert entfernen?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="field" value="art">
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="badge bg-info text-dark border-0 text-decoration-none"
+                                title="Klicken zum Entfernen">{{ tx.meta.get_art_display }}</button>
+                    </form>
+                    {% endif %}
+                    {% if tx.meta.prioritaet %}
+                    <form method="post" action="{% url 'transaction_meta_clear' tx.pk %}" class="d-inline"
+                          onsubmit="return confirm('Diesen Wert entfernen?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="field" value="prioritaet">
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="badge bg-warning text-dark border-0 text-decoration-none"
+                                title="Klicken zum Entfernen">{{ tx.meta.prioritaet }}</button>
+                    </form>
+                    {% endif %}
+                    {% if tx.meta.intervall %}
+                    <span class="badge bg-secondary-subtle text-dark"
+                          title="Nur Anzeige - &auml;nderbar &uuml;ber das Plus-Men&uuml;">{{ tx.meta.intervall }}</span>
+                    {% endif %}
+                </div>
+                <a href="{% url 'transaction_detail' tx.pk %}" class="btn btn-sm btn-outline-primary">Details &ouml;ffnen</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="list-group-item text-muted">Keine Transaktionen gefunden.</div>
+    {% endfor %}
+</div>
+
+{% if page_obj.has_other_pages %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&{% for k,v in filters.items %}{{ k }}={{ v }}&{% endfor %}">Zurück</a></li>
+        {% endif %}
+        <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&{% for k,v in filters.items %}{{ k }}={{ v }}&{% endfor %}">Weiter</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<div class="modal fade" id="metaModal" tabindex="-1" aria-labelledby="metaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h5 class="modal-title fs-6" id="metaModalLabel">Transaktion ergänzen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <form method="post" id="metaForm" action="">
+                {% csrf_token %}
+                <input type="hidden" name="next" id="metaNext" value="">
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label class="form-label small mb-1" for="{{ meta_form.category.id_for_label }}">Kategorie</label>
+                        {{ meta_form.category }}
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small mb-1" for="{{ meta_form.art.id_for_label }}">Art</label>
+                        {{ meta_form.art }}
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small mb-1" for="{{ meta_form.prioritaet.id_for_label }}">Priorität</label>
+                        {{ meta_form.prioritaet }}
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small mb-1" for="{{ meta_form.intervall.id_for_label }}">Intervall</label>
+                        {{ meta_form.intervall }}
+                    </div>
+                    <p class="text-muted small mb-0">Leere Felder löschen den jeweiligen Wert.</p>
+                </div>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var metaModal = document.getElementById('metaModal');
+        if (metaModal) {
+            metaModal.addEventListener('show.bs.modal', function (event) {
+                var btn = event.relatedTarget;
+                if (!btn) return;
+                var pk = btn.getAttribute('data-tx-id');
+                document.getElementById('metaForm').action = '/transactions/' + pk + '/meta/';
+                document.getElementById('id_category').value = btn.getAttribute('data-cat') || '';
+                document.getElementById('id_art').value = btn.getAttribute('data-art') || '';
+                document.getElementById('id_prioritaet').value = btn.getAttribute('data-prio') || '';
+                document.getElementById('id_intervall').value = btn.getAttribute('data-intervall') || '';
+                document.getElementById('metaNext').value = window.location.search;
+            });
+        }
+    });
+</script>
+{% endblock %}

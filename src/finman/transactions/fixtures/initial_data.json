@@ -1,0 +1,67 @@
+[
+    {"model": "transactions.category", "pk": 1, "fields": {"name": "Haushalt", "parent": null}},
+    {"model": "transactions.category", "pk": 2, "fields": {"name": "Strom", "parent": 1}},
+    {"model": "transactions.category", "pk": 3, "fields": {"name": "Gas", "parent": 1}},
+    {"model": "transactions.category", "pk": 4, "fields": {"name": "Wasser", "parent": 1}},
+    {"model": "transactions.category", "pk": 5, "fields": {"name": "Miete", "parent": 1}},
+    {"model": "transactions.category", "pk": 6, "fields": {"name": "Lebensmittel", "parent": 1}},
+
+    {"model": "transactions.category", "pk": 7, "fields": {"name": "Versicherungen", "parent": null}},
+    {"model": "transactions.category", "pk": 8, "fields": {"name": "KFZ", "parent": 7}},
+    {"model": "transactions.category", "pk": 9, "fields": {"name": "Haftpflicht", "parent": 7}},
+    {"model": "transactions.category", "pk": 10, "fields": {"name": "Kranken", "parent": 7}},
+    {"model": "transactions.category", "pk": 11, "fields": {"name": "Leben", "parent": 7}},
+
+    {"model": "transactions.category", "pk": 12, "fields": {"name": "Subscriptions", "parent": null}},
+    {"model": "transactions.category", "pk": 13, "fields": {"name": "Streaming", "parent": 12}},
+    {"model": "transactions.category", "pk": 14, "fields": {"name": "Software", "parent": 12}},
+    {"model": "transactions.category", "pk": 15, "fields": {"name": "Mitgliedschaften", "parent": 12}},
+
+    {"model": "transactions.category", "pk": 16, "fields": {"name": "Freizeit", "parent": null}},
+    {"model": "transactions.category", "pk": 17, "fields": {"name": "Restaurant", "parent": 16}},
+    {"model": "transactions.category", "pk": 18, "fields": {"name": "Urlaub", "parent": 16}},
+    {"model": "transactions.category", "pk": 19, "fields": {"name": "Sport", "parent": 16}},
+
+    {"model": "transactions.category", "pk": 20, "fields": {"name": "Kinder", "parent": null}},
+    {"model": "transactions.category", "pk": 21, "fields": {"name": "Schule", "parent": 20}},
+    {"model": "transactions.category", "pk": 22, "fields": {"name": "Kleidung", "parent": 20}},
+    {"model": "transactions.category", "pk": 23, "fields": {"name": "Spielzeug", "parent": 20}},
+
+    {"model": "transactions.category", "pk": 24, "fields": {"name": "Einnahmen", "parent": null}},
+    {"model": "transactions.category", "pk": 25, "fields": {"name": "Gehalt", "parent": 24}},
+    {"model": "transactions.category", "pk": 26, "fields": {"name": "Erstattungen", "parent": 24}},
+    {"model": "transactions.category", "pk": 27, "fields": {"name": "Sonstiges", "parent": 24}},
+
+    {"model": "transactions.category", "pk": 28, "fields": {"name": "Steuern", "parent": null}},
+    {"model": "transactions.category", "pk": 29, "fields": {"name": "Vorauszahlung", "parent": 28}},
+    {"model": "transactions.category", "pk": 30, "fields": {"name": "Erstattung", "parent": 28}},
+
+    {"model": "transactions.filterrule", "pk": 1, "fields": {
+        "name": "Netflix", "debitor_contains": "NETFLIX", "verwendung_contains": "",
+        "category": 13, "art": "FIX", "prioritaet": "", "intervall": "monatlich", "is_active": true
+    }},
+    {"model": "transactions.filterrule", "pk": 2, "fields": {
+        "name": "Spotify", "debitor_contains": "SPOTIFY", "verwendung_contains": "",
+        "category": 13, "art": "FIX", "prioritaet": "", "intervall": "monatlich", "is_active": true
+    }},
+    {"model": "transactions.filterrule", "pk": 3, "fields": {
+        "name": "Amazon Prime", "debitor_contains": "AMAZON PRIM", "verwendung_contains": "",
+        "category": 12, "art": "FIX", "prioritaet": "", "intervall": "jährlich", "is_active": true
+    }},
+    {"model": "transactions.filterrule", "pk": 4, "fields": {
+        "name": "GEZ/ARD ZDF", "debitor_contains": "RUNDFUNK", "verwendung_contains": "",
+        "category": 12, "art": "FIX", "prioritaet": "", "intervall": "quartal", "is_active": true
+    }},
+    {"model": "transactions.filterrule", "pk": 5, "fields": {
+        "name": "REWE", "debitor_contains": "REWE", "verwendung_contains": "",
+        "category": 6, "art": "FLEX", "prioritaet": "", "intervall": "einmalig", "is_active": true
+    }},
+    {"model": "transactions.filterrule", "pk": 6, "fields": {
+        "name": "EDEKA", "debitor_contains": "EDEKA", "verwendung_contains": "",
+        "category": 6, "art": "FLEX", "prioritaet": "", "intervall": "einmalig", "is_active": true
+    }},
+    {"model": "transactions.filterrule", "pk": 7, "fields": {
+        "name": "LIDL", "debitor_contains": "LIDL", "verwendung_contains": "",
+        "category": 6, "art": "FLEX", "prioritaet": "", "intervall": "einmalig", "is_active": true
+    }}
+]

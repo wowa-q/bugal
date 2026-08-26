@@ -1,0 +1,167 @@
+{% extends 'transactions/base.html' %}
+{% block title %}Transaktion {{ tx.pk }} - EÜR-Manager{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Transaktion #{{ tx.pk }}</h1>
+
+<div class="row g-4">
+    <div class="col-md-7">
+        <div class="card h-100">
+            <div class="card-header">Stammdaten</div>
+            <div class="card-body p-0">
+                <table class="table table-bordered mb-0">
+                    <tr><th style="width: 35%;">Datum</th><td>{{ tx.date|date:"d.m.Y" }}</td></tr>
+                    <tr><th>Status</th><td>{{ tx.status }}</td></tr>
+                    <tr><th>Debitor</th><td>{{ tx.debitor }}</td></tr>
+                    <tr><th>Verwendung</th><td class="text-break">{{ tx.verwendung }}</td></tr>
+                    <tr><th>Betrag</th><td class="{% if tx.value >= 0 %}positive{% else %}negative{% endif %}">{{ tx.value|floatformat:2 }} €</td></tr>
+                    <tr><th>Quellkonto</th><td>{{ tx.src_konto }}</td></tr>
+                    <tr><th>Zielkonto</th><td>{{ tx.target_konto }}</td></tr>
+                    <tr><th>Gläubiger-ID</th><td>{{ tx.debitor_id }}</td></tr>
+                    <tr><th>Mandatsreferenz</th><td>{{ tx.mandats_ref }}</td></tr>
+                    <tr><th>Kundenreferenz</th><td>{{ tx.customer_ref }}</td></tr>
+                    <tr><th>Importiert am</th><td>{{ tx.imported_at|date:"d.m.Y H:i" }}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card h-100">
+            <div class="card-header">Kategorien &amp; Merkmale</div>
+            <div class="card-body">
+                <h6 class="text-muted small mb-1">Kategorien</h6>
+                {% if categories %}
+                <div class="d-flex flex-wrap gap-1 mb-3">
+                    {% for tc in categories %}
+                    <span class="badge {% if tc.assigned_by == 'manual' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}"
+                          title="Quelle: {{ tc.get_assigned_by_display }}">{{ tc.category }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted small">Keine Kategorien zugewiesen.</p>
+                {% endif %}
+
+                <h6 class="text-muted small mb-1">Merkmale</h6>
+                <ul class="list-unstyled small mb-0">
+                    <li class="mb-1"><strong>Art:</strong>
+                        {% if meta.art %}<span class="badge bg-info text-dark">{{ meta.get_art_display }}</span>
+                        {% else %}<span class="text-muted">&mdash;</span>{% endif %}
+                    </li>
+                    <li class="mb-1"><strong>Priorit&auml;t:</strong>
+                        {% if meta.prioritaet %}<span class="badge bg-warning text-dark">{{ meta.prioritaet }}</span>
+                        {% else %}<span class="text-muted">&mdash;</span>{% endif %}
+                    </li>
+                    <li><strong>Intervall:</strong>
+                        {% if meta.intervall %}<span class="badge bg-secondary-subtle text-dark">{{ meta.intervall }}</span>
+                        {% else %}<span class="text-muted">&mdash;</span>{% endif %}
+                    </li>
+                </ul>
+                {% if meta.rule %}
+                <p class="small text-muted mt-2 mb-0">Zugewiesen durch Regel: <strong>{{ meta.rule }}</strong></p>
+                {% endif %}
+
+                <hr class="my-3">
+                <h6 class="text-muted small mb-1">Info</h6>
+                {% if info %}
+                <p class="small mb-0 text-break">{{ info.text }}<br>
+                    <span class="text-muted">Stand: {{ info.updated_at|date:"d.m.Y H:i" }}</span></p>
+                {% else %}
+                <p class="text-muted small mb-0">Keine Info hinterlegt.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="fs-5 text-muted mt-4 mb-2">Bearbeiten</h2>
+<div class="accordion" id="editAccordion" style="max-width: 720px;">
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button {% if not form.errors %}collapsed{% endif %}" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#editCategory"
+                    aria-expanded="{% if form.errors %}true{% else %}false{% endif %}">
+                Kategorie zuweisen
+            </button>
+        </h2>
+        <div id="editCategory" class="accordion-collapse collapse {% if form.errors %}show{% endif %}"
+             data-bs-parent="#editAccordion">
+            <div class="accordion-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="category">
+                    {% include 'transactions/_form_alert.html' %}
+                    <div class="mb-2">
+                        <label class="form-label small" for="{{ form.category.id_for_label }}">Kategorie</label>
+                        {{ form.category }}
+                        {% include 'transactions/_field_errors.html' with field=form.category %}
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm">Zuweisen</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#editMeta"
+                    aria-expanded="false">
+                Art, Priorit&auml;t &amp; Intervall setzen
+            </button>
+        </h2>
+        <div id="editMeta" class="accordion-collapse collapse" data-bs-parent="#editAccordion">
+            <div class="accordion-body">
+                <form method="post" action="{% url 'transaction_meta_save' tx.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    {{ meta_form.non_field_errors }}
+                    <div class="mb-2">
+                        <label class="form-label small" for="{{ meta_form.art.id_for_label }}">Art</label>
+                        {{ meta_form.art }}
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small" for="{{ meta_form.prioritaet.id_for_label }}">Priorit&auml;t</label>
+                        {{ meta_form.prioritaet }}
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small" for="{{ meta_form.intervall.id_for_label }}">Intervall</label>
+                        {{ meta_form.intervall }}
+                    </div>
+                    <p class="text-muted small mb-2">Leeres Feld l&ouml;scht den jeweiligen Wert.</p>
+                    <button type="submit" class="btn btn-primary btn-sm">Merkmale speichern</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#editInfo"
+                    aria-expanded="false">
+                Info bearbeiten
+            </button>
+        </h2>
+        <div id="editInfo" class="accordion-collapse collapse" data-bs-parent="#editAccordion">
+            <div class="accordion-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="info">
+                    {{ info_form.non_field_errors }}
+                    {{ info_form.text }}
+                    {% include 'transactions/_field_errors.html' with field=info_form.text %}
+                    {% if info %}
+                    <p class="text-muted small mt-1 mb-2">Stand: {{ info.updated_at|date:"d.m.Y H:i" }}</p>
+                    {% endif %}
+                    <button type="submit" class="btn btn-primary btn-sm">Info speichern</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<a href="{% url 'transaction_list' %}" class="btn btn-outline-secondary mt-4">Zurück zur Liste</a>
+{% endblock %}

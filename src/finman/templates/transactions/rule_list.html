@@ -1,0 +1,147 @@
+{% extends 'transactions/base.html' %}
+{% block title %}Regeln - EÜR-Manager{% endblock %}
+
+{% block content %}
+<h1 class="page-header mb-4">
+    <span>Filter-Regeln</span>
+    <form method="post" class="d-inline" onsubmit="return confirm('Regeln auf alle Transaktionen anwenden? Vorherige automatische Zuweisungen werden entfernt, manuelle bleiben erhalten.');">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="apply_rules">
+        <button type="submit" class="btn btn-outline-primary btn-sm">Regeln anwenden</button>
+    </form>
+</h1>
+
+<p class="text-muted mb-3">
+    <strong>{{ total_rules }}</strong> Regeln insgesamt &middot;
+    <strong>{{ active_rules }}</strong> aktiv
+</p>
+
+<div class="accordion mb-4" id="createRuleAccordion">
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button {% if not form.errors %}collapsed{% endif %}" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#createRuleBody"
+                    aria-expanded="{% if form.errors %}true{% else %}false{% endif %}"
+                    aria-controls="createRuleBody">
+                Neue Regel erstellen
+            </button>
+        </h2>
+        <div id="createRuleBody" class="accordion-collapse collapse {% if form.errors %}show{% endif %}"
+             data-bs-parent="#createRuleAccordion">
+            <div class="accordion-body">
+                <p class="text-muted small mb-3">
+                    Eine Regel passt zu einer Transaktion, wenn der Suchbegriff im Empf&auml;nger
+                    <em>oder</em> in der Verwendung enthalten ist. Mindestens ein Suchbegriff ist Pflicht.
+                    Beim Import setzt die erste passende aktive Regel die Kategorie und Zusatzinfos.
+                </p>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create">
+                    {% include 'transactions/_form_alert.html' %}
+                    {% if form.errors %}
+                    <div class="alert alert-danger py-2 mb-3">
+                        Regel konnte nicht gespeichert werden. Bitte pr&uuml;fe die markierten Felder.
+                    </div>
+                    {% endif %}
+                    <div class="row g-2 align-items-start mb-2">
+                        <div class="col-md-2">
+                            <label class="form-label small" for="{{ form.name.id_for_label }}">Name</label>
+                            {{ form.name }}
+                            {% include 'transactions/_field_errors.html' with field=form.name %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small" for="{{ form.debitor_contains.id_for_label }}">Debitor enth&auml;lt</label>
+                            {{ form.debitor_contains }}
+                            {% include 'transactions/_field_errors.html' with field=form.debitor_contains %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small" for="{{ form.verwendung_contains.id_for_label }}">Verwendung enth&auml;lt</label>
+                            {{ form.verwendung_contains }}
+                            {% include 'transactions/_field_errors.html' with field=form.verwendung_contains %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small" for="{{ form.category.id_for_label }}">Kategorie</label>
+                            {{ form.category }}
+                            {% include 'transactions/_field_errors.html' with field=form.category %}
+                        </div>
+                    </div>
+                    <div class="row g-2 align-items-start">
+                        <div class="col-md-2">
+                            <label class="form-label small" for="{{ form.art.id_for_label }}">Art</label>
+                            {{ form.art }}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small" for="{{ form.prioritaet.id_for_label }}">Priorit&auml;t</label>
+                            {{ form.prioritaet }}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small" for="{{ form.intervall.id_for_label }}">Intervall</label>
+                            {{ form.intervall }}
+                        </div>
+                        <div class="col-md-3 pt-4">
+                            <div class="form-check">
+                                {{ form.is_active }}
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Regel ist aktiv</label>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pt-md-1">
+                            <button type="submit" class="btn btn-primary btn-sm w-100 mt-3">Erstellen</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Debitor enth&auml;lt</th>
+            <th>Verwendung enth&auml;lt</th>
+            <th>Kategorie</th>
+            <th>Art</th>
+            <th>Priorit&auml;t</th>
+            <th>Intervall</th>
+            <th>Aktiv</th>
+            <th>Aktionen</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for rule in rules %}
+        <tr class="{% if not rule.is_active %}table-secondary text-muted{% endif %}">
+            <td>{{ rule.name }}</td>
+            <td>{{ rule.debitor_contains|default:"—" }}</td>
+            <td>{{ rule.verwendung_contains|default:"—" }}</td>
+            <td>{{ rule.category|default:"—" }}</td>
+            <td>{{ rule.get_art_display|default:"—" }}</td>
+            <td>{{ rule.get_prioritaet_display|default:"—" }}</td>
+            <td>{{ rule.get_intervall_display|default:"—" }}</td>
+            <td>
+                <form method="post" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="toggle">
+                    <input type="hidden" name="rule_id" value="{{ rule.pk }}">
+                    <button type="submit" class="btn btn-sm {% if rule.is_active %}btn-success{% else %}btn-outline-secondary{% endif %}" title="Aktiv-Status umschalten">
+                        {{ rule.is_active|yesno:"Ja,Nein" }}
+                    </button>
+                </form>
+            </td>
+            <td>
+                <span class="btn-group">
+                    <a href="{% url 'rule_edit' rule.pk %}" class="btn btn-sm btn-outline-primary" title="Bearbeiten" aria-label="Bearbeiten">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'rule_delete' rule.pk %}" class="btn btn-sm btn-outline-danger" title="Löschen" aria-label="Löschen">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </span>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="text-muted">Keine Regeln vorhanden.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

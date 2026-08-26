@@ -1,0 +1,29 @@
+{% extends 'transactions/base.html' %}
+{% block title %}Kategorie löschen - EÜR-Manager{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Kategorie löschen</h1>
+
+<div class="card" style="max-width: 600px;">
+    <div class="card-body">
+        <p>Möchten Sie die Kategorie <strong>{{ object.name }}</strong> wirklich löschen?</p>
+
+        {% if tx_count or rule_count or children_count %}
+        <div class="alert alert-warning">
+            <strong>Hinweis:</strong> Diese Kategorie wird verwendet:
+            <ul class="mb-0 mt-1">
+                {% if tx_count %}<li>{{ tx_count }} Transaktions-Zuordnung(en)</li>{% endif %}
+                {% if rule_count %}<li>{{ rule_count }} Filter-Regel(n)</li>{% endif %}
+                {% if children_count %}<li>{{ children_count }} Sub-Kategorie(n)</li>{% endif %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <a href="{% url 'category_list' %}" class="btn btn-outline-secondary">Abbrechen</a>
+            <button type="submit" class="btn btn-danger">Löschen</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,195 @@
+{% extends 'transactions/base.html' %}
+{% block title %}Kategorien - EÜR-Manager{% endblock %}
+
+{% block extra_css %}
+<style>
+    #categoryCarousel .carousel-control-prev-icon,
+    #categoryCarousel .carousel-control-next-icon {
+        background-color: #6c757d;
+        border-radius: 50%;
+        padding: 0.9rem;
+        background-size: 55% 55%;
+    }
+    #categoryCarousel .carousel-indicators [data-bs-target] {
+        background-color: #6c757d;
+    }
+    #categoryCarousel .carousel-indicators .active {
+        background-color: #0d6efd;
+    }
+    #categoryCarousel .carousel-item {
+        height: 100%;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Kategorien</h1>
+
+<div class="accordion mb-4" id="createCategoryAccordion">
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button {% if not form.errors %}collapsed{% endif %}" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#createCategoryBody"
+                    aria-expanded="{% if form.errors %}true{% else %}false{% endif %}"
+                    aria-controls="createCategoryBody">
+                Neue Kategorie erstellen
+            </button>
+        </h2>
+        <div id="createCategoryBody" class="accordion-collapse collapse {% if form.errors %}show{% endif %}"
+             data-bs-parent="#createCategoryAccordion">
+            <div class="accordion-body">
+                <p class="text-muted small mb-3">
+                    <strong>Name:</strong> frei w&auml;hlbar, muss auf derselben Ebene eindeutig sein.<br>
+                    <strong>Einordnung:</strong> Dropdown leer lassen f&uuml;r eine Hauptkategorie.
+                    Eine bestehende Hauptkategorie ausw&auml;hlen, um die neue Kategorie als
+                    Subkategorie darunter einzuh&auml;ngen.<br>
+                    <strong>Beispiel:</strong> Name <em>Streaming</em>, Einordnung unter <em>Subscriptions</em>.
+                </p>
+                <form method="post">
+                    {% csrf_token %}
+                    {% include 'transactions/_form_alert.html' %}
+                    {% if form.errors %}
+                    <div class="alert alert-danger py-2 mb-3">
+                        Kategorie konnte nicht gespeichert werden. Bitte pr&uuml;fe die markierten Felder.
+                    </div>
+                    {% endif %}
+                    <div class="row g-2 align-items-start">
+                        <div class="col-md-4">
+                            {{ form.name }}
+                            {% include 'transactions/_field_errors.html' with field=form.name %}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.parent }}
+                            {% include 'transactions/_field_errors.html' with field=form.parent %}
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary btn-sm w-100">Erstellen</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p class="text-muted mb-3">
+    <strong>{{ total_roots }}</strong> Hauptkategorien &middot;
+    <strong>{{ total_categories }}</strong> Kategorien insgesamt
+</p>
+
+{% if roots %}
+<div id="categoryCarousel" class="carousel slide bg-light rounded p-4 mb-4"
+     data-bs-ride="false" data-bs-touch="true">
+    {% if roots|length > 1 %}
+    <div class="carousel-indicators">
+        {% for root in roots %}
+        <button type="button" data-bs-target="#categoryCarousel" data-bs-slide-to="{{ forloop.counter0 }}"
+                {% if forloop.first %}class="active" aria-current="true"{% endif %}
+                aria-label="{{ root.name }}"></button>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div class="carousel-inner px-5 pb-5">
+        {% for root in roots %}
+        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+            <div class="d-flex justify-content-center">
+                <div class="card w-100" style="max-width: 34rem;" id="cat-{{ root.pk }}">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">{{ root.name }}</span>
+                        <span class="btn-group">
+                            <a href="{% url 'category_new_sub' root.pk %}" class="btn btn-sm btn-outline-success" title="Subkategorie hinzufügen" aria-label="Subkategorie hinzufügen">
+                                <i class="bi bi-plus-lg"></i>
+                            </a>
+                            <a href="{% url 'category_edit' root.pk %}" class="btn btn-sm btn-outline-primary" title="Bearbeiten" aria-label="Bearbeiten">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'category_delete' root.pk %}" class="btn btn-sm btn-outline-danger" title="Löschen" aria-label="Löschen">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </span>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        {% for sub in root.subcategories.all %}
+                            {% include 'transactions/_category_node.html' with cat=sub depth=1 %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% if roots|length > 1 %}
+    <button class="carousel-control-prev" type="button" data-bs-target="#categoryCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Zurück</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#categoryCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Weiter</span>
+    </button>
+    {% endif %}
+</div>
+{% else %}
+<p class="text-muted">Noch keine Kategorien vorhanden.</p>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var carouselEl = document.getElementById('categoryCarousel');
+        if (carouselEl) {
+            var fixHeight = function () {
+                var inner = carouselEl.querySelector('.carousel-inner');
+                var items = carouselEl.querySelectorAll('.carousel-item');
+                if (!inner || !items.length) return;
+                var saved = [];
+                Array.prototype.forEach.call(items, function (it) {
+                    saved.push([it, it.getAttribute('style')]);
+                    it.style.display = 'block';
+                    it.style.position = 'absolute';
+                    it.style.visibility = 'hidden';
+                    it.style.height = 'auto';
+                });
+                var max = 0;
+                Array.prototype.forEach.call(items, function (it) {
+                    max = Math.max(max, it.offsetHeight);
+                });
+                saved.forEach(function (entry) {
+                    if (entry[1] === null) entry[0].removeAttribute('style');
+                    else entry[0].setAttribute('style', entry[1]);
+                });
+                inner.style.height = max + 'px';
+            };
+            fixHeight();
+            window.addEventListener('load', fixHeight);
+            var resizeTimer;
+            window.addEventListener('resize', function () {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(fixHeight, 150);
+            });
+        }
+
+        var hash = window.location.hash;
+        if (hash && hash.startsWith('#cat-')) {
+            var el = document.querySelector(hash);
+            if (!el) return;
+            var item = el.closest('.carousel-item');
+            var delay = 0;
+            if (item && carouselEl && window.bootstrap && window.bootstrap.Carousel) {
+                var items = Array.prototype.slice.call(carouselEl.querySelectorAll('.carousel-item'));
+                var idx = items.indexOf(item);
+                if (idx > 0) {
+                    bootstrap.Carousel.getOrCreateInstance(carouselEl).to(idx);
+                    delay = 700;
+                }
+            }
+            setTimeout(function () {
+                el.scrollIntoView({behavior: 'smooth', block: 'center'});
+                el.classList.add('card-highlight');
+            }, delay);
+        }
+    });
+</script>
+{% endblock %}

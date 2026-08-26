@@ -1,0 +1,28 @@
+{% extends 'transactions/base.html' %}
+{% block title %}Regel löschen - EÜR-Manager{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Regel löschen</h1>
+
+<div class="card" style="max-width: 600px;">
+    <div class="card-body">
+        <p>Möchten Sie die Regel <strong>{{ object.name }}</strong> wirklich löschen?</p>
+
+        {% if meta_count %}
+        <div class="alert alert-warning">
+            <strong>Hinweis:</strong> Diese Regel ist noch mit {{ meta_count }} Transaktions-Zuordnung(en)
+            verknüpft. Beim Löschen wird nur die Verknüpfung entfernt – die Transaktionen selbst
+            bleiben unverändert.
+        </div>
+        {% else %}
+        <p class="text-muted small">Diese Regel wird derzeit von keiner Transaktion referenziert.</p>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <a href="{% url 'rule_list' %}" class="btn btn-outline-secondary">Abbrechen</a>
+            <button type="submit" class="btn btn-danger">Löschen</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'transactions/base.html' %}
+{% block title %}Import-Historie - EÜR-Manager{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Import-Historie</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Datei</th>
+            <th>Konto</th>
+            <th>Importiert am</th>
+            <th>Zeilen</th>
+            <th>Duplikate</th>
+            <th>Zeitraum</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for imp in imports %}
+        <tr>
+            <td>{{ imp.filename }}</td>
+            <td>{{ imp.konto }}</td>
+            <td>{{ imp.imported_at|date:"d.m.Y H:i" }}</td>
+            <td>{{ imp.row_count }}</td>
+            <td>{{ imp.duplicate_count }}</td>
+            <td>{{ imp.min_date|date:"d.m.Y" }} – {{ imp.max_date|date:"d.m.Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-muted">Keine Imports vorhanden.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

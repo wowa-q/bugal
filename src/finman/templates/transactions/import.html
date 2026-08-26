@@ -1,0 +1,72 @@
+{% extends 'transactions/base.html' %}
+{% block title %}Import - EÜR-Manager{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">CSV-Import</h1>
+
+{% if result %}
+<div class="alert alert-success">
+    <h5>Import erfolgreich</h5>
+    <table class="table table-sm mt-2">
+        <tr><th>Importiert</th><td>{{ result.imported }}</td></tr>
+        <tr><th>Übersprungen</th><td>{{ result.skipped }}</td></tr>
+        <tr><th>Duplikate</th><td>{{ result.duplicates }}</td></tr>
+    </table>
+</div>
+{% endif %}
+
+<div class="card mb-4">
+    <div class="card-header">Neuen Import starten</div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% include 'transactions/_form_alert.html' %}
+            <div class="mb-3">
+                <label for="{{ form.file.id_for_label }}" class="form-label">CSV-Datei hochladen</label>
+                {{ form.file }}
+                {% include 'transactions/_field_errors.html' with field=form.file %}
+            </div>
+            <div class="text-center mb-3">
+                <span class="text-muted">— oder —</span>
+            </div>
+            <div class="mb-3">
+                <label for="{{ form.file_path.id_for_label }}" class="form-label">Absoluter Dateipfad</label>
+                {{ form.file_path }}
+                {% include 'transactions/_field_errors.html' with field=form.file_path %}
+            </div>
+            <button type="submit" class="btn btn-primary">Importieren</button>
+        </form>
+    </div>
+</div>
+
+{% if preview %}
+<div class="card">
+    <div class="card-header">Datei-Vorschau</div>
+    <div class="card-body">
+        <p><strong>Parser:</strong> {{ preview.parser_name }}</p>
+        <p><strong>Konto:</strong> {{ preview.konto }}</p>
+        {% if preview.preview_rows %}
+        <h6>Erste 3 Zeilen:</h6>
+        <table class="table table-sm table-striped">
+            <thead>
+                <tr>
+                    {% for cell in preview.preview_rows.0 %}
+                    <th>{{ cell }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in preview.preview_rows|slice:"1:" %}
+                <tr>
+                    {% for cell in row %}
+                    <td>{{ cell }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,20 @@
+<li class="list-group-item bg-transparent" id="cat-{{ cat.pk }}">
+    <div class="d-flex justify-content-between align-items-center" style="padding-left: {{ depth }}rem;">
+        <span>{{ cat.name }}</span>
+        <span class="btn-group">
+            <a href="{% url 'category_edit' cat.pk %}" class="btn btn-sm btn-outline-primary py-0" title="Bearbeiten" aria-label="Bearbeiten">
+                <i class="bi bi-pencil"></i>
+            </a>
+            <a href="{% url 'category_delete' cat.pk %}" class="btn btn-sm btn-outline-danger py-0" title="Löschen" aria-label="Löschen">
+                <i class="bi bi-trash"></i>
+            </a>
+        </span>
+    </div>
+    {% if cat.subcategories.all %}
+    <ul class="list-group list-group-flush border-0">
+        {% for child in cat.subcategories.all %}
+            {% include 'transactions/_category_node.html' with cat=child depth=depth|add:1 %}
+        {% endfor %}
+    </ul>
+    {% endif %}
+</li>

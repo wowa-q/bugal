@@ -1,0 +1,41 @@
+{% extends 'transactions/base.html' %}
+{% block title %}Vorhersagen - EÜR-Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Vorhersagen</h1>
+    <a href="?refresh=1" class="btn btn-primary">Aktualisieren</a>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Debitor</th>
+            <th>Kategorie</th>
+            <th>Nächster Termin</th>
+            <th>Ø Intervall (Tage)</th>
+            <th>Letztes Vorkommen</th>
+            <th>Confidence</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in predictions %}
+        <tr>
+            <td>{{ p.debitor }}</td>
+            <td>{{ p.category|default:"Alle" }}</td>
+            <td>{{ p.next_expected_date|date:"d.m.Y" }}</td>
+            <td>{{ p.avg_interval_days }}</td>
+            <td>{{ p.last_occurrence|date:"d.m.Y" }}</td>
+            <td>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: {{ p.confidence|floatformat:0 }}%"></div>
+                </div>
+                {{ p.confidence|floatformat:0 }}%
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-muted">Keine Vorhersagen. Klicke "Aktualisieren" um welche zu generieren.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends 'transactions/base.html' %}
+{% block title %}EÜR-Bericht - EÜR-Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>EÜR-Bericht</h1>
+    <select class="form-select w-auto" onchange="window.location='?year=' + this.value">
+        {% for y in years %}
+        <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Monat</th>
+            <th class="text-end">Einnahmen</th>
+            <th class="text-end">Ausgaben</th>
+            <th class="text-end">Saldo</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for m in monthly %}
+        <tr>
+            <td>{{ m.month|date:"F"|default:m.month }}</td>
+            <td class="text-end positive">{{ m.income|floatformat:2 }} €</td>
+            <td class="text-end negative">{{ m.expenses|floatformat:2 }} €</td>
+            <td class="text-end {% if m.balance >= 0 %}positive{% else %}negative{% endif %}">{{ m.balance|floatformat:2 }} €</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr class="table-secondary fw-bold">
+            <td>Jahressumme</td>
+            <td class="text-end positive">{{ total_income|floatformat:2 }} €</td>
+            <td class="text-end negative">{{ total_expenses|floatformat:2 }} €</td>
+            <td class="text-end {% if total_balance >= 0 %}positive{% else %}negative{% endif %}">{{ total_balance|floatformat:2 }} €</td>
+        </tr>
+    </tfoot>
+</table>
+{% endblock %}
