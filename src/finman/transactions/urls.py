@@ -6,6 +6,7 @@ urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('import/', views.ImportView.as_view(), name='import'),
     path('import/history/', views.import_history, name='import_history'),
+    path('import/<int:pk>/delete/', views.ImportDeleteView.as_view(), name='import_delete'),
     path('transactions/', views.TransactionListView.as_view(), name='transaction_list'),
     path('transactions/<int:pk>/', views.TransactionDetailView.as_view(), name='transaction_detail'),
     path('transactions/<int:pk>/meta/', views.transaction_meta_save, name='transaction_meta_save'),

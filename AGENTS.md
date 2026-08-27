@@ -63,6 +63,12 @@ uv run manage.py check              # Verifikation
   SHA-256 je Transaktion (Duplikate werden übersprungen). Die Hash-Felder
   (`file_md5`, `hash`) nicht verändern oder neu berechnen, ohne das
   Duplikatkonzept zu beachten.
+- **Import-Löschung:** `Transaction.import_file` ist `CASCADE` – Löschen eines
+  `ImportHistory`-Eintrags entfernt automatisch alle zugehörigen
+  Transaktionen samt `TransactionCategory`/`TransactionMeta`/`TransactionInfo`.
+  Jeder Löschweg (auch Admin) kaskadiert. Schutz vor versehentlichem Löschen
+  erfolgt über PIN-Abfrage (`FINMAN_DELETE_PIN`, Default `1234`,
+  `settings.IMPORT_DELETE_PIN`).
 - **Auto-Kategorisierung:** Beim Import gewinnt die erste aktive passende
   `FilterRule`. Manuelle Zuweisungen (`assigned_by='manual'`) haben Vorrang und
   dürfen von Code **niemals** verändert oder gelöscht werden.

@@ -2,9 +2,12 @@
 Django settings for finman project.
 """
 
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+IMPORT_DELETE_PIN = os.environ.get("FINMAN_DELETE_PIN", "1234")
 
 SECRET_KEY = 'django-insecure-local-dev-key-change-in-production'
 

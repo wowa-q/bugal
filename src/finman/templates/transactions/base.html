@@ -47,7 +47,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'import' %}">Import</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Import</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'import' %}">CSV importieren</a></li>
+                            <li><a class="dropdown-item" href="{% url 'import_history' %}">Import-Historie</a></li>
+                        </ul>
+                    </li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'transaction_list' %}">Transaktionen</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'category_list' %}">Kategorien</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'rule_list' %}">Regeln</a></li>

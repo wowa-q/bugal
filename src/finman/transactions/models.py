@@ -146,7 +146,7 @@ class Transaction(models.Model):
     imported_at = models.DateTimeField(auto_now_add=True)
     import_file = models.ForeignKey(
         ImportHistory,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
         related_name='transactions',
     )

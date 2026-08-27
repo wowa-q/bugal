@@ -229,14 +229,21 @@ Positive Salden werden grün, negative rot dargestellt.
 
 ## Duplikatschutz
 
-Es ist unkritisch, eine Datei mehrfach anzubieten:
+Es ist unkritisch, eine Datei mehrfach anzubieten – es wird sichergestellt,
+dass **kein Duplikat jemals in der Datenbank gespeichert wird**:
 
-1. **Dateiebene:** Wurde eine Datei mit identischem Inhalt (MD5-Prüfsumme) schon
-   einmal importiert, bricht der Import mit einer Meldung samt ursprünglichem
-   Importdatum ab. Es passiert nichts.
-2. **Transaktionsebene:** Enthält eine neue Datei einzelne Buchungen, die bereits
-   vorhanden sind (identischer Inhalt, SHA-256-Prüfsumme), werden nur diese
-   übersprungen und als Duplikate gezählt – der Rest wird normal importiert.
+1. **Dateiebene (MD5):** Wurde eine Datei mit identischem Inhalt schon einmal
+   importiert, bricht der Import sofort mit einer Meldung samt ursprünglichem
+   Importdatum ab. Dabei zählt nur der Dateiinhalt, nicht der Dateiname.
+   Es wird kein neuer Eintrag angelegt und keine Transaktion verändert.
+2. **Transaktionsebene (SHA-256):** Enthält eine neue Datei einzelne Buchungen,
+   die bereits vorhanden sind, werden nur diese übersprungen und als Duplikate
+   gezählt – der Rest wird normal importiert. Der Hash wird aus
+   `Datum + Debitor + Betrag + Verwendung + Zielkonto + Quellkonto` gebildet
+   und ist in der Datenbank als `UNIQUE` gesichert (`Transaction.hash`);
+   identische Buchungen aus unterschiedlichen Dateien oder wiederholten Imports
+   werden daher zuverlässig erkannt. Übersprungene Zeilen werden nicht
+   gespeichert, nur in der Import-Historie als `Duplikate` gezählt.
 
 ---
 
@@ -251,6 +258,20 @@ uv run manage.py createsuperuser
 ```
 
 ---
+
+## Import löschen
+
+Auf der Seite **Import-Historie** (`/import/history/`) kann jeder Import über das
+Papierkorb-Symbol restlos entfernt werden:
+
+- Bestätigungsseite zeigt Dateiname, Zeitraum und Anzahl der betroffenen
+  Transaktionen; alle zugehörigen Buchungen samt Kategorisierungen/Metadaten
+  werden unwiderruflich gelöscht (DB-CASCADE).
+- **PIN erforderlich:** Standard `1234` – änderbar über die Umgebungsvariable
+  `FINMAN_DELETE_PIN` (z. B. `FINMAN_DELETE_PIN=meinpin uv run manage.py runserver`).
+- Nach dem Löschen ist der `file_md5` wieder frei – dieselbe Datei kann bei
+  Bedarf erneut importiert werden.
+- Auch das Löschen direkt im Admin unter `/admin/` löst dieselbe Kaskade aus.
 
 ## Daten sichern und zurücksetzen
 

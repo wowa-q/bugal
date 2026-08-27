@@ -22,7 +22,7 @@
                     <tbody>
                         {% for imp in last_imports %}
                         <tr>
-                            <td>{{ imp.filename|truncatechars:60 }}</td>
+                            <td style="word-break: break-all;">{{ imp.filename }}</td>
                             <td>{{ imp.min_date|date:"d.m.Y"|default:"—" }}</td>
                             <td>{{ imp.max_date|date:"d.m.Y"|default:"—" }}</td>
                             <td>{{ imp.row_count }}</td>
@@ -34,6 +34,9 @@
                 {% else %}
                 <p class="text-muted mb-0">Keine Imports vorhanden.</p>
                 {% endif %}
+                <div class="text-end mt-2">
+                    <a href="{% url 'import_history' %}" class="btn btn-sm btn-outline-primary">Alle Imports ansehen <i class="bi bi-arrow-right"></i></a>
+                </div>
             </div>
         </div>
     </div>

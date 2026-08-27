@@ -3,6 +3,7 @@ import os
 
 from django.contrib import messages
 from django.db.models import Sum
+from django.conf import settings
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
@@ -121,6 +122,39 @@ class ImportView(FormView):
 def import_history(request):
     imports = ImportHistory.objects.all()
     return render(request, 'transactions/import_history.html', {'imports': imports})
+
+
+@method_decorator(never_cache, name='dispatch')
+class ImportDeleteView(DeleteView):
+    model = ImportHistory
+    template_name = 'transactions/import_confirm_delete.html'
+    success_url = reverse_lazy('import_history')
+    context_object_name = 'import_obj'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        obj = self.object
+        context['tx_count'] = obj.transactions.count()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        pin = request.POST.get('pin', '').strip()
+        if pin != settings.IMPORT_DELETE_PIN:
+            messages.error(request, 'Falscher PIN – Import wurde nicht gelöscht.')
+            return self.render_to_response(self.get_context_data())
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        obj = self.object
+        tx_count = obj.transactions.count()
+        filename = obj.filename
+        response = super().form_valid(form)
+        messages.success(
+            self.request,
+            f"Import '{filename}' mit {tx_count} Transaktion(en) wurde gelöscht.",
+        )
+        return response
 
 
 @method_decorator(never_cache, name='dispatch')
