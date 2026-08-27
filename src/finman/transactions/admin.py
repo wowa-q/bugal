@@ -5,9 +5,12 @@ from .models import (
     EuerPosition,
     FilterRule,
     ImportHistory,
+    InvestmentDecision,
+    PlannedInvestment,
     PredictionResult,
     Transaction,
     TransactionCategory,
+    TransactionInfo,
     TransactionMeta,
 )
 
@@ -63,6 +66,26 @@ class EuerPositionAdmin(admin.ModelAdmin):
     list_filter = ['year', 'intervall', 'art', 'prioritaet']
     search_fields = ['name', 'hint']
     filter_horizontal = ['transactions']
+
+
+@admin.register(PlannedInvestment)
+class PlannedInvestmentAdmin(admin.ModelAdmin):
+    list_display = ['investitionsobjekt', 'kategorie', 'prioritaet', 'datum', 'euer_position']
+    list_filter = ['prioritaet', 'kategorie']
+    search_fields = ['investitionsobjekt']
+
+
+@admin.register(InvestmentDecision)
+class InvestmentDecisionAdmin(admin.ModelAdmin):
+    list_display = ['investment', 'status', 'datum']
+    list_filter = ['status']
+    search_fields = ['investment__investitionsobjekt']
+
+
+@admin.register(TransactionInfo)
+class TransactionInfoAdmin(admin.ModelAdmin):
+    list_display = ['transaction', 'updated_at']
+    search_fields = ['transaction__debitor']
 
 
 @admin.register(PredictionResult)

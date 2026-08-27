@@ -246,6 +246,171 @@ class EuerPosition(models.Model):
         return f"{self.name} ({self.year})"
 
 
+GEBRAUCHTKAUF_CHOICES = [
+    ('ja', 'Ja'),
+    ('nein', 'Nein'),
+]
+
+ENTSCHEIDUNG_CHOICES = [
+    ('geplant', 'Geplant'),
+    ('geprueft', 'Geprüft'),
+    ('genehmigt', 'Genehmigt'),
+    ('abgelehnt', 'Abgelehnt'),
+    ('verschoben', 'Verschoben'),
+    ('umgesetzt', 'Umgesetzt'),
+]
+
+
+class PlannedInvestment(models.Model):
+    investitionsobjekt = models.CharField(max_length=200)
+    datum = models.DateField(null=True, blank=True)
+    kategorie = models.ForeignKey(Category, null=True, blank=True, on_delete=models.SET_NULL, related_name='investments')
+    prioritaet = models.CharField(max_length=20, choices=PRIORITAET_CHOICES, blank=True)
+    nutzniesser = models.CharField(max_length=20, choices=PRIORITAET_CHOICES, blank=True, verbose_name='Wem nützt es?')
+    roi = models.TextField(blank=True, verbose_name='ROI')
+    aktuelle_loesung = models.TextField(blank=True)
+    nutzung_ab = models.DateField(null=True, blank=True, verbose_name='Ab wann soll es genutzt werden?')
+    intervall = models.CharField(max_length=20, choices=INTERVALL_CHOICES, blank=True, verbose_name='Wie oft wird es genutzt')
+    zeitaufwand_min = models.DurationField(null=True, blank=True, verbose_name='Zeitaufwand je Nutzung min')
+    zeitaufwand_max = models.DurationField(null=True, blank=True, verbose_name='Zeitaufwand je Nutzung max')
+    nutzungsdauer_min = models.CharField(max_length=100, blank=True, verbose_name='Wie lange genutzt min')
+    nutzungsdauer_max = models.CharField(max_length=100, blank=True, verbose_name='Wie lange genutzt max')
+    diy_workaround = models.TextField(blank=True, verbose_name='DIY Workaround')
+    gebrauchtkauf_status = models.CharField(max_length=10, choices=GEBRAUCHTKAUF_CHOICES, blank=True, verbose_name='Gebrauchtkauf')
+    gebrauchtkauf_begruendung = models.TextField(blank=True)
+    mietmoeglichkeit = models.TextField(blank=True, verbose_name='Mietmöglichkeit')
+    preis_entwicklung = models.CharField(max_length=200, blank=True, verbose_name='voraussichtliche Preisentwicklung')
+    folgeanschaffungen = models.TextField(blank=True, verbose_name='Folgeanschaffungen')
+
+    # Kosten min/max EUR
+    mietkosten_min = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    mietkosten_max = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    anschaffungspreis_min = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    anschaffungspreis_max = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    folgeanschaffungen_min = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    folgeanschaffungen_max = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    inbetriebnahme_kosten_min = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name='Inbetriebnahme Kosten min')
+    inbetriebnahme_kosten_max = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name='Inbetriebnahme Kosten max')
+    inbetriebnahme_zeit_min = models.DurationField(null=True, blank=True, verbose_name='Inbetriebnahme Zeit min')
+    inbetriebnahme_zeit_max = models.DurationField(null=True, blank=True, verbose_name='Inbetriebnahme Zeit max')
+    betriebskosten_min = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    betriebskosten_max = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    instandhaltung_min = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name='Instandhaltungskosten min')
+    instandhaltung_max = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name='Instandhaltungskosten max')
+    reinigung_min = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name='Reinigung min')
+    reinigung_max = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name='Reinigung max')
+    versicherung_min = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name='Versicherung min')
+    versicherung_max = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name='Versicherung max')
+    reparatur_min = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name='Reparatur min')
+    reparatur_max = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name='Reparatur max')
+    entsorgung_min = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name='Entsorgung min')
+    entsorgung_max = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name='Entsorgung max')
+
+    wiederverkauf_prozent = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name='Wiederverkauf % vom Anschaffungspreis')
+    letzte_ueberpruefung = models.DateField(null=True, blank=True, verbose_name='letzte Überprüfung dieser Angaben')
+
+    euer_position = models.OneToOneField(EuerPosition, null=True, blank=True, on_delete=models.SET_NULL, related_name='investment')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-datum', 'investitionsobjekt']
+        verbose_name = 'Geplantes Investment'
+        verbose_name_plural = 'Geplante Investments'
+
+    def __str__(self):
+        return self.investitionsobjekt
+
+    def _avg(self, min_val, max_val):
+        if min_val is None and max_val is None:
+            return None
+        if max_val is None or max_val == '':
+            return min_val
+        if min_val is None or min_val == '':
+            return max_val
+        return (min_val + max_val) / 2
+
+    @property
+    def mietkosten_avg(self):
+        return self._avg(self.mietkosten_min, self.mietkosten_max)
+
+    @property
+    def anschaffungspreis_avg(self):
+        return self._avg(self.anschaffungspreis_min, self.anschaffungspreis_max)
+
+    @property
+    def folgeanschaffungen_avg(self):
+        return self._avg(self.folgeanschaffungen_min, self.folgeanschaffungen_max)
+
+    @property
+    def inbetriebnahme_kosten_avg(self):
+        return self._avg(self.inbetriebnahme_kosten_min, self.inbetriebnahme_kosten_max)
+
+    @property
+    def betriebskosten_avg(self):
+        return self._avg(self.betriebskosten_min, self.betriebskosten_max)
+
+    @property
+    def instandhaltung_avg(self):
+        return self._avg(self.instandhaltung_min, self.instandhaltung_max)
+
+    @property
+    def reinigung_avg(self):
+        return self._avg(self.reinigung_min, self.reinigung_max)
+
+    @property
+    def versicherung_avg(self):
+        return self._avg(self.versicherung_min, self.versicherung_max)
+
+    @property
+    def reparatur_avg(self):
+        return self._avg(self.reparatur_min, self.reparatur_max)
+
+    @property
+    def entsorgung_avg(self):
+        return self._avg(self.entsorgung_min, self.entsorgung_max)
+
+    @property
+    def wiederverkauf_betrag(self):
+        avg = self.anschaffungspreis_avg
+        if avg is None or self.wiederverkauf_prozent is None:
+            return None
+        return avg * self.wiederverkauf_prozent / 100
+
+    @property
+    def gesamt_min(self):
+        vals = [self.mietkosten_min, self.anschaffungspreis_min, self.folgeanschaffungen_min, self.inbetriebnahme_kosten_min, self.betriebskosten_min, self.instandhaltung_min, self.reinigung_min, self.versicherung_min, self.reparatur_min, self.entsorgung_min]
+        vals = [v for v in vals if v is not None]
+        return sum(vals, 0) if vals else None
+
+    @property
+    def gesamt_max(self):
+        vals = [self.mietkosten_max if self.mietkosten_max is not None else self.mietkosten_min, self.anschaffungspreis_max if self.anschaffungspreis_max is not None else self.anschaffungspreis_min, self.folgeanschaffungen_max if self.folgeanschaffungen_max is not None else self.folgeanschaffungen_min, self.inbetriebnahme_kosten_max if self.inbetriebnahme_kosten_max is not None else self.inbetriebnahme_kosten_min, self.betriebskosten_max if self.betriebskosten_max is not None else self.betriebskosten_min, self.instandhaltung_max if self.instandhaltung_max is not None else self.instandhaltung_min, self.reinigung_max if self.reinigung_max is not None else self.reinigung_min, self.versicherung_max if self.versicherung_max is not None else self.versicherung_min, self.reparatur_max if self.reparatur_max is not None else self.reparatur_min, self.entsorgung_max if self.entsorgung_max is not None else self.entsorgung_min]
+        vals = [v for v in vals if v is not None]
+        return sum(vals, 0) if vals else None
+
+    @property
+    def gesamt_avg(self):
+        return self._avg(self.gesamt_min, self.gesamt_max)
+
+
+class InvestmentDecision(models.Model):
+    investment = models.ForeignKey(PlannedInvestment, on_delete=models.CASCADE, related_name='entscheidungen')
+    status = models.CharField(max_length=20, choices=ENTSCHEIDUNG_CHOICES, default='geplant')
+    datum = models.DateField(null=True, blank=True)
+    begruendung = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-datum', '-created_at']
+        verbose_name = 'Investmententscheidung'
+        verbose_name_plural = 'Investmententscheidungen'
+
+    def __str__(self):
+        return f"{self.investment.investitionsobjekt} - {self.get_status_display()}"
+
+
 class PredictionResult(models.Model):
     debitor = models.CharField(max_length=255)
     category = models.ForeignKey(

@@ -1,0 +1,150 @@
+{% extends 'transactions/base.html' %}
+{% block title %}{% if object %}Investment bearbeiten{% else %}Investment anlegen{% endif %} - EÜR-Manager{% endblock %}
+{% block content %}
+<h1 class="mb-3">{% if object %}Investment bearbeiten{% else %}Neues Investment{% endif %}</h1>
+<form method="post">
+    {% csrf_token %}
+    {% include 'transactions/_form_alert.html' %}
+    <div class="accordion" id="invAccordion">
+        <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#basis">Basis &amp; Nutzen</button></h2>
+            <div id="basis" class="accordion-collapse collapse show" data-bs-parent="#invAccordion"><div class="accordion-body">
+                <div class="row g-3">
+                    <div class="col-md-8"><label class="form-label">Investitionsobjekt *</label>{{ form.investitionsobjekt }}{% include 'transactions/_field_errors.html' with field=form.investitionsobjekt %}</div>
+                    <div class="col-md-4"><label class="form-label">Datum</label>{{ form.datum }}</div>
+                    <div class="col-md-4"><label class="form-label">Kategorie</label>{{ form.kategorie }}</div>
+                    <div class="col-md-4"><label class="form-label">Priorität</label>{{ form.prioritaet }}</div>
+                    <div class="col-md-4"><label class="form-label">Wem nützt es?</label>{{ form.nutzniesser }}</div>
+                    <div class="col-12"><label class="form-label">ROI</label>{{ form.roi }}</div>
+                    <div class="col-12"><label class="form-label">Aktuelle Lösung</label>{{ form.aktuelle_loesung }}</div>
+                </div>
+            </div></div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#nutzung">Nutzung</button></h2>
+            <div id="nutzung" class="accordion-collapse collapse" data-bs-parent="#invAccordion"><div class="accordion-body">
+                <div class="row g-3">
+                    <div class="col-md-4"><label class="form-label">Ab wann</label>{{ form.nutzung_ab }}</div>
+                    <div class="col-md-4"><label class="form-label">Intervall</label>{{ form.intervall }}</div>
+                    <div class="col-md-4"><label class="form-label">Nutzungsdauer min/max</label><div class="input-group">{{ form.nutzungsdauer_min }}{{ form.nutzungsdauer_max }}</div></div>
+                    <div class="col-md-6"><label class="form-label">Zeitaufwand je Nutzung min</label>{{ form.zeitaufwand_min }}</div>
+                    <div class="col-md-6"><label class="form-label">Zeitaufwand je Nutzung max</label>{{ form.zeitaufwand_max }}</div>
+                    <div class="col-12"><label class="form-label">DIY Workaround</label>{{ form.diy_workaround }}</div>
+                </div>
+            </div></div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#alternativen">Alternativen</button></h2>
+            <div id="alternativen" class="accordion-collapse collapse" data-bs-parent="#invAccordion"><div class="accordion-body">
+                <div class="row g-3">
+                    <div class="col-md-4"><label class="form-label">Gebrauchtkauf</label>{{ form.gebrauchtkauf_status }}</div>
+                    <div class="col-md-8"><label class="form-label">Begründung</label>{{ form.gebrauchtkauf_begruendung }}</div>
+                    <div class="col-12"><label class="form-label">Mietmöglichkeit</label>{{ form.mietmoeglichkeit }}</div>
+                </div>
+            </div></div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#kosten">Kosten (EUR) — min / max / Ø live</button></h2>
+            <div id="kosten" class="accordion-collapse collapse" data-bs-parent="#invAccordion"><div class="accordion-body">
+                <p class="text-muted small">Leer lassen wenn nicht relevant. Max leer = Min. Ø wird berechnet.</p>
+                {% for label, fmin, fmax in cost_fields %}
+                <div class="row g-2 align-items-end mb-2">
+                    <div class="col-md-4"><label class="form-label small">{{ label }}</label></div>
+                    <div class="col-md-3">{{ fmin }}</div>
+                    <div class="col-md-3">{{ fmax }}</div>
+                    <div class="col-md-2"><span class="form-control-plaintext small avg-display" data-min="{{ fmin.id_for_label }}" data-max="{{ fmax.id_for_label }}">Ø —</span></div>
+                </div>
+                {% endfor %}
+                <div class="row g-2 mt-2">
+                    <div class="col-md-4"><label class="form-label small">Preisentwicklung</label></div>
+                    <div class="col-md-8">{{ form.preis_entwicklung }}</div>
+                    <div class="col-md-12"><label class="form-label small">Folgeanschaffungen (Text)</label>{{ form.folgeanschaffungen }}</div>
+                </div>
+            </div></div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#verkauf">Wiederverkauf &amp; Prüfung</button></h2>
+            <div id="verkauf" class="accordion-collapse collapse" data-bs-parent="#invAccordion"><div class="accordion-body">
+                <div class="row g-3">
+                    <div class="col-md-4"><label class="form-label">Wiederverkauf %</label>{{ form.wiederverkauf_prozent }}</div>
+                    <div class="col-md-4"><label class="form-label">Letzte Überprüfung</label>{{ form.letzte_ueberpruefung }}</div>
+                    <div class="col-md-4"><label class="form-label">EÜR-Position (1:1) zuweisen</label>{{ form.euer_position }}{% include 'transactions/_field_errors.html' with field=form.euer_position %}<div class="form-text">Aus Liste wählen.</div></div>
+                </div>
+                <button type="button" class="btn btn-outline-secondary btn-sm mt-2" data-bs-toggle="collapse" data-bs-target="#newPositionCollapse" aria-expanded="{% if form.new_euer_position_name.errors or form.new_euer_position_year.errors %}true{% else %}false{% endif %}" aria-controls="newPositionCollapse">
+                    <i class="bi bi-plus-lg"></i> Neue Position anlegen
+                </button>
+                <div class="collapse {% if form.new_euer_position_name.errors or form.new_euer_position_year.errors %}show{% endif %} mt-3" id="newPositionCollapse">
+                    <div class="border rounded p-3 bg-light" id="newPositionBox">
+                        <h6 class="small text-muted mb-2">Neue EÜR-Position</h6>
+                        <div class="row g-3">
+                            <div class="col-md-8"><label class="form-label small">Name</label>{{ form.new_euer_position_name }}{% include 'transactions/_field_errors.html' with field=form.new_euer_position_name %}</div>
+                            <div class="col-md-4"><label class="form-label small">Jahr</label>{{ form.new_euer_position_year }}{% include 'transactions/_field_errors.html' with field=form.new_euer_position_year %}</div>
+                        </div>
+                        <div class="form-text">Wird beim Speichern angelegt und verknüpft. Für erweiterte Position (Kategorie/Transaktionen) <a href="{% url 'euer_wizard_step1' %}" target="_blank">Wizard öffnen</a>.</div>
+                    </div>
+                </div>
+            </div></div>
+        </div>
+    </div>
+    <div class="mt-3 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Speichern</button>
+        <a href="{% if object %}{% url 'investment_detail' object.pk %}{% else %}{% url 'investment_list' %}{% endif %}" class="btn btn-outline-secondary">Abbrechen</a>
+    </div>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  function updAvg(minEl, maxEl, out){
+    const fmt = v => (v===''||v==null) ? null : parseFloat(v.replace(',','.'));
+    const vmin = fmt(minEl.value), vmax = fmt(maxEl.value);
+    let avg = null;
+    if(vmin!=null && vmax!=null) avg=(vmin+vmax)/2;
+    else if(vmin!=null) avg=vmin;
+    else if(vmax!=null) avg=vmax;
+    out.textContent = avg==null ? 'Ø —' : 'Ø '+avg.toFixed(2)+' €';
+  }
+  document.querySelectorAll('.avg-display').forEach(function(out){
+    const minEl=document.getElementById(out.dataset.min), maxEl=document.getElementById(out.dataset.max);
+    if(!minEl||!maxEl) return;
+    const cb=()=>updAvg(minEl,maxEl,out);
+    minEl.addEventListener('input',cb); maxEl.addEventListener('input',cb); cb();
+    minEl.addEventListener('blur', function(){ if(minEl.value && !maxEl.value) { maxEl.value=minEl.value; cb(); }});
+  });
+
+  // EÜR-Position: entweder bestehende wählen ODER neue anlegen — gegenseitiges Deaktivieren
+  const sel = document.getElementById('id_euer_position');
+  const newName = document.getElementById('id_new_euer_position_name');
+  const newYear = document.getElementById('id_new_euer_position_year');
+  const newBox = document.getElementById('newPositionBox');
+  const newCollapse = document.getElementById('newPositionCollapse');
+  function syncPositionFields(){
+    const hasExisting = sel && sel.value !== '';
+    const hasNew = (newName && newName.value.trim() !== '') || (newYear && newYear.value.trim() !== '');
+    if(newBox){
+      newBox.style.opacity = hasExisting ? '0.5' : '1';
+      newBox.style.pointerEvents = hasExisting ? 'none' : 'auto';
+      if(hasExisting){
+        if(newName) newName.value = '';
+        if(newYear) newYear.value = '';
+      }
+    }
+    if(sel){
+      sel.style.opacity = hasNew ? '0.5' : '1';
+      sel.style.pointerEvents = hasNew ? 'none' : 'auto';
+      if(hasNew && sel.value !== ''){
+        sel.value = '';
+      }
+    }
+  }
+  if(sel) sel.addEventListener('change', syncPositionFields);
+  if(newName) newName.addEventListener('input', syncPositionFields);
+  if(newYear) newYear.addEventListener('input', syncPositionFields);
+  if(newCollapse){
+    newCollapse.addEventListener('show.bs.collapse', function(){ if(sel) sel.value=''; syncPositionFields(); });
+    newCollapse.addEventListener('hide.bs.collapse', function(){ if(newName) newName.value=''; if(newYear) newYear.value=''; syncPositionFields(); });
+  }
+  syncPositionFields();
+});
+</script>
+{% endblock %}

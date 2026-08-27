@@ -3,8 +3,30 @@
 {% block content %}
 <h1 class="mb-2">Wizard – Schritt 1: Position anlegen</h1>
 <p class="text-muted">Name, Jahr und Positionswerte. Diese gelten nur für die Position – Transaktionen ohne Wert übernehmen sie, abweichende Werte zeigen eine Warnung.</p>
+<div class="card mb-3" style="max-width: 650px;">
+    <div class="card-header">Bestehende Position auswählen (optional)</div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="existing_position" id="existing_position_input">
+            <p class="text-muted small">Statt neuer Position eine vorhandene wählen und Transaktionen zuweisen:</p>
+            <div class="list-group mb-2" style="max-height:200px; overflow-y:auto;">
+                {% for pos in existing_positions %}
+                <button type="submit" name="existing_position" value="{{ pos.pk }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <span>{{ pos.name }} ({{ pos.year }})</span>
+                    <small class="text-muted">{{ pos.transactions.count }} Tx</small>
+                </button>
+                {% empty %}
+                <span class="text-muted small">Keine Positionen vorhanden.</span>
+                {% endfor %}
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="card" style="max-width: 650px;">
     <div class="card-body">
+        <p class="text-muted small">Oder neue Position anlegen:</p>
         <form method="post">
             {% csrf_token %}
             {% include 'transactions/_form_alert.html' %}

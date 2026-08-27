@@ -12,6 +12,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 from django.views.generic import (
+    CreateView,
     DeleteView,
     DetailView,
     FormView,
@@ -25,7 +26,9 @@ from .forms import (
     EuerPositionForm,
     FilterRuleForm,
     ImportForm,
+    InvestmentDecisionForm,
     ManualCategoryForm,
+    PlannedInvestmentForm,
     PositionTransactionsForm,
     TransactionFilterForm,
     TransactionInfoForm,
@@ -33,10 +36,14 @@ from .forms import (
 )
 from .models import (
     Category,
+    ENTSCHEIDUNG_CHOICES,
     EuerPosition,
     FilterRule,
     ImportHistory,
+    InvestmentDecision,
+    PlannedInvestment,
     PredictionResult,
+    PRIORITAET_CHOICES,
     Transaction,
     TransactionCategory,
     TransactionInfo,
@@ -652,7 +659,27 @@ class EuerWizardStep1View(FormView):
                     initial[field] = sess_val
         return initial
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['existing_positions'] = EuerPosition.objects.all().order_by('-year', 'name')[:200]
+        return context
+
     def form_valid(self, form):
+        existing_id = self.request.POST.get('existing_position')
+        if existing_id:
+            try:
+                pos = EuerPosition.objects.get(pk=int(existing_id))
+                self.request.session['wizard_position_id'] = pos.pk
+                self.request.session['wizard_name'] = pos.name
+                self.request.session['wizard_year'] = pos.year
+                self.request.session['wizard_hint'] = pos.hint
+                self.request.session['wizard_category'] = pos.category_id
+                self.request.session['wizard_art'] = pos.art
+                self.request.session['wizard_intervall'] = pos.intervall
+                self.request.session['wizard_prioritaet'] = pos.prioritaet
+                return redirect('euer_wizard_step2')
+            except (ValueError, EuerPosition.DoesNotExist):
+                pass
         self.request.session['wizard_name'] = form.cleaned_data['name'].strip()
         self.request.session['wizard_year'] = form.cleaned_data['year']
         self.request.session['wizard_hint'] = form.cleaned_data.get('hint') or ''
@@ -856,6 +883,143 @@ class EuerWizardStep3View(FormView):
             self.request.session.pop(key, None)
         messages.success(self.request, f"Position '{pos.name}' für {pos.year} wurde gespeichert.")
         return redirect(f"{reverse('report_euer')}?year={pos.year}")
+
+
+@method_decorator(never_cache, name='dispatch')
+class PlannedInvestmentListView(ListView):
+    model = PlannedInvestment
+    template_name = 'transactions/investment_list.html'
+    context_object_name = 'investments'
+    paginate_by = 20
+
+    def get_queryset(self):
+        qs = PlannedInvestment.objects.select_related('kategorie', 'euer_position').prefetch_related('entscheidungen')
+        kategorie = self.request.GET.get('kategorie')
+        prioritaet = self.request.GET.get('prioritaet')
+        status = self.request.GET.get('status')
+        if kategorie:
+            qs = qs.filter(kategorie_id=kategorie)
+        if prioritaet:
+            qs = qs.filter(prioritaet=prioritaet)
+        if status:
+            qs = qs.filter(entscheidungen__status=status).distinct()
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['kategorien'] = Category.objects.filter(parent__isnull=True)
+        context['prioritaeten'] = PRIORITAET_CHOICES
+        context['entscheidung_choices'] = ENTSCHEIDUNG_CHOICES
+        return context
+
+
+@method_decorator(never_cache, name='dispatch')
+class PlannedInvestmentDetailView(DetailView):
+    model = PlannedInvestment
+    template_name = 'transactions/investment_detail.html'
+    context_object_name = 'investment'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['entscheidungen'] = self.object.entscheidungen.all()
+        context['decision_form'] = InvestmentDecisionForm()
+        return context
+
+
+@method_decorator(never_cache, name='dispatch')
+class PlannedInvestmentCreateView(CreateView):
+    model = PlannedInvestment
+    form_class = PlannedInvestmentForm
+    template_name = 'transactions/investment_form.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = context['form']
+        context['cost_fields'] = [
+            ('Mietkosten', form['mietkosten_min'], form['mietkosten_max']),
+            ('Anschaffungspreis', form['anschaffungspreis_min'], form['anschaffungspreis_max']),
+            ('Folgeanschaffungen', form['folgeanschaffungen_min'], form['folgeanschaffungen_max']),
+            ('Inbetriebnahme Kosten', form['inbetriebnahme_kosten_min'], form['inbetriebnahme_kosten_max']),
+            ('Betriebskosten', form['betriebskosten_min'], form['betriebskosten_max']),
+            ('Instandhaltung', form['instandhaltung_min'], form['instandhaltung_max']),
+            ('Reinigung', form['reinigung_min'], form['reinigung_max']),
+            ('Versicherung', form['versicherung_min'], form['versicherung_max']),
+            ('Reparatur', form['reparatur_min'], form['reparatur_max']),
+            ('Entsorgung', form['entsorgung_min'], form['entsorgung_max']),
+        ]
+        return context
+
+    def get_success_url(self):
+        return reverse('investment_detail', kwargs={'pk': self.object.pk})
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Investment '{form.instance.investitionsobjekt}' wurde erstellt.")
+        return super().form_valid(form)
+
+
+@method_decorator(never_cache, name='dispatch')
+class PlannedInvestmentUpdateView(UpdateView):
+    model = PlannedInvestment
+    form_class = PlannedInvestmentForm
+    template_name = 'transactions/investment_form.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = context['form']
+        context['cost_fields'] = [
+            ('Mietkosten', form['mietkosten_min'], form['mietkosten_max']),
+            ('Anschaffungspreis', form['anschaffungspreis_min'], form['anschaffungspreis_max']),
+            ('Folgeanschaffungen', form['folgeanschaffungen_min'], form['folgeanschaffungen_max']),
+            ('Inbetriebnahme Kosten', form['inbetriebnahme_kosten_min'], form['inbetriebnahme_kosten_max']),
+            ('Betriebskosten', form['betriebskosten_min'], form['betriebskosten_max']),
+            ('Instandhaltung', form['instandhaltung_min'], form['instandhaltung_max']),
+            ('Reinigung', form['reinigung_min'], form['reinigung_max']),
+            ('Versicherung', form['versicherung_min'], form['versicherung_max']),
+            ('Reparatur', form['reparatur_min'], form['reparatur_max']),
+            ('Entsorgung', form['entsorgung_min'], form['entsorgung_max']),
+        ]
+        return context
+
+    def get_success_url(self):
+        return reverse('investment_detail', kwargs={'pk': self.object.pk})
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Investment '{form.instance.investitionsobjekt}' wurde aktualisiert.")
+        return super().form_valid(form)
+
+
+@method_decorator(never_cache, name='dispatch')
+class PlannedInvestmentDeleteView(DeleteView):
+    model = PlannedInvestment
+    template_name = 'transactions/investment_confirm_delete.html'
+    success_url = reverse_lazy('investment_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Investment '{self.object.investitionsobjekt}' wurde gelöscht.")
+        return super().form_valid(form)
+
+
+@method_decorator(never_cache, name='dispatch')
+class InvestmentDecisionCreateView(FormView):
+    form_class = InvestmentDecisionForm
+
+    def dispatch(self, request, *args, **kwargs):
+        self.investment = get_object_or_404(PlannedInvestment, pk=kwargs['pk'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        InvestmentDecision.objects.create(
+            investment=self.investment,
+            status=form.cleaned_data['status'],
+            datum=form.cleaned_data.get('datum'),
+            begruendung=form.cleaned_data.get('begruendung') or '',
+        )
+        messages.success(self.request, 'Entscheidung wurde protokolliert.')
+        return redirect('investment_detail', pk=self.investment.pk)
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Entscheidung konnte nicht gespeichert werden.')
+        return redirect('investment_detail', pk=self.investment.pk)
 
 
 @method_decorator(never_cache, name='dispatch')

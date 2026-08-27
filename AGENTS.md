@@ -35,8 +35,8 @@ uv run manage.py check              # Verifikation
 | `src\db.sqlite3` | Datenbank (Backup = Datei kopieren, Server vorher stoppen) |
 | `src\finman\transactions\models.py` | alle ORM-Modelle |
 | `src\finman\transactions\views.py` | alle Views |
-| `src\finman\transactions\forms.py` | 7 Formen + CategoryChoiceField: ImportForm, CategoryForm, ManualCategoryForm, TransactionMetaForm, TransactionInfoForm, FilterRuleForm, TransactionFilterForm |
-| `src\finman\transactions\urls.py` | App-URLs |
+| `src\finman\transactions\forms.py` | 10 Formen + CategoryChoiceField: ImportForm, CategoryForm, ManualCategoryForm, TransactionMetaForm, TransactionInfoForm, FilterRuleForm, TransactionFilterForm, PlannedInvestmentForm, InvestmentDecisionForm + EuerPositionForm, PositionTransactionsForm |
+| `src\finman\transactions\urls.py` | App-URLs inkl. `/investments/` (CRUD + Entscheidung) und Wizard-Step1 mit Auswahl bestehender Position |
 | `src\finman\transactions\parsers\` | CSV-Parser (`base_parser.py`, `giro_parser.py`, `visa_parser.py`, `generic.py`, `registry.py`) |
 | `src\finman\transactions\services\` | Business-Logik: `importer.py`, `categorization.py`, `filter_service.py`, `prediction.py` |
 | `src\finman\templates\transactions\` | Templates (erben von `base.html`) |
@@ -89,3 +89,4 @@ uv run manage.py check              # Verifikation
 - Bootstrap 5 wird per CDN geladen – ohne Internet laden Seiten ohne Styles.
 - `TransactionInfo` ist (noch) nicht im Django-Admin registriert – alle
   übrigen Modelle sind es.
+- **Investments:** `PlannedInvestment.euer_position` ist 1:1 (OneToOne) zu `EuerPosition` – ein Investment kann max. einer Position zugeordnet sein. Wizard Step1 zeigt zusätzlich bestehende Positionen zur Auswahl an.

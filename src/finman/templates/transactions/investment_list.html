@@ -1,0 +1,80 @@
+{% extends 'transactions/base.html' %}
+{% block title %}Investitionen - EÜR-Manager{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Geplante Investitionen</h1>
+    <a href="{% url 'investment_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Neues Investment</a>
+</div>
+
+<form method="get" class="card p-3 mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-auto">
+            <label class="form-label small">Kategorie</label>
+            <select name="kategorie" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">Alle</option>
+                {% for cat in kategorien %}<option value="{{ cat.pk }}" {% if request.GET.kategorie == cat.pk|stringformat:'s' %}selected{% endif %}>{{ cat.name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="col-auto">
+            <label class="form-label small">Priorität</label>
+            <select name="prioritaet" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">Alle</option>
+                {% for val,label in prioritaeten %}<option value="{{ val }}" {% if request.GET.prioritaet == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="col-auto">
+            <label class="form-label small">Entscheidung</label>
+            <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">Alle</option>
+                {% for val,label in entscheidung_choices %}<option value="{{ val }}" {% if request.GET.status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'investment_list' %}" class="btn btn-outline-secondary btn-sm">Zurücksetzen</a>
+        </div>
+    </div>
+</form>
+
+<div class="table-responsive">
+<table class="table table-hover align-middle">
+    <thead>
+        <tr>
+            <th>Objekt</th>
+            <th>Datum</th>
+            <th>Kategorie</th>
+            <th>Priorität</th>
+            <th>Anschaffung Ø</th>
+            <th>Gesamt Ø</th>
+            <th>Wiederverkauf</th>
+            <th>EÜR-Position</th>
+            <th>Entscheidung</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for inv in investments %}
+        <tr>
+            <td><a href="{% url 'investment_detail' inv.pk %}">{{ inv.investitionsobjekt }}</a></td>
+            <td class="small text-muted">{{ inv.datum|date:"d.m.Y"|default:"—" }}</td>
+            <td class="small">{{ inv.kategorie|default:"—" }}</td>
+            <td class="small">{{ inv.prioritaet|default:"—" }}</td>
+            <td class="small">{% if inv.anschaffungspreis_avg %}{{ inv.anschaffungspreis_avg|floatformat:2 }} €{% else %}—{% endif %}</td>
+            <td class="small">{% if inv.gesamt_avg %}{{ inv.gesamt_avg|floatformat:2 }} €{% else %}—{% endif %}</td>
+            <td class="small">{% if inv.wiederverkauf_betrag %}{{ inv.wiederverkauf_betrag|floatformat:2 }} € ({{ inv.wiederverkauf_prozent }}%){% else %}—{% endif %}</td>
+            <td class="small">{% if inv.euer_position %}<a href="{% url 'report_euer' %}?year={{ inv.euer_position.year }}">{{ inv.euer_position.name }} ({{ inv.euer_position.year }})</a>{% else %}—{% endif %}</td>
+            <td class="small">{% with last=inv.entscheidungen.first %}{% if last %}<span class="badge bg-secondary">{{ last.get_status_display }}</span>{% else %}—{% endif %}{% endwith %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="text-muted">Keine Investitionen vorhanden.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+{% if is_paginated %}
+<nav><ul class="pagination justify-content-center">
+    {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Zurück</a></li>{% endif %}
+    <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+    {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Weiter</a></li>{% endif %}
+</ul></nav>
+{% endif %}
+{% endblock %}

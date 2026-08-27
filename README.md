@@ -22,6 +22,7 @@ Die Anwendung ist bewusst einfach gehalten:
 - **Notizen**: freier Text zu jeder einzelnen Buchung (z. B. Erinnerungen, Belegnummer)
 - **Vorhersagen**: wiederkehrende Zahlungen (Miete, Abos, Gehalt …) werden erkannt und der nächste Termin prognostiziert
 - **EÜR-Bericht** mit Positionen je Kalenderjahr – jede Position fasst mehrere Transaktionen zusammen und zeigt abgeleitete und normalisierte Werte
+- **Geplante Investments**: strukturiertes Formular für Investitionsvorhaben (29 Felder: Objekt, Kategorie, Priorität, ROI, Nutzung, DIY/Gebrauchtkauf/Miete, alle Kostenarten als min/max/Ø in EUR, Wiederverkauf % vom Ø-Anschaffungspreis, letzte Überprüfung) — 1:1 Verknüpfung zu EÜR-Positionen, Entscheidungsprotokoll (geplant/geprüft/genehmigt/abgelehnt/verschoben/umgesetzt), Wizard erlaubt *Position zuweisen* oder *aus Liste auswählen*
 - **Dashboard** mit den wichtigsten Kennzahlen des aktuellen Monats
 
 ---
@@ -229,6 +230,22 @@ Der EÜR-Bericht stellt für ein Kalenderjahr **Positionen** zusammen. Eine Posi
 Am Ende der Tabelle wird die Summe über alle Positionen des Jahres gebildet.
 
 **Positionen erstellen:** Über einen geführten Ablauf wird eine Position mit Namen, Jahr und Hinweis angelegt und es werden Transaktionen zugewiesen. Eine Transaktion kann nur in einer Position desselben Jahres enthalten sein. Der Bericht filtert nach dem Jahr der Position, nicht nach dem Datum der Transaktionen – so können z. B. Januar-Buchungen einem abgelaufenen Jahr zugeordnet werden.
+
+**Wizard Schritt 1 erweitert:** Neben *neue Position anlegen* kann eine *bestehende Position aus der Liste gewählt* werden — der Wizard übernimmt dann Name/Jahr/Hinweis und springt direkt zu Schritt 2.
+
+### Geplante Investments
+
+Über die Seite **Investitionen** (`/investments/`) werden Investitionsvorhaben strukturiert erfasst — das Formular bildet das Screenshot-Template mit 29 Feldern ab, in 5 Akkordeon-Abschnitten (Basis & Nutzen, Nutzung, Alternativen, Kosten, Wiederverkauf & Prüfung + Verknüpfung).
+
+**Erfasste Bereiche:**
+- **Investitionsobjekt**, Datum, Kategorie (aus Ausgabenübersicht), Priorität und Wem nützt es? (Familie/Kinder/…), ROI (Freitext) und aktuelle Lösung
+- **Nutzung:** Ab wann, Intervall, Zeitaufwand je Nutzung (min/max), Nutzungsdauer, DIY-Workaround, Gebrauchtkauf (Ja/Nein + Begründung), Mietmöglichkeit
+- **Kosten (jeweils min, max, Ø):** Mietkosten, Anschaffungspreis, Folgeanschaffungen, Inbetriebnahme (Zeit/Geld), Betriebskosten, Instandhaltung, Reinigung, Versicherung, Reparatur, Entsorgung — in EUR wie bei Transaktionen. Regel: *max leer = min*, Ø = (min+max)/2, live im Formular berechnet
+- **Wiederverkauf** nach Nutzungszeitraum als % vom Ø-Anschaffungspreis — Betrag wird automatisch angezeigt
+- **EÜR-Verknüpfung (1:1):** Jedes Investment kann optional genau einer EÜR-Position zugeordnet werden (und umgekehrt). Freie Positionen werden im Dropdown angeboten; bereits verknüpfte sind gesperrt. Über den Wizard kann eine Position neu angelegt oder eine bestehende gewählt und danach verknüpft werden.
+- **Entscheidungsprotokoll:** je Investment beliebig viele Einträge (geplant/geprüft/genehmigt/abgelehnt/verschoben/umgesetzt) mit Datum und Begründung, chronologisch angezeigt
+
+Leere Felder sind erlaubt — nicht relevante Kosten bleiben einfach leer und fließen nicht in die Gesamt-Ø-Berechnung ein.
 
 ---
 

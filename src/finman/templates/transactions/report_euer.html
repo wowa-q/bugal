@@ -19,19 +19,19 @@
 <table class="table table-striped table-sm">
     <thead style="font-size: 0.75rem;">
         <tr>
-            <th>Position</th>
-            <th class="text-end">Betrag</th>
-            <th>Kategorie</th>
-            <th>Sub-Kategorie</th>
-            <th>Typ</th>
-            <th>Intervall</th>
-            <th>Priorität</th>
-            <th>Hinweis</th>
-            <th class="text-end">Betrag täglich</th>
-            <th class="text-end">Betrag wöchentlich</th>
-            <th class="text-end">Betrag monatlich</th>
-            <th class="text-end">Betrag jährlich</th>
-            <th>wird gezahlt über</th>
+            <th class="text-nowrap">Position</th>
+            <th class="text-end text-nowrap">Betrag</th>
+            <th class="text-nowrap">Kategorie</th>
+            <th class="text-nowrap">Sub-Kategorie</th>
+            <th class="text-nowrap">Typ</th>
+            <th class="text-nowrap">Intervall</th>
+            <th class="text-nowrap">Priorität</th>
+            <th class="text-nowrap">Hinweis</th>
+            <th class="text-end text-nowrap">täglich</th>
+            <th class="text-end text-nowrap">wöchentlich</th>
+            <th class="text-end text-nowrap">monatlich</th>
+            <th class="text-end text-nowrap">jährlich</th>
+            <th class="text-nowrap">wird gezahlt über</th>
             <th></th>
         </tr>
     </thead>
@@ -44,21 +44,21 @@
                 <i class="bi bi-exclamation-triangle text-warning" title="Warnung: {{ row.summary.warnings|join:', ' }}"></i>
                 {% endif %}
             </td>
-            <td class="text-end {% if row.summary.betrag >= 0 %}positive{% else %}negative{% endif %}">{{ row.summary.betrag|floatformat:2 }} €</td>
-            <td>{{ row.summary.kategorie|default:"—" }}</td>
-            <td>{{ row.summary.sub_kategorie|default:"—" }}</td>
-            <td>{{ row.summary.typ|default:"—" }}</td>
-            <td>{{ row.summary.intervall|default:"—" }}</td>
-            <td>{{ row.summary.prioritaet|default:"—" }}</td>
+            <td class="text-end text-nowrap {% if row.summary.betrag >= 0 %}positive{% else %}negative{% endif %}">{{ row.summary.betrag|floatformat:2 }}&nbsp;€</td>
+            <td class="text-nowrap">{{ row.summary.kategorie|default:"—" }}</td>
+            <td class="text-nowrap">{{ row.summary.sub_kategorie|default:"—" }}</td>
+            <td class="text-nowrap">{{ row.summary.typ|default:"—" }}</td>
+            <td class="text-nowrap">{{ row.summary.intervall|default:"—" }}</td>
+            <td class="text-nowrap">{{ row.summary.prioritaet|default:"—" }}</td>
             <td>
                 <span title="{{ row.position.hint|default:'' }}">{{ row.position.hint|truncatechars:30|default:"—" }}</span>
                 <a href="{% url 'euer_position_hint' row.position.pk %}" class="btn btn-sm btn-outline-secondary py-0 ms-1" title="Hinweis bearbeiten"><i class="bi bi-pencil"></i></a>
             </td>
-            <td class="text-end">{{ row.summary.täglich|floatformat:2 }} €</td>
-            <td class="text-end">{{ row.summary.wöchentlich|floatformat:2 }} €</td>
-            <td class="text-end">{{ row.summary.monatlich|floatformat:2 }} €</td>
-            <td class="text-end">{{ row.summary.jährlich|floatformat:2 }} €</td>
-            <td>{{ row.summary.konto|default:"—" }}</td>
+            <td class="text-end text-nowrap">{{ row.summary.täglich|floatformat:2 }}&nbsp;€</td>
+            <td class="text-end text-nowrap">{{ row.summary.wöchentlich|floatformat:2 }}&nbsp;€</td>
+            <td class="text-end text-nowrap">{{ row.summary.monatlich|floatformat:2 }}&nbsp;€</td>
+            <td class="text-end text-nowrap">{{ row.summary.jährlich|floatformat:2 }}&nbsp;€</td>
+            <td class="text-nowrap">{{ row.summary.konto|default:"—" }}</td>
             <td>
                 <span class="btn-group">
                     <a href="{% url 'euer_wizard_step1' %}?edit={{ row.position.pk }}" class="btn btn-sm btn-outline-primary py-0" title="Bearbeiten"><i class="bi bi-pencil"></i></a>
@@ -68,16 +68,16 @@
         </tr>
         {% endfor %}
     </tbody>
-    <tfoot>
+    <tfoot style="font-size: 0.68rem;">
         <tr class="table-secondary fw-bold">
-            <td>Summe</td>
-            <td class="text-end">{{ totals.betrag|floatformat:2 }} €</td>
+            <td class="text-nowrap">Summe</td>
+            <td class="text-end text-nowrap">{{ totals.betrag|floatformat:2 }}&nbsp;€</td>
             <td colspan="6"></td>
             <td></td>
-            <td class="text-end">{{ totals.täglich|floatformat:2 }} €</td>
-            <td class="text-end">{{ totals.wöchentlich|floatformat:2 }} €</td>
-            <td class="text-end">{{ totals.monatlich|floatformat:2 }} €</td>
-            <td class="text-end">{{ totals.jährlich|floatformat:2 }} €</td>
+            <td class="text-end text-nowrap">{{ totals.täglich|floatformat:2 }}&nbsp;€</td>
+            <td class="text-end text-nowrap">{{ totals.wöchentlich|floatformat:2 }}&nbsp;€</td>
+            <td class="text-end text-nowrap">{{ totals.monatlich|floatformat:2 }}&nbsp;€</td>
+            <td class="text-end text-nowrap">{{ totals.jährlich|floatformat:2 }}&nbsp;€</td>
             <td></td>
             <td></td>
         </tr>

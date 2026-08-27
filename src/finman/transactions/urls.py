@@ -26,4 +26,10 @@ urlpatterns = [
     path('reports/euer/wizard/step3/', views.EuerWizardStep3View.as_view(), name='euer_wizard_step3'),
     path('reports/euer/<int:pk>/hint/', views.EuerPositionHintView.as_view(), name='euer_position_hint'),
     path('reports/euer/<int:pk>/delete/', views.EuerPositionDeleteView.as_view(), name='euer_position_delete'),
+    path('investments/', views.PlannedInvestmentListView.as_view(), name='investment_list'),
+    path('investments/new/', views.PlannedInvestmentCreateView.as_view(), name='investment_create'),
+    path('investments/<int:pk>/', views.PlannedInvestmentDetailView.as_view(), name='investment_detail'),
+    path('investments/<int:pk>/edit/', views.PlannedInvestmentUpdateView.as_view(), name='investment_update'),
+    path('investments/<int:pk>/delete/', views.PlannedInvestmentDeleteView.as_view(), name='investment_delete'),
+    path('investments/<int:pk>/decision/', views.InvestmentDecisionCreateView.as_view(), name='investment_decision_create'),
 ]

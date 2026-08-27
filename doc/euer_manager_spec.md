@@ -11,6 +11,8 @@
 
 | Version | Datum      | Änderung |
 | ------- | ---------- | -------- |
+| 2.3     | 2026-08-27 | EÜR-Bericht auf Positionen (M2M) + Wizard (3 Schritte, Positions-eigene Felder) umgebaut; Positions-Werte überschreiben Transaktion nur als Fallback |
+| 2.2     | 2026-08-27 | Import-Löschung per CASCADE + PIN-Härtung, Historie Von/Bis-Spalten & Links, Dashboard-Accordion |
 | 2.1     | 2026-08-26 | An überarbeiteten Code angeglichen: `TransactionInfo` (Notiz pro Transaktion), FormView-/ListView-Umbau von Import, Liste und Detail, Regel-CRUD mit Bearbeiten/Löschen + „Regeln anwenden", 17 Routen, Meta-Schnellzuweisung in der Liste |
 | 2.0     | 2026-08-26 | An Ist-Code angeglichen: Parser-Architektur, Import-Workflow, zweistufige Prognosen, URL-/GUI-Beschreibung, Settings. Fixtures und Implementierungsreihenfolge entfernt |
 | 1.0     | 2026-05-05 | Initiale Spezifikation |
@@ -72,7 +74,6 @@ dependencies = [
 
 ```
 finman/
-├── main.py                                  # uv-Projektpunkt (für Django irrelevant)
 ├── pyproject.toml
 ├── doc/
 │   ├── euer_manager_spec.md                 # diese Spezifikation
@@ -87,19 +88,22 @@ finman/
         ├── manage.py                        # Django-Befehle von hier ausführen
         ├── finman/                          # Django-Projektkonfiguration
         │   ├── __init__.py
-        │   ├── settings.py                  # inkl. LOGGING-Konfiguration
+        │   ├── settings.py                  # inkl. IMPORT_DELETE_PIN (siehe §7a)
         │   ├── urls.py                      # /admin/ + include transactions
         │   └── wsgi.py
         └── transactions/                    # Haupt-Django-App (einzige App)
-            ├── admin.py                     # 7 von 8 Modellen registriert
+            ├── admin.py                     # 8 von 9 Modellen registriert (EuerPosition jetzt dabei)
             ├── apps.py
-            ├── forms.py                     # 7 Formen + CategoryChoiceField
-            ├── models.py                    # alle ORM-Modelle (8)
-            ├── urls.py                      # 17 Routen unter '/'
-            ├── views.py                     # 7 function-based + 10 class-based Views
+            ├── forms.py                     # 10 Formen + CategoryChoiceField
+            ├── models.py                    # alle ORM-Modelle (9)
+            ├── urls.py                      # 24 Routen unter '/'
+            ├── views.py                     # 6 function-based + 16 class-based Views
             ├── migrations/
             │   ├── 0001_initial.py
-            │   └── 0002_transactioninfo.py
+            │   ├── 0002_transactioninfo.py
+            │   ├── 0003_import_cascade_delete.py
+            │   ├── 0004_euer_position.py
+            │   └── 0005_euer_position_fields.py
             ├── parsers/                     # CSV-Parser-Modul
             │   ├── __init__.py
             │   ├── base_parser.py           # ABC + TransactionData + Hashing-Helfer
@@ -111,6 +115,7 @@ finman/
             │   ├── __init__.py
             │   ├── importer.py              # Import + Tempdatei-Helfer
             │   ├── categorization.py        # Auto-Kategorisierung + apply_rules_to_all
+            │   ├── euer.py                  # EÜR-Positions-Logik & Normalisierung
             │   ├── filter_service.py        # Fluent QuerySet-Filter
             │   └── prediction.py            # Vorhersage nächster Zahlungstermine
             ├── management/
@@ -119,11 +124,12 @@ finman/
             │       └── update_predictions.py
             └── templates/
                 └── transactions/
-                    ├── base.html
-                    ├── dashboard.html
-                    ├── import.html
-                    ├── import_history.html
-                    ├── transaction_list.html
+                    ├── base.html            # inkl. Import-Dropdown
+                    ├── dashboard.html       # Letzte-Imports-Accordion
+                    ├── import.html          # Card-Header + original_filename
+                    ├── import_history.html  # Von/Bis-Spalten, kleine Schrift
+                    ├── import_confirm_delete.html
+                    ├── transaction_list.html # Filter-Accordion
                     ├── transaction_detail.html
                     ├── category_list.html
                     ├── category_form.html
@@ -132,9 +138,12 @@ finman/
                     ├── rule_form.html
                     ├── rule_confirm_delete.html
                     ├── prediction_list.html
-                    ├── report_euer.html
-                    ├── _category_node.html      # rekursiver Kategorie-Baum
-                    ├── _field_errors.html       # Partials für Form-Fehler
+                    ├── report_euer.html      # Positionen-Tabelle (ohne ROI)
+                    ├── euer_wizard_step1/2/3.html
+                    ├── euer_hint_form.html   # nun vollständige Positionswerte
+                    ├── euer_confirm_delete.html
+                    ├── _category_node.html
+                    ├── _field_errors.html
                     └── _form_alert.html
 ```
 
@@ -181,7 +190,7 @@ class Transaction(models.Model):
     imported_at   = models.DateTimeField(auto_now_add=True)
     import_file   = models.ForeignKey(
         ImportHistory,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
         related_name='transactions'
     )
@@ -336,7 +345,33 @@ class TransactionInfo(models.Model):
 > **Hinweis:** `TransactionInfo` ist derzeit **nicht** im Django-Admin
 > registriert — alle übrigen Modelle sind es (siehe §15, offener Punkt).
 
-### 4.8 `PredictionResult`
+### 4.8 `EuerPosition` (EÜR-Sammelposten)
+
+> Jede Transaktion gehört zu **maximal einer** Position je Jahr – eine Position bündelt mehrere Transaktionen und trägt **eigene** Werte für Kategorie/Typ/Intervall/Priorität/Hinweis. Leere Transaktionsfelder erben den Positionswert, abweichende gefüllte Werte lösen eine Warnung im Bericht aus.
+
+```python
+class EuerPosition(models.Model):
+    name         = models.CharField(max_length=100)
+    hint         = models.TextField(blank=True, default='')
+    year         = models.IntegerField()
+    category     = models.ForeignKey(Category, null=True, blank=True, on_delete=models.SET_NULL, related_name='euer_positions')
+    art          = models.CharField(max_length=10, choices=ART_CHOICES, blank=True)       # in Tabelle als Typ
+    intervall    = models.CharField(max_length=20, choices=INTERVALL_CHOICES, blank=True)
+    prioritaet   = models.CharField(max_length=20, choices=PRIORITAET_CHOICES, blank=True)
+    transactions = models.ManyToManyField('Transaction', blank=True, related_name='euer_positions')
+    created_at   = models.DateTimeField(auto_now_add=True)
+    updated_at   = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+        unique_together = [('name', 'year')]
+        verbose_name = 'EÜR-Position'
+        verbose_name_plural = 'EÜR-Positionen'
+```
+
+> Details & Normalisierung siehe §9a. Ein Transaktionswechsel über Jahre hinweg ist erlaubt, weil nach `Position.year` (nicht `Transaction.date`) gefiltert wird – Januar-Buchungen können so dem abgelaufenen Jahr zugeordnet werden.
+
+### 4.9 `PredictionResult`
 
 ```python
 class PredictionResult(models.Model):
@@ -542,7 +577,7 @@ Ablauf:
    d. ImportHistory anlegen (md5, original_filename oder basename) und speichern
    e. Für jede TransactionData:
       - Hash berechnen, Transaktions-Duplikat-Check
-      - Transaction speichern (inkl. FK auf die ImportHistory)
+      - Transaction speichern (inkl. FK CASCADE auf die ImportHistory)
       - auto_categorize(tx) aufrufen
    f. ImportHistory finalisieren: row_count, duplicate_count,
       konto (= src_konto der ersten Zeile), min_date, max_date
@@ -550,6 +585,12 @@ Ablauf:
 5. Ergebnis: {imported, skipped, duplicates, import_id} — gerendert zusammen
    mit der Vorschau; ValueError wird als messages.error angezeigt
 ```
+
+> **Dateiname vollständig & kein `…`:** Import speichert `original_filename` (vom Upload) statt Temp-Namen; Historie/Dashboard zeigen den vollen Namen (`word-break: break-all`).
+
+### 7a. Import löschen (restlos, PIN-gehärtet)
+
+> `Transaction.import_file` ist `CASCADE` – Löschen eines `ImportHistory`-Eintrags über `ImportDeleteView` (POST, PIN-Abfrage, `@never_cache`) entfernt automatisch alle zugehörigen Transaktionen samt `TransactionCategory`/`TransactionMeta`/`TransactionInfo`. Jeder Löschweg (auch Django-Admin) kaskadiert. PIN ist `settings.IMPORT_DELETE_PIN` (Default `1234`, via `FINMAN_DELETE_PIN` in der Umgebung überschreibbar). Nach dem Löschen ist `file_md5` wieder frei und dieselbe Datei kann erneut importiert werden. Route `import/<int:pk>/delete/` → `import_confirm_delete.html` zeigt Dateiname/Zeitraum/Tx-Anzahl.
 
 ```python
 def import_csv(filepath: str, original_filename: str | None = None) -> dict:
@@ -685,6 +726,26 @@ class TransactionListView(ListView):
 > Werte für die Sortier-Links im Template zurück.
 
 ---
+
+## 9a. EÜR-Positionen (Sammelposten)
+
+> Service `services/euer.py` + Modelle `EuerPosition` (§4.8) + Wizard (`views.py: EuerWizard*`) + Bericht (`report_euer`).
+
+**Tabelle `EÜR-Bericht` pro Kalenderjahr (`Position.year`, nicht `Transaction.date`):**
+
+`Position | Betrag (Σ aller zugeordneten Transaktionen) | Kategorie | Sub-Kategorie | Typ (= EuerPosition.art, FIX/FLEX) | Intervall | Priorität | Hinweis (editierbar, nur Position) | Betrag täglich / wöchentlich / monatlich / jährlich (aus Σ Betrag × Intervall-Faktor) | wird gezahlt über (= `src_konto` der ersten Transaktion) | Aktionen | Warnicon`
+
+* Ableitung: `Kategorie/Sub-Kategorie` aus `position.category.get_full_path()`, `Typ/Intervall/Priorität` direkt aus `position.art/intervall/prioritaet`. Ist ein Transaktionsfeld leer, gilt es als *übernommen* (keine Warnung); ist es gefüllt und weicht vom Positionswert ab → Warnung (`bi-exclamation-triangle`, Felder `kategorie/typ/intervall/prioritaet/konto` getrennt geprüft). Eine Transaktion darf nur in **einer** Position je Jahr enthalten sein (Wizard filtert andere Positionen des Jahres aus).
+* Intervall: `einmalig/geplant` wie `jährlich` gerechnet; `einmalig`/`abgelaufen` sind bei Neuanlage verboten (`CREATION_FORBIDDEN_INTERVALLS`), `abgelaufen` friert die vier normalisierten Werte ein (keine Neuberechnung). `geplant` wird wie `jährlich` behandelt.
+* ROI-Spalte ist derzeit **nicht enthalten** (bewusst weggelassen).
+
+**Wizard (3 Schritte, FormView, Session-basiert, `@never_cache`):**
+
+1. `wizard/step1/` (`EuerPositionForm` – Name, Jahr, Kategorie, Typ, Intervall, Priorität, Hinweis) – bei `?edit=<pk>` lädt die Instanz als `instance` zwecks korrekter `unique_together`-Validierung.
+2. `wizard/step2/` (`PositionTransactionsForm` – `MultipleChoice` der letzten 500 Transaktionen, bereits zugeordnete des gleichen Jahres ausgeblendet; beim Bearbeiten sind bisherige Zuordnungen vorausgewählt).
+3. `wizard/step3/` (Vorschau inkl. `position_summary`-Warnungen, Betragssummen) → Speichern setzt `pos.transactions` und verwirft Session.
+
+Zusätzlich `reports/euer/<pk>/hint/` (`EuerPositionHintView`, vollständige `EuerPositionForm`) und `reports/euer/<pk>/delete/` (DeleteView).
 
 ## 9. Automatische Kategorisierung
 
@@ -851,6 +912,7 @@ urlpatterns = [
     path('',                                   views.dashboard,                    name='dashboard'),
     path('import/',                            views.ImportView.as_view(),         name='import'),
     path('import/history/',                    views.import_history,               name='import_history'),
+    path('import/<int:pk>/delete/',            views.ImportDeleteView.as_view(),   name='import_delete'),                 # PIN + CASCADE
     path('transactions/',                      views.TransactionListView.as_view(),          name='transaction_list'),
     path('transactions/<int:pk>/',             views.TransactionDetailView.as_view(),        name='transaction_detail'),
     path('transactions/<int:pk>/meta/',        views.transaction_meta_save,        name='transaction_meta_save'),          # require_POST
@@ -866,6 +928,11 @@ urlpatterns = [
     path('rules/<int:pk>/delete/',             views.RuleDeleteView.as_view(),     name='rule_delete'),
     path('predictions/',                       views.prediction_list,              name='prediction_list'),
     path('reports/euer/',                      views.report_euer,                  name='report_euer'),
+    path('reports/euer/wizard/step1/',         views.EuerWizardStep1View.as_view(),name='euer_wizard_step1'),
+    path('reports/euer/wizard/step2/',         views.EuerWizardStep2View.as_view(),name='euer_wizard_step2'),
+    path('reports/euer/wizard/step3/',         views.EuerWizardStep3View.as_view(),name='euer_wizard_step3'),
+    path('reports/euer/<int:pk>/hint/',        views.EuerPositionHintView.as_view(),name='euer_position_hint'),
+    path('reports/euer/<int:pk>/delete/',      views.EuerPositionDeleteView.as_view(),name='euer_position_delete'),
 ]
 ```
 
@@ -898,14 +965,14 @@ urlpatterns = [
 **Elemente:**
 - **Upload-Bereich:** `<input type="file" accept=".csv">` per Django-Form
 - **ODER:** Textfeld für absoluten Dateipfad
-  (Formular verlangt genau eine der beiden Angaben)
+  (Formular verlangt genau eine der beiden Angaben; Card-Header „Neuen Import starten“)
 - **Nach POST:** Vorschau (erkanntes Format = Parser-Name, Konto, erste 3 Zeilen)
   **und** Ergebnis des Imports: Importiert | Übersprungen | Duplikate — oder
   Fehlermeldung als Message (z. B. Datei-Duplikat, Datei nicht gefunden)
 
 ### 12.3 `transaction_list.html` — `/transactions/`
 
-**Filterleiste (`TransactionFilterForm`, GET):**
+**Filterleiste (`TransactionFilterForm`, GET) im Accordion (eingeklappt, wie „Letzte Imports“):**
 - `start` / `end` — Datum von / bis (date inputs)
 - `debitor` — text input, icontains
 - `category` — Dropdown (nur Hauptkategorien; Filter schließt Subkategorien ein,
@@ -942,18 +1009,18 @@ setzen → POST auf `transaction_meta_save`; Rückkehr über verstecktes `next`-
 ### 12.5 `dashboard.html` — `/`
 
 - **KPI-Karten:** Einnahmen diesen Monat | Ausgaben diesen Monat | Saldo
-- **Top-5 Ausgaben** nach Kategorie (aktueller Monat, nur Ausgaben)
-- **Nächste erwartete Zahlungen** (PredictionResult, die nächsten 10,
-  sortiert nach next_expected_date, mit Confidence-Balken)
-- **Letzte Imports** (ImportHistory, letzte 5)
+- **Letzte Imports** als Accordion (oben, volle Breite, initiale Anzahl, eingeklappt; Tabelle Datei + Von/Bis + Zeilen + Duplikate; Link „Alle Imports ansehen“)
+- **Top-5 Ausgaben** nach Kategorie (aktueller Monat, nur Ausgaben) und **Nächste erwartete Zahlungen** (PredictionResult, die nächsten 10, Confidence-Balken) je `col-md-6`
 
-### 12.6 `report_euer.html` — `/reports/euer/`
+### 12.6 `report_euer.html` — `/reports/euer/` (EÜR-Positionen)
 
-- Jahresauswahl via GET `year` (aktuelles Jahr vorausgewählt,
-  Auswahlbereich: `year - 5` bis `year + 2`)
-- Tabelle: Monat | Einnahmen | Ausgaben | Saldo
-- Jahressummen (Einnahmen, Ausgaben, Saldo)
-- Export als CSV/PDF: **nicht implementiert** (siehe §15 Offene Punkte)
+> Fachlich: Bericht filtert nach `EuerPosition.year` (nicht `Transaction.date`) – Januar-Buchungen können so dem abgelaufenen Jahr zugeordnet werden. `EuerPositionForm` erlaubt Kategorie/Art/Intervall/Priorität/Hinweis je Position; leere Transaktionsfelder erben Positionswerte, abweichende zeigen Warnicon.
+
+- Jahresauswahl via GET `year` (aktuelles Jahr vorausgewählt, `year - 5` bis `year + 2`) + Button „Position anlegen (Wizard)“
+- **Positionen-Tabelle (14 Spalten, ohne ROI):** Position (+ Warnicon) | Betrag (Σ) | Kategorie | Sub-Kategorie | Typ | Intervall | Priorität | Hinweis (editierbar, `euer_hint_form.html` mit vollem `EuerPositionForm`) | Betrag täglich / wöchentlich / monatlich / jährlich (siehe §9a) | wird gezahlt über | Aktionen (Bearbeiten → Wizard `?edit=`, Löschen)
+- Footer: Summen über alle Positionen des Jahres (je normalisierte Spalte)
+- Wizard `euer_wizard_step1/2/3.html`: 1) Stammdaten, 2) Transaktionen zuweisen (500 neueste, year'seigene ausgenommen, beim Bearbeiten vorausgewählt), 3) Vorschau mit Warnungen → Speichern setzt `pos.transactions`
+- Export als CSV/PDF: **nicht implementiert** (siehe §15)
 
 ### 12.7 Regel-Seiten — `/rules/`
 
@@ -980,8 +1047,7 @@ setzen → POST auf `transaction_meta_save`; Rückkehr über verstecktes `next`-
 
 ### 12.9 `import_history.html` — `/import/history/`
 
-- Tabelle aller Importe (neueste zuerst): Dateiname, Konto, Datum/Uhrzeit,
-  Zeilen gesamt, Duplikate, Zeitraum (`min_date`–`max_date`)
+- Tabelle aller Importe (neueste zuerst): Dateiname (voll, `word-break`), Konto (voll), Datum/Uhrzeit, Zeilen gesamt, Duplikate, Von (`min_date`) / Bis (`max_date`) getrennt, Papierkorb-Spalte ohne Header – Schrift kleiner (`thead 0.75rem / tbody 0.60rem`); erreichbar via Import-Dropdown und Dashboard-Link. Löschseite `import_confirm_delete.html` mit PIN-Abfrage (`FINMAN_DELETE_PIN`, Default `1234`).
 
 ### 12.10 Kategorie-Seiten — `/categories/`
 
@@ -1017,6 +1083,8 @@ Haupt- und Subkategorien sowie Filter-Regeln werden manuell angelegt:
 
 ```python
 # finman/settings.py (relevante Einstellungen)
+import os
+IMPORT_DELETE_PIN = os.environ.get("FINMAN_DELETE_PIN", "1234")  # PIN für Import-Löschung
 
 DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']

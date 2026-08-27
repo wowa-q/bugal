@@ -1,0 +1,15 @@
+{% extends 'transactions/base.html' %}
+{% block title %}Investment löschen - EÜR-Manager{% endblock %}
+{% block content %}
+<h1 class="mb-3">Investment löschen</h1>
+<div class="card" style="max-width: 600px;">
+    <div class="card-body">
+        <p>Möchten Sie <strong>{{ object.investitionsobjekt }}</strong> wirklich löschen?</p>
+        <p class="text-muted small">{{ object.entscheidungen.count }} Entscheidung(en) werden mit gelöscht. Verknüpfte EÜR-Position bleibt erhalten.</p>
+        <form method="post">{% csrf_token %}
+            <a href="{% url 'investment_detail' object.pk %}" class="btn btn-outline-secondary">Abbrechen</a>
+            <button type="submit" class="btn btn-danger">Löschen</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
