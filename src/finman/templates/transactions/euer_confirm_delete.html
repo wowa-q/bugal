@@ -1,0 +1,16 @@
+{% extends 'transactions/base.html' %}
+{% block title %}Position löschen - EÜR-Manager{% endblock %}
+{% block content %}
+<h1 class="mb-4">Position löschen</h1>
+<div class="card" style="max-width: 600px;">
+    <div class="card-body">
+        <p>Möchten Sie die Position <strong>{{ object.name }}</strong> ({{ object.year }}) wirklich löschen?</p>
+        <p class="text-muted small">{{ object.transactions.count }} Transaktion(en) verlieren die Zuordnung, werden aber nicht gelöscht.</p>
+        <form method="post">
+            {% csrf_token %}
+            <a href="{% url 'report_euer' %}?year={{ object.year }}" class="btn btn-outline-secondary">Abbrechen</a>
+            <button type="submit" class="btn btn-danger">Löschen</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -2,41 +2,89 @@
 {% block title %}EÜR-Bericht - EÜR-Manager{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <h1>EÜR-Bericht</h1>
-    <select class="form-select w-auto" onchange="window.location='?year=' + this.value">
-        {% for y in years %}
-        <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
-        {% endfor %}
-    </select>
+    <div class="d-flex gap-2 align-items-center">
+        <a href="{% url 'euer_wizard_step1' %}?year={{ year }}" class="btn btn-primary btn-sm">Position anlegen (Wizard)</a>
+        <select class="form-select w-auto" onchange="window.location='?year=' + this.value">
+            {% for y in years %}
+            <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+    </div>
 </div>
 
-<table class="table table-striped">
-    <thead>
+{% if rows %}
+<div class="table-responsive">
+<table class="table table-striped table-sm">
+    <thead style="font-size: 0.75rem;">
         <tr>
-            <th>Monat</th>
-            <th class="text-end">Einnahmen</th>
-            <th class="text-end">Ausgaben</th>
-            <th class="text-end">Saldo</th>
+            <th>Position</th>
+            <th class="text-end">Betrag</th>
+            <th>Kategorie</th>
+            <th>Sub-Kategorie</th>
+            <th>Typ</th>
+            <th>Intervall</th>
+            <th>Priorität</th>
+            <th>Hinweis</th>
+            <th class="text-end">Betrag täglich</th>
+            <th class="text-end">Betrag wöchentlich</th>
+            <th class="text-end">Betrag monatlich</th>
+            <th class="text-end">Betrag jährlich</th>
+            <th>wird gezahlt über</th>
+            <th></th>
         </tr>
     </thead>
-    <tbody>
-        {% for m in monthly %}
+    <tbody style="font-size: 0.68rem;">
+        {% for row in rows %}
         <tr>
-            <td>{{ m.month|date:"F"|default:m.month }}</td>
-            <td class="text-end positive">{{ m.income|floatformat:2 }} €</td>
-            <td class="text-end negative">{{ m.expenses|floatformat:2 }} €</td>
-            <td class="text-end {% if m.balance >= 0 %}positive{% else %}negative{% endif %}">{{ m.balance|floatformat:2 }} €</td>
+            <td>
+                {{ row.position.name }}
+                {% if row.summary.has_warning %}
+                <i class="bi bi-exclamation-triangle text-warning" title="Warnung: {{ row.summary.warnings|join:', ' }}"></i>
+                {% endif %}
+            </td>
+            <td class="text-end {% if row.summary.betrag >= 0 %}positive{% else %}negative{% endif %}">{{ row.summary.betrag|floatformat:2 }} €</td>
+            <td>{{ row.summary.kategorie|default:"—" }}</td>
+            <td>{{ row.summary.sub_kategorie|default:"—" }}</td>
+            <td>{{ row.summary.typ|default:"—" }}</td>
+            <td>{{ row.summary.intervall|default:"—" }}</td>
+            <td>{{ row.summary.prioritaet|default:"—" }}</td>
+            <td>
+                <span title="{{ row.position.hint|default:'' }}">{{ row.position.hint|truncatechars:30|default:"—" }}</span>
+                <a href="{% url 'euer_position_hint' row.position.pk %}" class="btn btn-sm btn-outline-secondary py-0 ms-1" title="Hinweis bearbeiten"><i class="bi bi-pencil"></i></a>
+            </td>
+            <td class="text-end">{{ row.summary.täglich|floatformat:2 }} €</td>
+            <td class="text-end">{{ row.summary.wöchentlich|floatformat:2 }} €</td>
+            <td class="text-end">{{ row.summary.monatlich|floatformat:2 }} €</td>
+            <td class="text-end">{{ row.summary.jährlich|floatformat:2 }} €</td>
+            <td>{{ row.summary.konto|default:"—" }}</td>
+            <td>
+                <span class="btn-group">
+                    <a href="{% url 'euer_wizard_step1' %}?edit={{ row.position.pk }}" class="btn btn-sm btn-outline-primary py-0" title="Bearbeiten"><i class="bi bi-pencil"></i></a>
+                    <a href="{% url 'euer_position_delete' row.position.pk %}" class="btn btn-sm btn-outline-danger py-0" title="Löschen"><i class="bi bi-trash"></i></a>
+                </span>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
     <tfoot>
         <tr class="table-secondary fw-bold">
-            <td>Jahressumme</td>
-            <td class="text-end positive">{{ total_income|floatformat:2 }} €</td>
-            <td class="text-end negative">{{ total_expenses|floatformat:2 }} €</td>
-            <td class="text-end {% if total_balance >= 0 %}positive{% else %}negative{% endif %}">{{ total_balance|floatformat:2 }} €</td>
+            <td>Summe</td>
+            <td class="text-end">{{ totals.betrag|floatformat:2 }} €</td>
+            <td colspan="6"></td>
+            <td></td>
+            <td class="text-end">{{ totals.täglich|floatformat:2 }} €</td>
+            <td class="text-end">{{ totals.wöchentlich|floatformat:2 }} €</td>
+            <td class="text-end">{{ totals.monatlich|floatformat:2 }} €</td>
+            <td class="text-end">{{ totals.jährlich|floatformat:2 }} €</td>
+            <td></td>
+            <td></td>
         </tr>
     </tfoot>
 </table>
+</div>
+{% else %}
+<p class="text-muted">Keine Positionen für {{ year }} vorhanden. Über den Wizard anlegen.</p>
+{% endif %}
 {% endblock %}

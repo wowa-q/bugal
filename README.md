@@ -21,7 +21,7 @@ Die Anwendung ist bewusst einfach gehalten:
 - **Schnellzuweisung direkt in der Liste**: Art (FIX/FLEX), Priorität und Intervall pro Buchung setzen, Kategorien zuweisen oder entfernen
 - **Notizen**: freier Text zu jeder einzelnen Buchung (z. B. Erinnerungen, Belegnummer)
 - **Vorhersagen**: wiederkehrende Zahlungen (Miete, Abos, Gehalt …) werden erkannt und der nächste Termin prognostiziert
-- **EÜR-Jahresbericht** mit monatlichen Einnahmen, Ausgaben und Saldo
+- **EÜR-Bericht** mit Positionen je Kalenderjahr – jede Position fasst mehrere Transaktionen zusammen und zeigt abgeleitete und normalisierte Werte
 - **Dashboard** mit den wichtigsten Kennzahlen des aktuellen Monats
 
 ---
@@ -217,13 +217,18 @@ Am besten nach jedem größeren Import ausführen.
 
 ### EÜR-Bericht
 
-Jahresübersicht zur Einnahmen-Überschuss-Rechnung:
+Der EÜR-Bericht stellt für ein Kalenderjahr **Positionen** zusammen. Eine Position ist ein Sammelposten, der mehrere Transaktionen bündelt und als eine Zeile bilanziert wird.
 
-- Auswahl des Jahres (aktuelles Jahr ist vorausgewählt)
-- Tabelle mit Monat, Einnahmen, Ausgaben und Saldo
-- Jahressummen am Ende der Tabelle
+**Je Position wird angezeigt:**
+- **Position** – Name des Sammelpostens und **Betrag** als Summe aller zugeordneten Transaktionen
+- **Kategorie, Sub-Kategorie, Typ (FIX/FLEX), Intervall und Priorität** – jeweils aus der ersten Transaktion der Position abgeleitet. Da alle Transaktionen einer Position einheitlich sein sollten, wird eine Warnung angezeigt, wenn Werte innerhalb der Position voneinander abweichen
+- **Wird gezahlt über** – das Konto der ersten Transaktion, ebenfalls mit Warnung bei abweichenden Konten innerhalb der Position
+- **Betrag täglich, wöchentlich, monatlich, jährlich** – aus dem Summenbetrag und dem Intervall der Position berechnet (z. B. monatlich = jährlich / 12). Die Intervalle `einmalig` und `geplant` werden wie `jährlich` behandelt; `einmalig` und `abgelaufen` können nicht als Ausgangsintervall für eine neue Position gewählt werden und bei `abgelaufen` werden die bereits berechneten Werte nicht neu berechnet
+- **Hinweis** – freier Kommentar je Position
 
-Positive Salden werden grün, negative rot dargestellt.
+Am Ende der Tabelle wird die Summe über alle Positionen des Jahres gebildet.
+
+**Positionen erstellen:** Über einen geführten Ablauf wird eine Position mit Namen, Jahr und Hinweis angelegt und es werden Transaktionen zugewiesen. Eine Transaktion kann nur in einer Position desselben Jahres enthalten sein. Der Bericht filtert nach dem Jahr der Position, nicht nach dem Datum der Transaktionen – so können z. B. Januar-Buchungen einem abgelaufenen Jahr zugeordnet werden.
 
 ---
 

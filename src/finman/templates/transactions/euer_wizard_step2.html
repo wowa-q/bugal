@@ -1,0 +1,27 @@
+{% extends 'transactions/base.html' %}
+{% block title %}Position anlegen – Schritt 2 - EÜR-Manager{% endblock %}
+{% block content %}
+<h1 class="mb-2">Wizard – Schritt 2: Transaktionen zuweisen</h1>
+<p class="text-muted">Position: <strong>{{ wizard_name }}</strong> ({{ wizard_year }}) – Transaktionen wählen (max. 500, noch keiner Position in {{ wizard_year }} zugeordnet).</p>
+<form method="post">
+    {% csrf_token %}
+    {% include 'transactions/_form_alert.html' %}
+    <div class="card mb-3">
+        <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+            {% for choice in form.transaction_ids %}
+            <div class="form-check">
+                {{ choice.tag }}
+                <label class="form-check-label" for="{{ choice.id_for_label }}">{{ choice.choice_label }}</label>
+            </div>
+            {% empty %}
+            <p class="text-muted">Keine verfügbaren Transaktionen.</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% include 'transactions/_field_errors.html' with field=form.transaction_ids %}
+    <div class="d-flex justify-content-between">
+        <a href="{% url 'euer_wizard_step1' %}" class="btn btn-outline-secondary">Zurück</a>
+        <button type="submit" class="btn btn-primary">Weiter zu Schritt 3</button>
+    </div>
+</form>
+{% endblock %}

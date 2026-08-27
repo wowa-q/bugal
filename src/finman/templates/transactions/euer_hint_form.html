@@ -1,0 +1,55 @@
+{% extends 'transactions/base.html' %}
+{% block title %}Position bearbeiten - EÜR-Manager{% endblock %}
+{% block content %}
+<h1 class="mb-2">Position bearbeiten: {{ object.name }} ({{ object.year }})</h1>
+<p class="text-muted">Werte gelten nur für die Position. Leere Transaktionsfelder übernehmen diese Werte, abweichende zeigen eine Warnung im Bericht.</p>
+<div class="card" style="max-width: 650px;">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {% include 'transactions/_form_alert.html' %}
+            <div class="row g-2">
+                <div class="col-md-8 mb-3">
+                    <label class="form-label" for="{{ form.name.id_for_label }}">Position</label>
+                    {{ form.name }}
+                    {% include 'transactions/_field_errors.html' with field=form.name %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label" for="{{ form.year.id_for_label }}">Jahr</label>
+                    {{ form.year }}
+                    {% include 'transactions/_field_errors.html' with field=form.year %}
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="{{ form.category.id_for_label }}">Kategorie</label>
+                {{ form.category }}
+                {% include 'transactions/_field_errors.html' with field=form.category %}
+            </div>
+            <div class="row g-2">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label" for="{{ form.art.id_for_label }}">Typ</label>
+                    {{ form.art }}
+                    {% include 'transactions/_field_errors.html' with field=form.art %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label" for="{{ form.intervall.id_for_label }}">Intervall</label>
+                    {{ form.intervall }}
+                    {% include 'transactions/_field_errors.html' with field=form.intervall %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label" for="{{ form.prioritaet.id_for_label }}">Priorität</label>
+                    {{ form.prioritaet }}
+                    {% include 'transactions/_field_errors.html' with field=form.prioritaet %}
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="{{ form.hint.id_for_label }}">Hinweis</label>
+                {{ form.hint }}
+                {% include 'transactions/_field_errors.html' with field=form.hint %}
+            </div>
+            <a href="{% url 'report_euer' %}?year={{ object.year }}" class="btn btn-outline-secondary">Abbrechen</a>
+            <button type="submit" class="btn btn-primary">Speichern</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

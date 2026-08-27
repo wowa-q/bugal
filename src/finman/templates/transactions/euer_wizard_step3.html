@@ -1,0 +1,42 @@
+{% extends 'transactions/base.html' %}
+{% block title %}Position anlegen – Schritt 3 - EÜR-Manager{% endblock %}
+{% block content %}
+<h1 class="mb-2">Wizard – Schritt 3: Prüfen & Speichern</h1>
+<p class="text-muted">Position: <strong>{{ wizard_name }}</strong> ({{ wizard_year }})</p>
+{% if wizard_hint %}<p class="text-muted">Hinweis: {{ wizard_hint }}</p>{% endif %}
+
+<div class="card mb-3">
+    <div class="card-header">Zugeordnete Transaktionen ({{ wizard_txs|length }})</div>
+    <ul class="list-group list-group-flush">
+        {% for tx in wizard_txs %}
+        <li class="list-group-item small">{{ tx.date }} | {{ tx.debitor|truncatechars:40 }} | {{ tx.value }} €</li>
+        {% empty %}
+        <li class="list-group-item text-muted">Keine Transaktionen ausgewählt – Position wird ohne Zuordnung angelegt.</li>
+        {% endfor %}
+    </ul>
+</div>
+
+{% if preview %}
+<div class="card mb-3">
+    <div class="card-body">
+        <p><strong>Betrag:</strong> {{ preview.betrag }} € |
+           <strong>Kategorie:</strong> {{ preview.kategorie|default:"—" }} / {{ preview.sub_kategorie|default:"—" }} |
+           <strong>Typ:</strong> {{ preview.typ|default:"—" }} |
+           <strong>Intervall:</strong> {{ preview.intervall|default:"—" }} |
+           <strong>Konto:</strong> {{ preview.konto|default:"—" }}</p>
+        <p class="small text-muted">Täglich: {{ preview.täglich }} € | Wöchentlich: {{ preview.wöchentlich }} € | Monatlich: {{ preview.monatlich }} € | Jährlich: {{ preview.jährlich }} €</p>
+        {% if preview.has_warning %}
+        <div class="alert alert-warning py-2">Warnung: Werte in Position nicht einheitlich ({{ preview.warnings|join:", " }})</div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <div class="d-flex justify-content-between">
+        <a href="{% url 'euer_wizard_step2' %}" class="btn btn-outline-secondary">Zurück</a>
+        <button type="submit" class="btn btn-success">Position speichern</button>
+    </div>
+</form>
+{% endblock %}

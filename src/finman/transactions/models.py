@@ -212,6 +212,40 @@ class TransactionInfo(models.Model):
         return f"Info: {self.transaction.debitor}"
 
 
+class EuerPosition(models.Model):
+    name = models.CharField(max_length=100)
+    hint = models.TextField(blank=True, default='')
+    year = models.IntegerField()
+    category = models.ForeignKey(
+        Category,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='euer_positions',
+    )
+    art = models.CharField(max_length=10, choices=ART_CHOICES, blank=True)
+    intervall = models.CharField(max_length=20, choices=INTERVALL_CHOICES, blank=True)
+    prioritaet = models.CharField(
+        max_length=20, choices=PRIORITAET_CHOICES, blank=True
+    )
+    transactions = models.ManyToManyField(
+        'Transaction',
+        related_name='euer_positions',
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+        unique_together = [('name', 'year')]
+        verbose_name = 'EÜR-Position'
+        verbose_name_plural = 'EÜR-Positionen'
+
+    def __str__(self):
+        return f"{self.name} ({self.year})"
+
+
 class PredictionResult(models.Model):
     debitor = models.CharField(max_length=255)
     category = models.ForeignKey(

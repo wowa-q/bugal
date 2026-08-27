@@ -4,6 +4,7 @@ from .models import (
     ART_CHOICES,
     INTERVALL_CHOICES,
     PRIORITAET_CHOICES,
+    EuerPosition,
     FilterRule,
     TransactionCategory,
     TransactionInfo,
@@ -230,3 +231,99 @@ class TransactionFilterForm(forms.Form):
         choices=[('', 'Alle')] + INTERVALL_CHOICES,
         widget=forms.Select(attrs={'class': 'form-select form-select-sm'}),
     )
+
+
+CREATION_FORBIDDEN_INTERVALLS = {'einmalig', 'abgelaufen'}
+
+
+class EuerPositionForm(forms.ModelForm):
+    category = CategoryChoiceField(
+        queryset=Category.objects.all(),
+        required=False,
+        empty_label='— Keine Kategorie —',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+    art = forms.ChoiceField(
+        required=False,
+        choices=[('', '— Keine Angabe —')] + ART_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='Typ',
+    )
+    intervall = forms.ChoiceField(
+        required=False,
+        choices=[('', '— Keine Angabe —')] + INTERVALL_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+    prioritaet = forms.ChoiceField(
+        required=False,
+        choices=[('', '— Keine Angabe —')] + PRIORITAET_CHOICES,
+        label='Priorität',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+
+    class Meta:
+        model = EuerPosition
+        fields = ['name', 'year', 'category', 'art', 'intervall', 'prioritaet', 'hint']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'year': forms.NumberInput(attrs={'class': 'form-control'}),
+            'hint': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+        labels = {
+            'category': 'Kategorie',
+            'hint': 'Hinweis',
+        }
+
+    def clean_name(self):
+        name = self.cleaned_data.get('name', '').strip()
+        if not name:
+            raise forms.ValidationError('Bitte einen Namen angeben.')
+        return name
+
+    def clean(self):
+        cleaned = super().clean()
+        name = cleaned.get('name')
+        year = cleaned.get('year')
+        if name and year:
+            qs = EuerPosition.objects.filter(name__iexact=name.strip(), year=year)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError(
+                    f"Eine Position '{name.strip()}' existiert bereits für Jahr {year}."
+                )
+        return cleaned
+
+
+class PositionTransactionsForm(forms.Form):
+    transaction_ids = forms.MultipleChoiceField(
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    def __init__(self, *args, year=None, exclude_position=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        from .models import EuerPosition, Transaction
+        assigned_ids = set(
+            EuerPosition.objects.filter(year=year)
+            .exclude(pk=exclude_position.pk if exclude_position else None)
+            .values_list('transactions__id', flat=True)
+        )
+        assigned_ids.discard(None)
+        base_qs = list(Transaction.objects.order_by('-date')[:500])
+        base_ids = {tx.pk for tx in base_qs}
+        choices = []
+        for tx in base_qs:
+            if tx.pk not in assigned_ids:
+                choices.append((str(tx.pk), f"{tx.date} | {tx.debitor[:40]} | {tx.value} €"))
+        if exclude_position:
+            missing = []
+            for tx in exclude_position.transactions.select_related().all():
+                if tx.pk not in base_ids and tx.pk not in assigned_ids:
+                    missing.append(tx)
+            for tx in sorted(missing, key=lambda t: t.date, reverse=True):
+                choices.append((str(tx.pk), f"{tx.date} | {tx.debitor[:40]} | {tx.value} € (zugeordnet)"))
+        self.fields['transaction_ids'].choices = choices
+
+    def clean_transaction_ids(self):
+        return [int(v) for v in self.cleaned_data.get('transaction_ids') or []]

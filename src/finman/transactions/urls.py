@@ -21,4 +21,9 @@ urlpatterns = [
     path('rules/<int:pk>/delete/', views.RuleDeleteView.as_view(), name='rule_delete'),
     path('predictions/', views.prediction_list, name='prediction_list'),
     path('reports/euer/', views.report_euer, name='report_euer'),
+    path('reports/euer/wizard/step1/', views.EuerWizardStep1View.as_view(), name='euer_wizard_step1'),
+    path('reports/euer/wizard/step2/', views.EuerWizardStep2View.as_view(), name='euer_wizard_step2'),
+    path('reports/euer/wizard/step3/', views.EuerWizardStep3View.as_view(), name='euer_wizard_step3'),
+    path('reports/euer/<int:pk>/hint/', views.EuerPositionHintView.as_view(), name='euer_position_hint'),
+    path('reports/euer/<int:pk>/delete/', views.EuerPositionDeleteView.as_view(), name='euer_position_delete'),
 ]

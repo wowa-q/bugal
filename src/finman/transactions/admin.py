@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from .models import (
     Category,
+    EuerPosition,
     FilterRule,
     ImportHistory,
     PredictionResult,
@@ -54,6 +55,14 @@ class TransactionMetaAdmin(admin.ModelAdmin):
     list_display = ['transaction', 'rule', 'art', 'prioritaet', 'intervall']
     list_filter = ['art', 'prioritaet', 'intervall']
     search_fields = ['transaction__debitor']
+
+
+@admin.register(EuerPosition)
+class EuerPositionAdmin(admin.ModelAdmin):
+    list_display = ['name', 'year', 'category', 'art', 'intervall', 'prioritaet']
+    list_filter = ['year', 'intervall', 'art', 'prioritaet']
+    search_fields = ['name', 'hint']
+    filter_horizontal = ['transactions']
 
 
 @admin.register(PredictionResult)
